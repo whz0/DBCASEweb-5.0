@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="head.html"> </head>
+<style>
+h2{
+ color: #343a40;
+}
+</style>
+<body th:classappend="${theme=='dark'} ? 'text-white bg-dark' : 'text-dark bg-light'">
+	 <div class="wrapper" style="height: 100%;">
+        <!-- Sidebar  -->
+        <nav th:replace="sidebar.html"> </nav>
+        <!-- Sidebar  -->
+        <!-- Page Content  -->
+        <div id="wrapper" style="width: 100%;position: absolute;height: 100%;">
+	    	<div class="pos-f-t" style="z-index: 1021;position: relative;">
+	    		<nav class="navbar navbar-expand-lg navbar-light" th:classappend="${theme=='dark'} ? 'bg-dark' : 'bg-light'">
+			        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample10" aria-controls="navbarsExample10" aria-expanded="false" aria-label="Toggle navigation" style="z-index:1;">
+			          <span class="navbar-toggler-icon"></span>
+			        </button>
+			        <div class="collapse navbar-collapse" id="navbarsExample10" style="z-index: 1;">
+			          <ul class="navbar-nav">
+			          	<li class="nav-item rounded" th:classappend="${theme=='dark'} ? bg-light : bg-dark">
+			              <a class="nav-link" href="#" id="sidebarCollapse"     th:text="#{add.items}" th:classappend="${theme=='dark'} ? text-dark : text-light"></a>
+			            </li>
+			            <li class="nav-item dropdown">
+			              <a class="nav-link dropdown-toggle" href="#" id="general-file" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" th:text="#{general.file}" th:classappend="${theme=='dark'} ? text-light : text-dark"></a>
+			              <div class="dropdown-menu" aria-labelledby="general-file" th:classappend="${theme=='dark'} ? 'bg-dark' : 'bg-light'" style="z-index: 1021;">
+			                <a class="dropdown-item" id="general-new" href="#" th:text="#{general.new}" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"></a>
+			                <a class="dropdown-item" id="loadFile" href="#" th:text="#{general.open}" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"></a>
+			                <a class="dropdown-item" id="saveAs" href="#" th:text="#{general.export}" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"></a>
+			                <a class="dropdown-item" id="general-print" href="#" th:text="#{general.print}" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"></a>
+			                
+			              </div>
+			            </li>
+			            <li class="nav-item dropdown">
+			              <a class="nav-link dropdown-toggle" href="#" id="general-options" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" th:text="#{general.options}" th:classappend="${theme=='dark'} ? text-light : text-dark"></a>
+			              <div class="dropdown-menu" aria-labelledby="general-options" th:classappend="${theme=='dark'} ? 'bg-dark' : 'bg-light'">
+			              	<a class="text-center nav-link dropdown-toggle" href="#" id="general-theme" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" th:text="#{general.theme}" th:classappend="${theme=='dark'} ? 'text-light' : 'text-dark'"></a>
+				        	<a href="/theme?theme=dark" class="changeOptions dropdown-item" th:classappend="${theme=='dark'} ? active : 'when-white'" th:text="#{general.dark}"></a>
+				            <a href="/theme?theme=light" class="changeOptions dropdown-item" th:classappend="${theme=='light'} ? active : 'when-dark'" th:text="#{general.light}"></a>
+				            <div class="dropdown-divider"></div>
+			                <a class="text-center nav-link dropdown-toggle" href="#" id="general-language" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" th:text="#{general.language}" th:classappend="${theme=='dark'} ? 'text-light' : 'text-dark'"></a>
+			            	<a href="/lang?lang=es" class="changeOptions dropdown-item" th:classappend="${language=='es'} ? (${theme=='dark'} ? 'text-light active' : 'active text-dark') : (${theme=='dark'} ? 'when-dark' : 'when-white')" th:text="#{general.es}"></a>
+				            <a href="/lang?lang=en" class="changeOptions dropdown-item" th:classappend="${language=='en'} ? (${theme=='dark'} ? 'text-light active' : 'active text-dark') : (${theme=='dark'} ? 'when-dark' : 'when-white')" th:text="#{general.en}"></a>
+			              </div>
+			            </li>
+			            <li class="nav-item dropdown">
+			              <a class="nav-link dropdown-toggle" href="#" id="dropdown10" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" th:text="#{general.view}" th:classappend="${theme=='dark'} ? 'text-light' : 'text-dark'"></a>
+			              <div class="dropdown-menu" aria-labelledby="dropdown10" th:classappend="${theme=='dark'} ? 'bg-dark' : 'bg-light'">
+			                <a class="change-aparience dropdown-item text-center active" value="1" href="#" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"><img width=70 th:src="${(language=='es') ? 'static/images/p2.png' : 'static/images/p2E.png'}" alt="p2"></a>
+   			                <a class="change-aparience dropdown-item text-center" value="5" href="#" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"><img width=65 th:src="${(language=='es') ? 'static/images/p6.png' : 'static/images/p6E.png'}" alt="p6"></a>
+			                <a class="change-aparience dropdown-item text-center" value="2" href="#" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"><img width=65 th:src="${(language=='es') ? 'static/images/p3.png' : 'static/images/p3E.png'}" alt="p3"></a>
+			                <a class="change-aparience dropdown-item text-center" value="3" href="#" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"><img width=65 th:src="${(language=='es') ? 'static/images/p4.png' : 'static/images/p4E.png'}" alt="p4"></a>
+			                <a class="change-aparience dropdown-item text-center" value="4" href="#" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"><img width=65 th:src="${(language=='es') ? 'static/images/p5.png' : 'static/images/p5E.png'}" alt="p5"></a>
+			                			                <a class="change-aparience dropdown-item text-center" value="0" href="#" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"><img width=65 th:src="${(language=='es') ? 'static/images/p1.png' : 'static/images/p1E.png'}" alt="p1"></a>
+			              </div>
+			            </li>
+			            <li class="nav-item dropdown">
+			              <a class="nav-link dropdown-toggle" href="#" id="dropdown10" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" th:text="#{general.help}" th:classappend="${theme=='dark'} ? 'text-light' : 'text-dark'"></a>
+			              <div class="dropdown-menu" aria-labelledby="dropdown10" th:classappend="${theme=='dark'} ? 'bg-dark' : 'bg-light'">
+			                <a class="dropdown-item" id="general-about" href="#" th:text="#{general.about}" th:classappend="${theme=='dark'} ? 'when-dark' : 'when-white'"></a>
+			              </div>
+			            </li>
+			          </ul>
+			        </div>
+			        <h1 th:text="${statusTitle}"></h1>
+			        <div class="text-center w-100 position-fixed" style="top:25px;"><span class="h4 " th:classappend="${theme=='dark'} ? text-light : text-dark">DBCASE Web</span><br>
+			       	 <label class = doc-custom><input class="docs-title" id="docs-title" type="text"  th:value="#{textosId.newDocument}" aria-label="Cambiar nombre" > <span>.dbw </span> </div>
+			      
+			       </label>
+			        <div class="dropdown">
+						<img th:attr="src=${perfil.userAuthentication.Details.picture},alt=${perfil.userAuthentication.Details.given_name}" class="dropdown-toggle rounded-circle" width="50" height="50" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">  
+						<div id="dropDownMenu" class="dropdown-menu" th:classappend="${theme=='dark'} ? bg-dark : bg-light" aria-labelledby="dropdownMenuButton" style="left: unset;right: 0;z-index: 1000000;">
+						    <a class="dropdown-item text-center" th:classappend="${theme=='dark'} ? text-light : text-dark" th:text="#{general.saludo}+' '+ ${perfil.userAuthentication.Details.given_name}" ></a>
+						    <a class="dropdown-item text-center" th:classappend="${theme=='dark'} ? text-light : text-dark" href="/logout" th:text="#{general.logout}"></a>
+						</div>
+					</div>
+			      </nav>
+	         </div>
+          	<div style="height: 100%;position: absolute;width: 100%;top: 0px;padding-top: 80px;">
+          		<div class="row w-100 h-100 mr-0 ml-0">
+          			<div class="changeSizeWidth col-md-6 pr-0 pl-0 h-100 border-top" id="frame1" th:classappend="${theme=='dark'} ? border-light : border-dark">
+          				<div class="row pl-2 pt-2 " th:classappend="${theme=='dark'} ? bg-dark : bg-light">
+							  <div class="col-6 col-md-6"><p class="h5 mt-2" th:classappend="${theme=='dark'} ? 'text-white' : 'text-dark'" th:text="#{textos.conceptualSchema}"></p></div>
+						</div>
+
+						<div class="col-6 col-md-6 sticky-top" >
+							<button type="button" id="undoLastAction" class="btn ml-2 arrowIcon" th:classappend="${theme=='dark'} ? btn-dark : btn-light"><i class="bi bi-arrow-90deg-left text-success"></i></button>
+							<button type="button" id="redoLastAction" class="btn ml-2 arrowIcon" th:classappend="${theme=='dark'} ? btn-dark : btn-light"><i class="bi bi-arrow-90deg-right text-success"></i></button>
+						</div>
+						<div id="diagram_super" style="top: 0px;position: absolute;visibility: hidden;" class="w-100 h-100">
+						</div>
+          				<div id="diagram" style="top: 0px;position: absolute;" class="w-100 h-100">
+						</div>
+          			</div>
+          			<div class="col-md-2 h-100 border-top border-left border-right" style="overflow: auto;" id="frame2" th:classappend="${theme=='dark'} ? border-light : border-dark">
+          				<div class="row pt-2" th:classappend="${theme=='dark'} ? bg-dark : bg-light">
+							  <ul class="col-md-12 pl-3 nav nav-tabs" id="myTab" role="tablist">
+							  <li class="nav-item w-50 text-center">
+							    <a class="nav-link active pl-1 pr-1" id="home-tab" style="text-overflow: ellipsis;overflow: hidden;" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true" th:classappend="${theme=='dark'} ? 'text-white t-white' : 't-dark'" th:text="#{textos.elements}">Home</a>
+							  </li>
+							  <li class="nav-item w-50 text-center">
+							    <a class="nav-link pl-1 pr-1" id="profile-tab" style="text-overflow: ellipsis;overflow: hidden;" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false" th:classappend="${theme=='dark'} ? 'text-white t-white' : 't-dark'" th:text="#{textos.domain}">Profile</a>
+							  </li>
+							</ul>
+							<div class="tab-content w-100" id="myTabContent">
+							  <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+							  		<div class="col-md-12">
+							  			<p class="h6 mt-2" th:classappend="${theme=='dark'} ? 'text-white' : 'text-dark'" th:text="#{item.entitys}"></p>
+							  			<div id="accordion">
+										</div>
+										<p class="h6 mt-2" th:classappend="${theme=='dark'} ? 'text-white' : 'text-dark'" th:text="#{item.relations}"></p>
+							  			<div id="accordion2">
+										</div>
+							  		</div>
+							  </div>
+							  <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+							  		<div class="col-12 col-md-12 text-center"><button type="button" class="mt-2 mb-2 btn" id="openCreateDomain" th:classappend="${theme=='dark'} ? btn-dark : btn-light" th:text="#{general.new}"></button></div>
+							  		<ul id="itemsDomains" class="list-group text-center mr-2 ml-2">									  
+									</ul>
+							  </div>
+							</div>
+							  <div class="col-6 col-md-6"><p class="h5 mt-2" th:classappend="${theme=='dark'} ? 'text-white' : 'text-dark'" ></p></div>
+						</div>
+          				<!-- <div style="top: 0px;position: absolute;" class="w-100 h-100">
+						</div> -->
+          			</div>
+          			<div class="col-md-4 changeSizeWidthData border-top" style="min-height: 500px;" id="frame3" th:classappend="${theme=='dark'} ? border-light : border-dark">
+          				<div class="col-md-12 pr-0 pl-0 h-50 border-bottom" style="overflow-y: auto;overflow-x: hidden;" id="frame4"  th:classappend="${theme=='dark'} ? border-light : border-dark">
+          					<div id="sticky-top" class="row pt-0 sticky-top" th:classappend="${theme=='dark'} ? bg-dark : bg-light">
+							  <div class="col-6 col-md-6"><p class="h5 mt-2" th:classappend="${theme=='dark'} ? 'text-white' : 'text-dark'" th:text="#{textos.logicalSchema}"></p></div>
+							  <div class="col-6 col-md-6"><button type="button" class="btn float-right ml-2" id="down_schema_logic" th:classappend="${theme=='dark'} ? btn-dark : btn-light" th:text="#{button.saveAs}"></button><button type="button" id="btnTest" class="btn float-right" th:classappend="${theme=='dark'} ? btn-dark : btn-light" th:text="#{button.generate}"></button></div>
+
+							</div>
+							<div class="w-100" id="testResult" style="position: absolute;">
+							</div>
+          				</div>
+          				<div class="col-md-12 pr-0 pl-0 h-50" style="overflow-y: auto;overflow-x: hidden;" id="frame5">
+          					<div class="row pt-2 sticky-top" th:classappend="${theme=='dark'} ? bg-dark : bg-light">
+								<div class="col-4 col-md-4"><p class="h5" th:classappend="${theme=='dark'} ? 'text-white' : 'text-dark'" th:text="#{textos.PhysicalSchema}"></p></div>
+								<div class="col-8 col-md-8">
+									<select class="float-right ml-2 form-control" id="selectLenguage" th:classappend="${theme=='dark'} ? 'bg-dark text-white' : 'bg-light text-dark'">
+										<option value="0">MySQL</option>
+										<option value="1">Microsoft Access .mdb</option>
+										<option value="2">Microsoft Access via ODBC</option>
+										<option value="3">Oracle</option>
+									</select>
+									<button type="button" class="btn float-right" th:classappend="${theme=='dark'} ? btn-dark : btn-light" data-toggle="modal" data-target="#executeModal" th:text="#{button.execute}"></button>
+									<button type="button" class="btn float-right ml-2" th:classappend="${theme=='dark'} ? btn-dark : btn-light" id="down_schema_physical" th:text="#{button.saveAs}"></button>
+									<button type="button" id="btnTestScriptSQL" class="btn float-right" th:classappend="${theme=='dark'} ? btn-dark : btn-light" th:text="#{button.generate}"></button>
+
+								</div>
+							</div>
+							<div class="w-100" id="resultSPhysicalSchema" style="position: absolute;">
+							</div>
+          				</div> 
+          			</div>
+          		</div>
+			</div>
+			<!-- Modal -->
+			<style>
+				.dark-modal {
+					color: #fff !important;
+					background-color: #343a40 !important;
+					border-color: #343a40 !important;
+				}
+				.light-modal {
+					color: #343a40 !important;
+					background-color: #fff !important;
+					border-color: #fff !important;
+				}
+				.executeInputs::placeholder {
+					opacity: 0.4;
+				}
+			</style>
+			<div class="modal fade" id="executeModal" tabindex="-1" role="dialog"  aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content" th:classappend="${theme=='dark'} ? dark-modal : light-modal">
+					<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLongTitle">Configure DBMS Connection</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					</div>
+					<div class="modal-body">
+						<div class="form-group">
+							<label for="serverInput">Server</label>
+							<input type="text" class="form-control executeInputs" id="serverInput" placeholder="localhost">
+						</div>
+						<div class="form-group">
+							<label for="portInput">Port</label>
+							<input type="text" class="form-control executeInputs" id="portInput" placeholder="3306">
+						</div>
+						<div class="form-group">
+							<label for="databaseInput">Database</label>
+							<input type="text" class="form-control executeInputs" id="databaseInput" placeholder="test">
+						</div>
+						<div class="form-group">
+							<label for="usernameInput">User</label>
+							<input type="text" class="form-control executeInputs" id="usernameInput" placeholder="root">
+						</div>
+						<div class="form-group">
+							<label for="passInput">Password</label>
+							<input type="text" class="form-control executeInputs" id="passInput" placeholder="">
+						</div>
+					</div>
+					<div class="modal-footer">
+					<!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
+					<button type="button" class="btn btn-secondary" id="btnHit">Hit</button>
+					<button type="button" class="btn btn-success" id="testConnection">Test</button>
+					<button type="button" class="btn btn-primary disabled" id="executeScriptSQL">Execute</button>
+					</div>
+				</div>
+				</div>
+			</div>
+
+			<div class="col-md-12">
+				<div id="diagram_super" style="top: 500px;position: absolute;">
+				</div>
+			</div>
+            <div th:replace="footer.html"> </div>
+        </div>
+    </div>
+    <!-- Bootstrap JS -->
+<!-- Modal -->
+<div class="modal fade" id="modalAddItem" tabindex="-1" role="dialog" style="z-index: 10001;" aria-labelledby="modalAddItemTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" th:classappend="${theme=='dark'} ? 'text-white bg-dark' : 'text-dark bg-light'">
+      <div class="modal-header">
+        <h5 class="modal-title" id="titleModal"></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true" th:classappend="${theme=='dark'} ? 'text-white' : 'text-dark'">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="formModal">
+      </div>
+      <div class="modal-footer" id="formModalButton">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" th:text="#{textos.close}"></button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" id="insertModal" disabled th:text="#{textos.insert}"></button>
+      </div>
+    </div>
+  </div>
+</div>
+<div th:replace="textJS.html"> </div>
+<div th:replace="templatesModal.html"> </div>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="1315e99e-3e67-4058-8134-b48eb3379318" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ejecutable.bat" beforeDir="false" afterPath="$PROJECT_DIR$/ejecutable.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/modelo/conectorDBMS/ConectorAccessOdbc.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/modelo/conectorDBMS/ConectorAccessOdbc.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/modelo/conectorDBMS/ConectorMySQL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/modelo/conectorDBMS/ConectorMySQL.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/modelo/conectorDBMS/ConectorOracle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/modelo/conectorDBMS/ConectorOracle.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/modelo/servicios/ServiciosDominios.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/modelo/servicios/ServiciosDominios.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/modelo/transfers/TipoDominio.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/modelo/transfers/TipoDominio.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/static/js/domainsTypes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/static/js/domainsTypes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/static/js/vis-dates.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/static/js/vis-dates.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/templatesModal.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/templatesModal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT.war" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT.war" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT.war.original" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT.war.original" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/conectorDBMS/ConectorAccessOdbc.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/conectorDBMS/ConectorAccessOdbc.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/conectorDBMS/ConectorMySQL.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/conectorDBMS/ConectorMySQL.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/conectorDBMS/ConectorOracle.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/conectorDBMS/ConectorOracle.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/servicios/ServiciosDominios$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/servicios/ServiciosDominios$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/servicios/ServiciosDominios.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/servicios/ServiciosDominios.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/transfers/TipoDominio.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/modelo/transfers/TipoDominio.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/static/static/images/icons/rehacer.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/static/static/js/domainsTypes.js" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/static/static/js/domainsTypes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/static/static/js/vis-dates.js" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/static/static/js/vis-dates.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/templates/templatesModal.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/DBCaseWeb-0.0.1-SNAPSHOT/WEB-INF/classes/templates/templatesModal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/modelo/conectorDBMS/ConectorAccessOdbc.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/modelo/conectorDBMS/ConectorAccessOdbc.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/modelo/conectorDBMS/ConectorMySQL.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/modelo/conectorDBMS/ConectorMySQL.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/modelo/conectorDBMS/ConectorOracle.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/modelo/conectorDBMS/ConectorOracle.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/modelo/servicios/ServiciosDominios$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/modelo/servicios/ServiciosDominios$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/modelo/servicios/ServiciosDominios.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/modelo/servicios/ServiciosDominios.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/modelo/transfers/TipoDominio.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/modelo/transfers/TipoDominio.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/static/js/domainsTypes.js" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/static/js/domainsTypes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/static/js/vis-dates.js" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/static/js/vis-dates.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/templatesModal.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/templatesModal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.tfg.ucm.DBCaseWeb.DbCaseWebApplicationTests.xml" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/TEST-com.tfg.ucm.DBCaseWeb.DbCaseWebApplicationTests.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.tfg.ucm.DBCaseWeb.DbCaseWebApplicationTests.txt" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/com.tfg.ucm.DBCaseWeb.DbCaseWebApplicationTests.txt" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="UML Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2bhCRUVJBifLw17JvXYFxgjTTEG" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultPlantUmlFileTemplate&quot;: &quot;UML Class&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/mbarc/Downloads/DBCase3.0-master&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.ide.settings.uml&quot;,
+    &quot;settings.editor.splitter.proportion&quot;: &quot;0.20795107&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;Shell Script&quot;
+    ]
+  }
+}</component>
+  <component name="RunManager" selected="Application.GoogleserviceApplication">
+    <configuration name="Controlador" type="Application" factoryName="Application" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="MAIN_CLASS_NAME" value="controlador.Controlador" />
+      <module name="DBCaseWeb" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="controlador.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GoogleserviceApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <output_file path="C:\Users\mbarc\Documents\UNI\5º\TFG\logs\output_log.txt" is_save="true" />
+      <option name="MAIN_CLASS_NAME" value="com.tfg.ucm.DBCaseWeb.GoogleserviceApplication" />
+      <module name="DBCaseWeb" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tfg.ucm.DBCaseWeb.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ejecutable" type="BatchConfigurationType" factoryName="Batch" temporary="true">
+      <module name="DBCaseWeb" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SCRIPT_NAME" value="ejecutable.bat" />
+      <option name="PARAMETERS" value="" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Unnamed" type="Remote" nameIsGenerated="true">
+      <module name="DBCaseWeb" />
+      <option name="USE_SOCKET_TRANSPORT" value="true" />
+      <option name="SERVER_MODE" value="true" />
+      <option name="SHMEM_ADDRESS" />
+      <option name="HOST" value="localhost" />
+      <option name="PORT" value="5005" />
+      <option name="AUTO_RESTART" value="true" />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="5005" />
+        <option name="LOCAL" value="false" />
+      </RunnerSettings>
+      <method v="2" />
+    </configuration>
+    <configuration name="GoogleserviceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="DBCaseWeb" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.tfg.ucm.DBCaseWeb.GoogleserviceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.Controlador" />
+      <item itemvalue="Application.GoogleserviceApplication" />
+      <item itemvalue="Batch.ejecutable" />
+      <item itemvalue="Remote JVM Debug.Unnamed" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.GoogleserviceApplication" />
+        <item itemvalue="Batch.ejecutable" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.117" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.117" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1315e99e-3e67-4058-8134-b48eb3379318" name="Changes" comment="" />
+      <created>1706657917034</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1706657917034</updated>
+      <workItem from="1737309362035" duration="7789000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/ValidadorBD.java</url>
+          <line>93</line>
+          <properties class="modelo.servicios.ValidadorBD" method="validaEntidades">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="358" />
+        </line-breakpoint>
+        <line-breakpoint type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/GeneradorEsquema.java</url>
+          <line>77</line>
+          <properties class="modelo.servicios.GeneradorEsquema" method="generaTablasEntidades">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="363" />
+        </line-breakpoint>
+        <line-breakpoint type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/GeneradorEsquema.java</url>
+          <line>136</line>
+          <properties class="modelo.servicios.GeneradorEsquema" method="generaTablasRelaciones">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="387" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/ValidadorBD.java</url>
+          <line>102</line>
+          <option name="timeStamp" value="386" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/GeneradorEsquema.java</url>
+          <line>121</line>
+          <option name="timeStamp" value="388" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.java</url>
+          <line>321</line>
+          <option name="timeStamp" value="389" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/GeneradorEsquema.java</url>
+          <line>1026</line>
+          <option name="timeStamp" value="390" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$PROJECT_DIR$/../../../../../../../../../Program Files (x86)/Java/jdk1.8.0_202/jre/lib/rt.jar!/java/lang/NullPointerException.class</url>
+          <line>7</line>
+          <option name="timeStamp" value="393" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/GeneradorEsquema.java</url>
+          <line>1018</line>
+          <option name="timeStamp" value="394" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/GeneradorEsquema.java</url>
+          <line>183</line>
+          <option name="timeStamp" value="395" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/GeneradorEsquema.java</url>
+          <line>86</line>
+          <option name="timeStamp" value="396" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/ValidadorBD.java</url>
+          <line>261</line>
+          <option name="timeStamp" value="397" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/ValidadorBD.java</url>
+          <line>90</line>
+          <option name="timeStamp" value="398" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/servicios/ValidadorBD.java</url>
+          <line>82</line>
+          <option name="timeStamp" value="399" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.java</url>
+          <line>451</line>
+          <option name="timeStamp" value="400" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.java</url>
+          <line>452</line>
+          <option name="timeStamp" value="401" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/tfg/ucm/DBCaseWeb/GoogleserviceApplication.java</url>
+          <line>388</line>
+          <option name="timeStamp" value="402" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/modelo/conectorDBMS/ConectorOracle.java</url>
+          <line>256</line>
+          <option name="timeStamp" value="406" />
+        </line-breakpoint>
+        <breakpoint type="java-exception">
+          <properties class="java.lang.NullPointerException" package="java.lang" />
+          <option name="timeStamp" value="392" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="modelo.servicios.GeneradorEsquema" memberName="tablasEntidades" />
+        <PinnedItemInfo parentTag="modelo.servicios.Tabla" memberName="primaries" />
+        <PinnedItemInfo parentTag="com.sun.org.apache.xerces.internal.dom.DeepNodeListImpl" memberName="changes" />
+        <PinnedItemInfo parentTag="modelo.transfers.TransferEntidad" memberName="isSuperEntity" />
+        <PinnedItemInfo parentTag="com.google.gson.stream.JsonReader" memberName="peekedLong" />
+        <PinnedItemInfo parentTag="com.sun.org.apache.xerces.internal.dom.DeferredElementImpl" memberName="attributes" />
+        <PinnedItemInfo parentTag="com.sun.org.apache.xerces.internal.dom.DeepNodeListImpl" memberName="rootNode" />
+        <PinnedItemInfo parentTag="modelo.transfers.TransferEntidad" memberName="listaAtributos" />
+        <PinnedItemInfo parentTag="com.google.gson.stream.JsonReader" memberName="buffer" />
+      </pinned-members>
+    </pin-to-top-manager>
+    <watches-manager>
+      <configuration name="Remote">
+        <watch expression="id" />
+      </configuration>
+    </watches-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/DBCaseWeb4_0$GoogleserviceApplication.ic" NAME="GoogleserviceApplication Coverage Results" MODIFIED="1734375075055" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>com.tfg.ucm.DBCaseWeb.*</FILTER>
+    </SUITE>
+  </component>
+</project>

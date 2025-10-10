@@ -1,0 +1,115 @@
+.dropdown-menu a, .dropdown-menu a:visited{
+	color:#333
+	}
+.dropdown-menu h1,.dropdown-menu  h2,.dropdown-menu  h4{
+	font-weight:100;
+	font-size:72px;
+	}
+.dropdown-menu h1{
+		text-align:center;
+		}
+.dropdown-menu h2{
+		font-size:36px;
+		margin-bottom:0;
+		}
+.dropdown-menu h4{
+		font-size:30px;
+		text-align:center;
+		}
+.dropdown-menu h4 a{
+		text-decoration:none;
+		}
+.dropdown-menu h3{
+	font-family: 'Rokkitt', serif;
+	margin-bottom: 0;
+	border-bottom: 1px solid #DDD;
+	-webkit-box-shadow: 0 1px 0 white;
+	-moz-box-shadow: 0 1px 0 white;
+	box-shadow: 0 1px 0 white;
+	margin-top: 20px;
+	}
+.dropdown-menu #download{
+	    background: #fefefe;
+	    width: 500px;
+	    margin: 0 auto;
+	    padding: 20px;
+	    -webkit-border-radius: 5px;
+	    -moz-border-radius: 5px;
+	    border-radius: 5px;
+	    border: 1px solid rgba(0,0,0,0.2);
+		}
+		
+.dropdown-menu .description{
+		text-align:left;
+		width:540px;
+		margin:0 auto;
+		padding:20px;
+	}
+	
+.dropdown-menu pre{
+	    background: #333;
+	    overflow: auto;
+	    padding: 10px;
+	    color: #fefefe;
+	    text-shadow: 0 1px 2px #000;
+	    -webkit-box-shadow: 0 1px 0 #fff, 0 1px 2px #000 inset;
+	    -moz-box-shadow: 0 1px 0 #fff, 0 1px 2px #000 inset;
+	    box-shadow: 0 1px 0 #fff, 0 1px 2px #000 inset;
+		}
+		
+.dropdown-menu{
+		text-shadow:none;
+	}
+	
+	
+.dropdown-menu table{
+		font-size:12px;
+		border-collapse:collapse;
+		background:#fefefe;
+	    border: 1px solid rgba(0,0,0,0.2);
+	    font-family:monospace;
+	    }
+.dropdown-menu table th:last-child{
+		    width:175px;
+	    }
+	
+.dropdown-menu table th, table td:last-child{
+		font-family:arial;
+	}
+	
+.dropdown-menu .me-codesta{
+		display: block;
+		margin: 0 auto;
+		}
+		
+.dropdown-menu .amp{
+		font-family:Baskerville,'Goudy Bookletter 1911',Palatino,'Book Antiqua',serif;
+		font-style:italic;
+	}
+.dropdown-menu .finale{
+		position:relative;
+		height:150px;
+	}
+.dropdown-menu .finale h1{
+		position:absolute;
+		width:100%;
+		-webkit-transition: opacity 0.2s linear; 
+		-moz-transition: opacity 0.2s linear; 
+		-o-transition: opacity 0.2s linear; 
+         transition: opacity 0.2s linear; 
+         }
+.dropdown-menu .finale .toggle{
+	         opacity:0;
+	         }
+	         
+.dropdown-menu #donate{
+		display:none;
+	}
+.dropdown-menu .thanks{
+		width:500px;
+		margin:30px auto;
+	}
+.dropdown-menu a#download{
+		display:block;
+		text-decoration:none;
+	}
