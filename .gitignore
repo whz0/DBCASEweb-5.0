@@ -1,0 +1,179 @@
+DBCASE/target/
+!.mvn/wrapper/maven-wrapper.jar
+DBCASE/*
+### STS ###
+DBCASE/.apt_generated
+DBCASE/.classpath
+DBCASE/.factorypath
+DBCASE/.project
+DBCASE/.settings
+DBCASE/.springBeans
+DBCASE/.sts4-cache
+
+
+# Created by https://www.gitignore.io/api/git,java,maven,eclipse,windows
+
+### Eclipse ###
+
+DBCASE/.metadata
+DBCASE/bin/
+DBCASE/tmp/
+DBCASE/*.tmp
+DBCASE/*.bak
+DBCASE/*.swp
+DBCASE/*~.nib
+DBCASE/local.properties
+DBCASE/.settings/
+DBCASE/.loadpath
+DBCASE/.recommenders
+
+# External tool builders
+DBCASE/.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+DBCASE/*.launch
+
+# PyDev specific (Python IDE for Eclipse)
+DBCASE/*.pydevproject
+
+# CDT-specific (C/C++ Development Tooling)
+DBCASE/.cproject
+
+# CDT- autotools
+DBCASE/.autotools
+
+# PDT-specific (PHP Development Tools)
+DBCASE/.buildpath
+
+# sbteclipse plugin
+DBCASE/.target
+
+# Tern plugin
+DBCASE/.tern-project
+
+# TeXlipse plugin
+DBCASE/.texlipse
+
+# Code Recommenders
+DBCASE/.recommenders/
+
+# Annotation Processing
+DBCASE/.apt_generated/
+
+# Scala IDE specific (Scala & Java development for Eclipse)
+DBCASE/.cache-main
+DBCASE/.scala_dependencies
+DBCASE/.worksheet
+
+DBCASE/.sts4-cache/
+
+### Git ###
+# Created by git for backups. To disable backups in Git:
+# $ git config --global mergetool.keepBackup false
+DBCASE/*.orig
+
+# Created by git when using merge tools for conflicts
+DBCASE/*.BACKUP.*
+DBCASE/*.BASE.*
+DBCASE/*.LOCAL.*
+DBCASE/*.REMOTE.*
+DBCASE/*_BACKUP_*.txt
+DBCASE/*_BASE_*.txt
+DBCASE/*_LOCAL_*.txt
+DBCASE/*_REMOTE_*.txt
+
+### Java ###
+# Compiled class file
+DBCASE/*.class
+
+# Log file
+DBCASE/*.log
+
+# BlueJ files
+DBCASE/*.ctxt
+
+# Mobile Tools for Java (J2ME)
+DBCASE/.mtj.tmp/
+
+# Package Files #
+DBCASE/*.jar
+DBCASE/*.war
+DBCASE/*.nar
+DBCASE/*.ear
+DBCASE/*.zip
+DBCASE/*.tar.gz
+DBCASE/*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+DBCASE/hs_err_pid*
+
+### Maven ###
+DBCASE/target/
+DBCASE/pom.xml.tag
+DBCASE/pom.xml.releaseBackup
+DBCASE/pom.xml.versionsBackup
+DBCASE/pom.xml.next
+DBCASE/release.properties
+DBCASE/dependency-reduced-pom.xml
+DBCASE/buildNumber.properties
+DBCASE/.mvn/timing.properties
+DBCASE/.mvn/wrapper/maven-wrapper.jar
+
+### Windows ###
+# Windows thumbnail cache files
+DBCASE/Thumbs.db
+DBCASE/ehthumbs.db
+DBCASE/ehthumbs_vista.db
+
+# Dump file
+DBCASE/*.stackdump
+
+# Folder config file
+DBCASE/[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+DBCASE/$RECYCLE.BIN/
+
+# Windows Installer files
+DBCASE/*.cab
+DBCASE/*.msi
+DBCASE/*.msix
+DBCASE/*.msm
+DBCASE/*.msp
+
+# Windows shortcuts
+*.lnk
+
+### IntelliJ IDEA ###
+DBCASE/.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild
+/dist/
+/nbdist/
+/.nb-gradle/
+DBCASE/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+DBCASE/.vscode/
+
+### Some additional ignores (sort later)
+*.DS_Store
+*.sw?
+.#*
+*#
+*~
+DBCASE/bin
+DBCASE/build
+DBCASE/target
+*.sublime-*
+/scratch
+DBCASE/.gradle
+README.html
+DBCASE/.exercism
