@@ -31,9 +31,9 @@ export function resetElements(JSONcontainer: any): void
  * @private
  */
 export function getSVGElement(
-  elementType: any,
-  JSONcontainer: any,
-  svgContainer: any
+    elementType: any,
+    JSONcontainer: any,
+    svgContainer: any
 ): any
 
 /**
@@ -47,10 +47,10 @@ export function getSVGElement(
  * @returns {*}
  */
 export function getDOMElement(
-  elementType: any,
-  JSONcontainer: any,
-  DOMContainer: any,
-  insertBefore: any
+    elementType: any,
+    JSONcontainer: any,
+    DOMContainer: any,
+    insertBefore: any
 ): any
 
 /**
@@ -67,12 +67,12 @@ export function getDOMElement(
  * @returns {vis.PointItem}
  */
 export function drawPoint(
-  x: any,
-  y: any,
-  groupTemplate: any,
-  JSONcontainer: any,
-  svgContainer: any,
-  labelObj: any
+    x: any,
+    y: any,
+    groupTemplate: any,
+    JSONcontainer: any,
+    svgContainer: any,
+    labelObj: any
 ): any
 
 /**
@@ -88,12 +88,12 @@ export function drawPoint(
  * @param {string} style
  */
 export function drawBar(
-  x: any,
-  y: any,
-  width: any,
-  height: any,
-  className: any,
-  JSONcontainer: any,
-  svgContainer: any,
-  style: any
+    x: any,
+    y: any,
+    width: any,
+    height: any,
+    className: any,
+    JSONcontainer: any,
+    svgContainer: any,
+    style: any
 ): void

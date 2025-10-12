@@ -24,7 +24,8 @@
  * - Add the endpoint to the examples. At the very least, add it to example
  *   `edgeStyles/arrowTypes`.
  * ============================================================================= */
-import { ArrowData } from "./types";
+import {ArrowData} from "./types";
+
 /**
  * Drawing methods for the endpoints.
  */
@@ -39,4 +40,5 @@ export declare class EndPoints {
      */
     static draw(ctx: CanvasRenderingContext2D, arrowData: ArrowData): boolean;
 }
+
 //# sourceMappingURL=end-points.d.ts.map

@@ -1,5 +1,6 @@
 export * from "./network/Network";
 import * as gephiParser from "./network/gephiParser";
+
 export declare const network: {
     Images: any;
     dotparser: any;
@@ -9,16 +10,22 @@ export declare const network: {
     convertGephi: typeof gephiParser.parseGephi;
 };
 import * as DOMutil from "./DOMutil";
-export { DOMutil };
+
+export {DOMutil};
 import * as util from "vis-util/esnext";
-export { util };
+
+export {util};
 import * as data from "vis-data/esnext";
-export { data };
-export { DataSet, DataView, Queue } from "vis-data/esnext";
+
+export {data};
+export {DataSet, DataView, Queue} from "vis-data/esnext";
 import * as moment from "./module/moment";
-export { moment };
+
+export {moment};
 import * as Hammer from "./module/hammer";
-export { Hammer };
+
+export {Hammer};
 import * as keycharm from "keycharm";
-export { keycharm };
+
+export {keycharm};
 //# sourceMappingURL=index-legacy.d.ts.map

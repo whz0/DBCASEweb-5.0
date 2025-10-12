@@ -1,7 +1,22 @@
-import { ArrowData, ArrowDataWithCore, EdgeFormattingValues, EdgeType, Id, Label, EdgeOptions, Point, PointT, SelectiveRequired, VBody, VNode } from "./types";
+import {
+    ArrowData,
+    ArrowDataWithCore,
+    EdgeFormattingValues,
+    EdgeType,
+    Id,
+    Label,
+    EdgeOptions,
+    Point,
+    PointT,
+    SelectiveRequired,
+    VBody,
+    VNode
+} from "./types";
+
 export interface FindBorderPositionOptions<Via> {
     via: Via;
 }
+
 export interface FindBorderPositionCircleOptions {
     x: number;
     y: number;
@@ -9,6 +24,7 @@ export interface FindBorderPositionCircleOptions {
     high: number;
     direction: number;
 }
+
 /**
  * The Base Class for all edges.
  */
@@ -26,6 +42,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
     options: EdgeOptions;
     hoverWidth: number;
     selectionWidth: number;
+
     /**
      * Create a new instance.
      *
@@ -34,6 +51,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @param _labelModule - Label module.
      */
     constructor(options: EdgeOptions, _body: VBody, _labelModule: Label);
+
     /**
      * Find the intersection between the border of the node and the edge.
      *
@@ -44,26 +62,33 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @returns Cartesian coordinates of the intersection between the border of the node and the edge.
      */
     protected abstract _findBorderPosition(node: VNode, ctx: CanvasRenderingContext2D, options?: FindBorderPositionOptions<Via>): PointT;
+
     /**
      * Return additional point(s) the edge passes through.
      *
      * @returns Cartesian coordinates of the point(s) the edge passes through.
      */
     abstract getViaNode(): Via;
+
     /** @inheritdoc */
     abstract getPoint(position: number, viaNode?: Via): Point;
+
     /** @inheritdoc */
     connect(): void;
+
     /** @inheritdoc */
     cleanup(): boolean;
+
     /**
      * Set new edge options.
      *
      * @param options - The new edge options object.
      */
     setOptions(options: EdgeOptions): void;
+
     /** @inheritdoc */
     drawLine(ctx: CanvasRenderingContext2D, values: SelectiveRequired<EdgeFormattingValues, "color" | "opacity" | "shadowColor" | "shadowSize" | "shadowX" | "shadowY" | "width">, _selected?: boolean, _hover?: boolean, viaNode?: Via): void;
+
     /**
      * Draw a line with given style between two nodes through supplied node(s).
      *
@@ -84,6 +109,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @param _toPoint - Ignored (TODO: remove in the future).
      */
     private _drawDashedLine;
+
     /**
      * Draw a line with given style between two nodes through supplied node(s).
      *
@@ -94,6 +120,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @param toPoint - TODO: Seems ignored, remove?
      */
     protected abstract _line(ctx: CanvasRenderingContext2D, values: EdgeFormattingValues, viaNode: Via, fromPoint?: Point, toPoint?: Point): void;
+
     /**
      * Find the intersection between the border of the node and the edge.
      *
@@ -104,11 +131,13 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @returns Cartesian coordinates of the intersection between the border of the node and the edge.
      */
     findBorderPosition(node: VNode, ctx: CanvasRenderingContext2D, options?: FindBorderPositionOptions<Via> | FindBorderPositionCircleOptions): PointT;
+
     /** @inheritdoc */
     findBorderPositions(ctx: CanvasRenderingContext2D): {
         from: Point;
         to: Point;
     };
+
     /**
      * Compute the center point and radius of an edge connected to the same node at both ends.
      *
@@ -117,6 +146,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @returns `[x, y, radius]`
      */
     protected _getCircleData(ctx?: CanvasRenderingContext2D): [number, number, number];
+
     /**
      * Get a point on a circle.
      *
@@ -141,6 +171,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @returns Cartesian coordinates of the intersection between the border of the node and the edge.
      */
     private _findBorderPositionCircle;
+
     /**
      * Get the line width of the edge. Depends on width and whether one of the connected nodes is selected.
      *
@@ -150,6 +181,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @returns The width of the line.
      */
     getLineWidth(selected: boolean, hover: boolean): number;
+
     /**
      * Compute the color or gradient for given edge.
      *
@@ -161,6 +193,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @returns Color string if single color is inherited or gradient if two.
      */
     getColor(ctx: CanvasRenderingContext2D, values: SelectiveRequired<EdgeFormattingValues, "color" | "opacity">): string | CanvasGradient;
+
     /**
      * Draw a line from a node to itself, a circle.
      *
@@ -171,6 +204,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @param radius - Radius of the circle.
      */
     private _circle;
+
     /**
      * @inheritdoc
      *
@@ -178,6 +212,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
      */
     getDistanceToEdge(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): number;
+
     /**
      * Calculate the distance between a point (x3, y3) and a line segment from (x1, y1) to (x2, y2).
      *
@@ -195,6 +230,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @returns The distance between the line segment and the point.
      */
     protected abstract _getDistanceToEdge(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, via?: Via): number;
+
     /**
      * Calculate the distance between a point (x3, y3) and a line segment from (x1, y1) to (x2, y2).
      *
@@ -208,14 +244,17 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @returns The distance between the line segment and the point.
      */
     protected _getDistanceToLine(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): number;
+
     /** @inheritdoc */
     getArrowData(ctx: CanvasRenderingContext2D, position: "middle", viaNode: VNode, selected: boolean, hover: boolean, values: SelectiveRequired<EdgeFormattingValues, "middleArrowType" | "middleArrowScale" | "width">): ArrowDataWithCore;
     /** @inheritdoc */
     getArrowData(ctx: CanvasRenderingContext2D, position: "to", viaNode: VNode, selected: boolean, hover: boolean, values: SelectiveRequired<EdgeFormattingValues, "toArrowType" | "toArrowScale" | "width">): ArrowDataWithCore;
     /** @inheritdoc */
     getArrowData(ctx: CanvasRenderingContext2D, position: "from", viaNode: VNode, selected: boolean, hover: boolean, values: SelectiveRequired<EdgeFormattingValues, "fromArrowType" | "fromArrowScale" | "width">): ArrowDataWithCore;
+
     /** @inheritdoc */
     drawArrowHead(ctx: CanvasRenderingContext2D, values: SelectiveRequired<EdgeFormattingValues, "color" | "opacity" | "shadowColor" | "shadowSize" | "shadowX" | "shadowY" | "width">, _selected: boolean, _hover: boolean, arrowData: ArrowData): void;
+
     /**
      * Set the shadow formatting values in the context if enabled, do nothing otherwise.
      *
@@ -223,6 +262,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @param values - Formatting values for the shadow.
      */
     enableShadow(ctx: CanvasRenderingContext2D, values: SelectiveRequired<EdgeFormattingValues, "shadowColor" | "shadowSize" | "shadowX" | "shadowY">): void;
+
     /**
      * Reset the shadow formatting values in the context if enabled, do nothing otherwise.
      *
@@ -230,6 +270,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @param values - Formatting values for the shadow.
      */
     disableShadow(ctx: CanvasRenderingContext2D, values: EdgeFormattingValues): void;
+
     /**
      * Render the background according to the formatting values.
      *
@@ -237,6 +278,7 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      * @param values - Formatting values for the background.
      */
     drawBackground(ctx: CanvasRenderingContext2D, values: SelectiveRequired<EdgeFormattingValues, "backgroundColor" | "backgroundSize">): void;
+
     /**
      * Set the line dash pattern if supported. Logs a warning to the console if it isn't supported.
      *
@@ -245,4 +287,5 @@ export declare abstract class EdgeBase<Via = undefined> implements EdgeType {
      */
     setStrokeDashed(ctx: CanvasRenderingContext2D, dashes?: boolean | number[]): void;
 }
+
 //# sourceMappingURL=edge-base.d.ts.map

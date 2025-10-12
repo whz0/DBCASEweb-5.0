@@ -1,6 +1,7 @@
 export declare type Id = string | number;
 export declare type EdgeOptions = any;
 export declare type VNode = any;
+
 export interface VBody {
     nodes: Record<Id, VNode>;
     functions: {
@@ -14,25 +15,44 @@ export interface VBody {
         scale: number;
     };
 }
+
 export interface Label {
 }
+
 export interface Point {
     x: number;
     y: number;
 }
+
 export interface PointT extends Point {
     t: number;
 }
+
 export declare type SelectiveRequired<T, RequiredKey extends keyof Extract<T, object>> = T & {
     [Key in RequiredKey]-?: NonNullable<Extract<T, object>[Key]>;
 };
-export declare type ArrowType = "arrow" | "bar" | "box" | "circle" | "crow" | "curve" | "diamond" | "image" | "inv_curve" | "inv_triangle" | "triangle" | "vee";
+export declare type ArrowType =
+    "arrow"
+    | "bar"
+    | "box"
+    | "circle"
+    | "crow"
+    | "curve"
+    | "diamond"
+    | "image"
+    | "inv_curve"
+    | "inv_triangle"
+    | "triangle"
+    | "vee";
 export declare type ColorInheritance = boolean | "both" | "from" | "to";
+
 export interface CachedImage {
     width: number;
     height: number;
+
     drawImageAtPosition(ctx: CanvasRenderingContext2D, factor: number, left: number, top: number, width?: number, height?: number): void;
 }
+
 export interface ArrowData {
     angle: number;
     image?: CachedImage;
@@ -42,9 +62,11 @@ export interface ArrowData {
     point: Point;
     type: ArrowType;
 }
+
 export interface ArrowDataWithCore extends ArrowData {
     core: Point;
 }
+
 export interface EdgeFormattingValues {
     arrowStrikethrough?: boolean;
     background?: boolean;
@@ -73,6 +95,7 @@ export interface EdgeFormattingValues {
     toArrowType?: ArrowType;
     width?: number;
 }
+
 export interface EdgeType {
     hoverWidth: number;
     selectionWidth: number;
@@ -82,6 +105,7 @@ export interface EdgeType {
     toPoint: Point;
     via?: VNode;
     viaPoint?: Point;
+
     /**
      * Find the intersection between the borders of the nodes and the edge.
      *
@@ -93,16 +117,19 @@ export interface EdgeType {
         from: Point;
         to: Point;
     };
+
     /**
      * Remove additional nodes if some were created.
      *
      * @returns True if something was cleared, false otherwise.
      */
     cleanup(): boolean;
+
     /**
      * Connect a node to itself.
      */
     connect(): void;
+
     /**
      * Find a point on the edge corresponding to given position on the edge.
      *
@@ -112,12 +139,14 @@ export interface EdgeType {
      * @returns Cartesian coordinates of the requested point on the edge.
      */
     getPoint(percentage: number): Point;
+
     /**
      * Set new edge options.
      *
      * @param options - The new edge options object.
      */
     setOptions(options: EdgeOptions): void;
+
     /**
      * Calculate the distance between a point (x3, y3) and a line segment from (x1, y1) to (x2, y2).
      *
@@ -131,6 +160,7 @@ export interface EdgeType {
      * @returns The distance between the line segment and the point.
      */
     getDistanceToEdge(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): number;
+
     /**
      * Redraw a edge as a line
      * Draw this edge in the given canvas
@@ -143,6 +173,7 @@ export interface EdgeType {
      * @param viaNode - Additional control point(s) for the edge.
      */
     drawLine(ctx: CanvasRenderingContext2D, values: SelectiveRequired<EdgeFormattingValues, "color" | "opacity" | "shadowColor" | "shadowSize" | "shadowX" | "shadowY" | "width">): void;
+
     /**
      * Reander an arrow head.
      *
@@ -153,6 +184,7 @@ export interface EdgeType {
      * @param arrowData - The data determining the position, angle and so on of the arrow.
      */
     drawArrowHead(ctx: CanvasRenderingContext2D, values: SelectiveRequired<EdgeFormattingValues, "opacity" | "shadowColor" | "shadowSize" | "shadowX" | "shadowY" | "width">, selected: boolean, hover: boolean, arrowData: ArrowData): void;
+
     /**
      * Prepare data that can be used to render a middle arrow.
      *
@@ -166,6 +198,7 @@ export interface EdgeType {
      * @returns Data that can be used to render the requested arrows.
      */
     getArrowData(ctx: CanvasRenderingContext2D, position: "middle", viaNode: VNode, selected: boolean, hover: boolean, values: SelectiveRequired<EdgeFormattingValues, "middleArrowType" | "middleArrowScale" | "width">): ArrowDataWithCore;
+
     /**
      * Prepare data that can be used to render a to arrow.
      *
@@ -179,6 +212,7 @@ export interface EdgeType {
      * @returns Data that can be used to render the requested arrows.
      */
     getArrowData(ctx: CanvasRenderingContext2D, position: "to", viaNode: VNode, selected: boolean, hover: boolean, values: SelectiveRequired<EdgeFormattingValues, "toArrowType" | "toArrowScale" | "width">): ArrowDataWithCore;
+
     /**
      * Prepare data that can be used to render a from arrow.
      *
@@ -193,4 +227,5 @@ export interface EdgeType {
      */
     getArrowData(ctx: CanvasRenderingContext2D, position: "from", viaNode: VNode, selected: boolean, hover: boolean, values: SelectiveRequired<EdgeFormattingValues, "fromArrowType" | "fromArrowScale" | "width">): ArrowDataWithCore;
 }
+
 //# sourceMappingURL=types.d.ts.map

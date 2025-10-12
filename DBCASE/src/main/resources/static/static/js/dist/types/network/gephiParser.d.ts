@@ -1,4 +1,5 @@
 export declare type Id = number | string;
+
 export interface ColorObject {
     background: string;
     border: string;
@@ -11,15 +12,18 @@ export interface ColorObject {
         border: string;
     };
 }
+
 export interface GephiData {
     nodes: GephiNode[];
     edges: GephiEdge[];
 }
+
 export interface GephiParseOptions {
     fixed?: boolean;
     inheritColor?: boolean;
     parseColor?: boolean;
 }
+
 export interface GephiNode {
     id: Id;
     attributes?: {
@@ -32,6 +36,7 @@ export interface GephiNode {
     x?: number;
     y?: number;
 }
+
 export interface GephiEdge {
     id: Id;
     source: Id;
@@ -43,10 +48,12 @@ export interface GephiEdge {
     label?: string;
     type?: string;
 }
+
 export interface VisData {
     nodes: VisNode[];
     edges: VisEdge[];
 }
+
 export interface VisNode {
     id: Id;
     fixed: boolean;
@@ -58,6 +65,7 @@ export interface VisNode {
     y?: number;
     attributes?: unknown;
 }
+
 export interface VisEdge {
     id: Id;
     from: Id;
@@ -68,6 +76,7 @@ export interface VisEdge {
     title?: string;
     attributes?: unknown;
 }
+
 /**
  * Convert Gephi to Vis.
  *
@@ -77,4 +86,5 @@ export interface VisEdge {
  * @returns The converted data ready to be used in Vis.
  */
 export declare function parseGephi(gephiJSON: GephiData, optionsObj?: GephiParseOptions): VisData;
+
 //# sourceMappingURL=gephiParser.d.ts.map

@@ -1,5 +1,6 @@
 declare type Levels = Record<string | number, number>;
 declare type Id = string | number;
+
 interface Edge {
     connected: boolean;
     from: Node;
@@ -7,10 +8,12 @@ interface Edge {
     to: Node;
     toId: Id;
 }
+
 interface Node {
     id: Id;
     edges: Edge[];
 }
+
 /**
  * Assign levels to nodes according to their positions in the hierarchy. Leaves will be lined up at the bottom and all other nodes as close to their children as possible.
  *
@@ -20,6 +23,7 @@ interface Node {
  * @returns Populated node levels.
  */
 export declare function fillLevelsByDirectionLeaves(nodes: Map<Id, Node>, levels?: Levels): Levels;
+
 /**
  * Assign levels to nodes according to their positions in the hierarchy. Roots will be lined up at the top and all nodes as close to their parents as possible.
  *
@@ -29,5 +33,6 @@ export declare function fillLevelsByDirectionLeaves(nodes: Map<Id, Node>, levels
  * @returns Populated node levels.
  */
 export declare function fillLevelsByDirectionRoots(nodes: Map<Id, Node>, levels?: Levels): Levels;
+
 export {};
 //# sourceMappingURL=index.d.ts.map

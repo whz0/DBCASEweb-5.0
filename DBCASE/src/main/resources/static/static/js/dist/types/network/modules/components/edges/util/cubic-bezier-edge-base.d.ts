@@ -1,5 +1,6 @@
-import { BezierEdgeBase } from "./bezier-edge-base";
-import { Label, EdgeOptions, Point, VBody } from "./types";
+import {BezierEdgeBase} from "./bezier-edge-base";
+import {Label, EdgeOptions, Point, VBody} from "./types";
+
 /**
  * A Base Class for all Cubic Bezier Edges. Bezier curves are used to model
  * smooth gradual curves in paths between nodes.
@@ -15,6 +16,7 @@ export declare abstract class CubicBezierEdgeBase<Via> extends BezierEdgeBase<Vi
      * @param labelModule - Label module.
      */
     constructor(options: EdgeOptions, body: VBody, labelModule: Label);
+
     /**
      * Calculate the distance between a point (x3,y3) and a line segment from (x1,y1) to (x2,y2).
      *
@@ -35,4 +37,5 @@ export declare abstract class CubicBezierEdgeBase<Via> extends BezierEdgeBase<Vi
      */
     protected _getDistanceToBezierEdge2(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, via1: Point, via2: Point): number;
 }
+
 //# sourceMappingURL=cubic-bezier-edge-base.d.ts.map

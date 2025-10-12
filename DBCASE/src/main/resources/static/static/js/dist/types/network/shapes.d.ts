@@ -7,6 +7,7 @@
  * @param r - The radius of the circle.
  */
 export declare function drawCircle(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void;
+
 /**
  * Draw a square.
  *
@@ -16,6 +17,7 @@ export declare function drawCircle(ctx: CanvasRenderingContext2D, x: number, y: 
  * @param r - Half of the width and height of the square.
  */
 export declare function drawSquare(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void;
+
 /**
  * Draw an equilateral triangle standing on a side.
  *
@@ -28,6 +30,7 @@ export declare function drawSquare(ctx: CanvasRenderingContext2D, x: number, y: 
  * http://en.wikipedia.org/wiki/Equilateral_triangle
  */
 export declare function drawTriangle(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void;
+
 /**
  * Draw an equilateral triangle standing on a vertex.
  *
@@ -40,6 +43,7 @@ export declare function drawTriangle(ctx: CanvasRenderingContext2D, x: number, y
  * http://en.wikipedia.org/wiki/Equilateral_triangle
  */
 export declare function drawTriangleDown(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void;
+
 /**
  * Draw a star.
  *
@@ -49,6 +53,7 @@ export declare function drawTriangleDown(ctx: CanvasRenderingContext2D, x: numbe
  * @param r - The outer radius of the star.
  */
 export declare function drawStar(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void;
+
 /**
  * Draw a diamond.
  *
@@ -61,6 +66,7 @@ export declare function drawStar(ctx: CanvasRenderingContext2D, x: number, y: nu
  * http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
  */
 export declare function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void;
+
 /**
  * Draw a rectangle with rounded corners.
  *
@@ -75,6 +81,7 @@ export declare function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y:
  * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
  */
 export declare function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void;
+
 /**
  * Draw an ellipse.
  *
@@ -90,6 +97,7 @@ export declare function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, 
  * Postfix '_vis' added to discern it from standard method ellipse().
  */
 export declare function drawEllipse(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void;
+
 /**
  * Draw an isometric cylinder.
  *
@@ -103,6 +111,7 @@ export declare function drawEllipse(ctx: CanvasRenderingContext2D, x: number, y:
  * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
  */
 export declare function drawDatabase(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void;
+
 /**
  * Draw a dashed line.
  *
@@ -119,6 +128,7 @@ export declare function drawDatabase(ctx: CanvasRenderingContext2D, x: number, y
  * http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
  */
 export declare function drawDashedLine(ctx: CanvasRenderingContext2D, x: number, y: number, x2: number, y2: number, pattern: number[]): void;
+
 /**
  * Draw a hexagon.
  *
@@ -128,6 +138,7 @@ export declare function drawDashedLine(ctx: CanvasRenderingContext2D, x: number,
  * @param r - The radius of the hexagon.
  */
 export declare function drawHexagon(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void;
+
 declare const shapeMap: {
     circle: typeof drawCircle;
     dashedLine: typeof drawDashedLine;
@@ -142,6 +153,7 @@ declare const shapeMap: {
     triangle: typeof drawTriangle;
     triangleDown: typeof drawTriangleDown;
 };
+
 /**
  * Returns either custom or native drawing function base on supplied name.
  *
@@ -154,5 +166,6 @@ declare const shapeMap: {
  * `(ctx: CanvasRenderingContext2D, ...originalArgs) => void`.
  */
 export declare function getShape(name: keyof CanvasRenderingContext2D | keyof typeof shapeMap): any;
+
 export {};
 //# sourceMappingURL=shapes.d.ts.map

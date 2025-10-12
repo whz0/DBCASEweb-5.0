@@ -1,6 +1,6 @@
 package modelo.transfers;
 
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.geom.Point2D;
 
 /*
@@ -8,29 +8,29 @@ import java.awt.geom.Point2D;
  */
 public abstract class Transfer {
 
-	/*
-	 *	Transforma el transfer en la cadena mostrada 
-	 */
-	@Override
-	public abstract String toString();
-	
-	/*
-	 *	Retorna el Shape del tipo para dibujarlo en el panel 
-	 */
-	public abstract Shape toShape();
-	
-	/*
-	 *	Retorna la posición en el grafo en la que se encuentra 
-	 */
-	public abstract Point2D getPosicion();
+    /*
+     *	Transforma el transfer en la cadena mostrada
+     */
+    @Override
+    public abstract String toString();
 
-	public abstract String getNombre();
-	
-	public abstract int getVolumen();
-	
-	public abstract int getFrecuencia();
-	
-	public abstract void setVolumen(int v);
-	
-	public abstract void setFrecuencia(int f);
+    /*
+     *	Retorna el Shape del tipo para dibujarlo en el panel
+     */
+    public abstract Shape toShape();
+
+    /*
+     *	Retorna la posición en el grafo en la que se encuentra
+     */
+    public abstract Point2D getPosicion();
+
+    public abstract String getNombre();
+
+    public abstract int getVolumen();
+
+    public abstract int getFrecuencia();
+
+    public abstract void setVolumen(int v);
+
+    public abstract void setFrecuencia(int f);
 }

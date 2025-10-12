@@ -1,5 +1,6 @@
-import { EdgeBase } from "./edge-base";
-import { EdgeFormattingValues, Label, EdgeOptions, Point, PointT, SelectiveRequired, VBody, VNode } from "./types";
+import {EdgeBase} from "./edge-base";
+import {EdgeFormattingValues, Label, EdgeOptions, Point, PointT, SelectiveRequired, VBody, VNode} from "./types";
+
 /**
  * The Base Class for all Bezier edges.
  * Bezier curves are used to model smooth gradual curves in paths between nodes.
@@ -13,12 +14,14 @@ export declare abstract class BezierEdgeBase<Via> extends EdgeBase<Via> {
      * @param labelModule - Label module.
      */
     constructor(options: EdgeOptions, body: VBody, labelModule: Label);
+
     /**
      * Compute additional point(s) the edge passes through.
      *
      * @returns Cartesian coordinates of the point(s) the edge passes through.
      */
     protected abstract _getViaCoordinates(): Via;
+
     /**
      * Find the intersection between the border of the node and the edge.
      *
@@ -32,6 +35,7 @@ export declare abstract class BezierEdgeBase<Via> extends EdgeBase<Via> {
      * @returns Cartesian coordinates of the intersection between the border of the node and the edge.
      */
     protected _findBorderPositionBezier(nearNode: VNode, ctx: CanvasRenderingContext2D, viaNode?: Via): PointT;
+
     /**
      * Calculate the distance between a point (x3,y3) and a line segment from (x1,y1) to (x2,y2).
      *
@@ -49,6 +53,7 @@ export declare abstract class BezierEdgeBase<Via> extends EdgeBase<Via> {
      * @returns The distance between the line segment and the point.
      */
     protected _getDistanceToBezierEdge(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, via: Point): number;
+
     /**
      * Render a bezier curve between two nodes.
      *
@@ -62,7 +67,9 @@ export declare abstract class BezierEdgeBase<Via> extends EdgeBase<Via> {
      * @param viaNode2 - Second control point for curve drawing.
      */
     protected _bezierCurve(ctx: CanvasRenderingContext2D, values: SelectiveRequired<EdgeFormattingValues, "backgroundColor" | "backgroundSize" | "shadowColor" | "shadowSize" | "shadowX" | "shadowY">, viaNode1?: Point, viaNode2?: Point): void;
+
     /** @inheritdoc */
     getViaNode(): Via;
 }
+
 //# sourceMappingURL=bezier-edge-base.d.ts.map
