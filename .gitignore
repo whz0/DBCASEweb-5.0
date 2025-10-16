@@ -1,6 +1,5 @@
-DBCASE/target/
+target/
 !.mvn/wrapper/maven-wrapper.jar
-DBCASE/*
 ### STS ###
 DBCASE/.apt_generated
 DBCASE/.classpath
