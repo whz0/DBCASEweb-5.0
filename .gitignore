@@ -144,7 +144,7 @@ DBCASE/*.msp
 *.lnk
 
 ### IntelliJ IDEA ###
-DBCASE/.idea
+.idea/
 *.iws
 *.iml
 *.ipr
