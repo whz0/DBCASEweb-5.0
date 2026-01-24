@@ -1,9 +1,10 @@
 package vista.iconos;
 
-import vista.tema.Theme;
+import java.awt.Cursor;
+import javax.swing.Icon;
+import javax.swing.JLabel;
 
-import javax.swing.*;
-import java.awt.*;
+import vista.tema.Theme;
 
 @SuppressWarnings("serial")
 public class IconLabel extends JLabel {

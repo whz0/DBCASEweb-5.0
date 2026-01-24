@@ -1,30 +1,28 @@
 package vista.componentes;
 
-import vista.lenguaje.Lenguaje;
-
-import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import javax.swing.table.AbstractTableModel;
+
+import vista.lenguaje.Lenguaje;
+
+import static vista.lenguaje.Lenguaje.text;
 
 @SuppressWarnings("serial")
 public class MyTableModel extends AbstractTableModel {
     private final String[] columnas =
-            {Lenguaje.text(Lenguaje.TABLE), Lenguaje.text(Lenguaje.VOLUME), Lenguaje.text(Lenguaje.FREQ)};
+            {text(Lenguaje.TABLE), text(Lenguaje.VOLUME), text(Lenguaje.FREQ)};
     private final ArrayList<ArrayList<String>> data;
 
     public MyTableModel() {
         super();
-        data = new ArrayList<ArrayList<String>>();
+        data = new ArrayList<>();
     }
 
     public void refresh(String[][] s) {
-        int size = s.length;
         data.clear();
-
-        for (int row = 0; row < size; row++) {
-            ArrayList<String> Arr1 = new ArrayList<String>();
-            Arr1.addAll(Arrays.asList(s[row]).subList(0, s[0].length));
-            data.add(Arr1);
+        for (String[] strings : s) {
+            data.add(new ArrayList<>(Arrays.asList(strings).subList(0, s[0].length)));
         }
     }
 

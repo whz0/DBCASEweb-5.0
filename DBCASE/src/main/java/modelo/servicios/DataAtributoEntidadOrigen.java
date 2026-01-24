@@ -1,5 +1,8 @@
 package modelo.servicios;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class DataAtributoEntidadOrigen {
     private int idAtributo;
     private int idEntidad;

@@ -1,17 +1,5 @@
 package modelo.servicios;
 
-import controlador.Controlador;
-import controlador.TC;
-import modelo.conectorDBMS.ConectorDBMS;
-import modelo.conectorDBMS.FactoriaConectores;
-import modelo.transfers.*;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
-import persistencia.*;
-import vista.componentes.MyFileChooser;
-
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,6 +8,27 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Vector;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+
+import controlador.Controlador;
+import controlador.TC;
+import modelo.conectorDBMS.ConectorDBMS;
+import modelo.conectorDBMS.FactoriaConectores;
+import modelo.transfers.TransferAtributo;
+import modelo.transfers.TransferConexion;
+import modelo.transfers.TransferDominio;
+import modelo.transfers.TransferEntidad;
+import modelo.transfers.TransferRelacion;
+import persistencia.DAOAtributos;
+import persistencia.DAODominios;
+import persistencia.DAOEntidades;
+import persistencia.DAORelaciones;
+import persistencia.EntidadYAridad;
+import vista.componentes.MyFileChooser;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class GeneradorEsquema {
@@ -78,19 +87,19 @@ public class GeneradorEsquema {
                 Tabla tabla = new Tabla(te.getNombre(), te.getListaRestricciones(), controlador);
                 Vector<TransferAtributo> atribs = this.dameAtributosEnTransfer(te.getListaAtributos());
                 for (String rest : (Vector<String>) te.getListaRestricciones())
-                    restriccionesPerdidas.add(new restriccionPerdida(te.getNombre(), rest, restriccionPerdida.TABLA));
+                    restriccionesPerdidas.add(new RestriccionPerdida(te.getNombre(), rest, RestriccionPerdida.TABLA));
                 //recorremos los atributos aniadiendolos a la tabla
                 for (int j = 0; j < atribs.size(); j++) {
                     TransferAtributo ta = atribs.elementAt(j);
                     if (ta.getUnique())
-                        restriccionesPerdidas.add(new restriccionPerdida(te.getNombre(), ta + " " + this.msgSrc.getMessage("textosId.isUnique", null, this.loc), restriccionPerdida.TABLA));
+                        restriccionesPerdidas.add(new RestriccionPerdida(te.getNombre(), ta + " " + this.msgSrc.getMessage("textosId.isUnique", null, this.loc), RestriccionPerdida.TABLA));
                     if (ta.getCompuesto())
                         tabla.aniadeListaAtributos(this.atributoCompuesto(ta, te.getNombre(), ""), te.getListaRestricciones(), tiposEnumerados);
                     else if (ta.isMultivalorado()) multivalorados.add(ta);
                     else {
                         tabla.aniadeAtributo(ta.getNombre(), ta.getDominio(), te.getNombre(), tiposEnumerados, ta.getListaRestricciones(), ta.getUnique(), ta.getNotnull());
                         for (String rest : (Vector<String>) ta.getListaRestricciones())
-                            restriccionesPerdidas.add(new restriccionPerdida(te.getNombre(), rest, restriccionPerdida.TABLA));
+                            restriccionesPerdidas.add(new RestriccionPerdida(te.getNombre(), rest, RestriccionPerdida.TABLA));
                     }
                 }
                 // Anadimos las claves a la relacion
@@ -135,7 +144,7 @@ public class GeneradorEsquema {
             // claves de las entidades implicadas.
             Vector<EntidadYAridad> veya = tr.getListaEntidadesYAridades();
             for (String rest : (Vector<String>) tr.getListaRestricciones())
-                restriccionesPerdidas.add(new restriccionPerdida(tr.getNombre(), rest, restriccionPerdida.TABLA));
+                restriccionesPerdidas.add(new RestriccionPerdida(tr.getNombre(), rest, RestriccionPerdida.TABLA));
             if (tr.getTipo().equalsIgnoreCase("Normal")) {
                 // creamos la tabla
                 Tabla tabla = new Tabla(tr.getNombre(), tr.getListaRestricciones(), controlador);
@@ -144,14 +153,14 @@ public class GeneradorEsquema {
                 for (int a = 0; a < ats.size(); a++) {
                     TransferAtributo ta = ats.elementAt(a);
                     if (ta.getUnique())
-                        restriccionesPerdidas.add(new restriccionPerdida(tr.getNombre(), ta + " " + this.msgSrc.getMessage("textosId.isUnique", null, this.loc), restriccionPerdida.TABLA));
+                        restriccionesPerdidas.add(new RestriccionPerdida(tr.getNombre(), ta + " " + this.msgSrc.getMessage("textosId.isUnique", null, this.loc), RestriccionPerdida.TABLA));
                     if (ta.getCompuesto())
                         tabla.aniadeListaAtributos(this.atributoCompuesto(ta, tr.getNombre(), ""), ta.getListaRestricciones(), tiposEnumerados);
                     else if (ta.isMultivalorado()) multivalorados.add(ta);
                     else {
                         tabla.aniadeAtributo(ta.getNombre(), ta.getDominio(), tr.getNombre(), tiposEnumerados, ta.getListaRestricciones(), ta.getUnique(), ta.getNotnull());
                         for (String rest : (Vector<String>) ta.getListaRestricciones())
-                            restriccionesPerdidas.add(new restriccionPerdida(tr.getNombre(), rest, restriccionPerdida.TABLA));
+                            restriccionesPerdidas.add(new RestriccionPerdida(tr.getNombre(), rest, RestriccionPerdida.TABLA));
                     }
                 }
 
@@ -216,7 +225,7 @@ public class GeneradorEsquema {
                         } else if (soloHayUnos) {
                             for (String[] clave : ent.getPrimaries())
                                 restriccionesPerdidas.add(
-                                        new restriccionPerdida(ent.getNombreTabla() + "_" + clave[0], tr.getNombre(), restriccionPerdida.CANDIDATA));
+                                        new RestriccionPerdida(ent.getNombreTabla() + "_" + clave[0], tr.getNombre(), RestriccionPerdida.CANDIDATA));
                             String uniques = "";
                             for (int q = 0; q < primarias.size(); q++) {
                                 if (q == 0) uniques += primarias.get(q)[0];
@@ -227,8 +236,8 @@ public class GeneradorEsquema {
                         } else if (eya.getPrincipioRango() == 1 && eya.getFinalRango() == Integer.MAX_VALUE)
                             for (String[] clave : ent.getPrimaries())
                                 restriccionesPerdidas.add(
-                                        new restriccionPerdida(ent.getNombreTabla() + "_" + clave[0], tr.getNombre(), restriccionPerdida.CANDIDATA));
-                        //	new restriccionPerdida(clave[0], tr.getNombre(), restriccionPerdida.CANDIDATA));
+                                        new RestriccionPerdida(ent.getNombreTabla() + "_" + clave[0], tr.getNombre(), RestriccionPerdida.CANDIDATA));
+                        //	new RestriccionPerdida(clave[0], tr.getNombre(), RestriccionPerdida.CANDIDATA));
                     }
                     //crea las restricciones perdidas (cuando rangoIni > 1 o rangoFin < N) || rangoIni == 1
                     if ((eya.getPrincipioRango() > 0 && eya.getFinalRango() < Integer.MAX_VALUE && eya.getFinalRango() > 1) || eya.getPrincipioRango() == 1) {
@@ -248,8 +257,8 @@ public class GeneradorEsquema {
                             }
                         }
                         restriccionesPerdidas.add(
-                                new restriccionPerdida(recurs ? aux.restriccionIR(true, ent.getNombreTabla(), sqlType) : tabla.restriccionIR(true, ent.getNombreTabla(), sqlType), ent.restriccionIR(false, "", sqlType),
-                                        eya.getPrincipioRango(), eya.getFinalRango(), restriccionPerdida.TOTAL));
+                                new RestriccionPerdida(recurs ? aux.restriccionIR(true, ent.getNombreTabla(), sqlType) : tabla.restriccionIR(true, ent.getNombreTabla(), sqlType), ent.restriccionIR(false, "", sqlType),
+                                        eya.getPrincipioRango(), eya.getFinalRango(), RestriccionPerdida.TOTAL));
                     }
                 }
                 tablasRelaciones.put(tr.getIdRelacion(), tabla);
@@ -919,7 +928,7 @@ public class GeneradorEsquema {
         tablaMulti.aniadeListaClavesForaneas(tablaEntidad.getPrimaries(), tablaEntidad.getNombreTabla(), referenciadas, false);
         tablasMultivalorados.add(tablaMulti);
         for (String rest : (Vector<String>) ta.getListaRestricciones())
-            restriccionesPerdidas.add(new restriccionPerdida(tablaMulti.getNombreTabla(), rest, restriccionPerdida.TABLA));
+            restriccionesPerdidas.add(new RestriccionPerdida(tablaMulti.getNombreTabla(), rest, RestriccionPerdida.TABLA));
     }
 
     protected int objectToInt(Object ob) {

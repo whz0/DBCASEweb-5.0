@@ -1,24 +1,34 @@
 package vista.componentes;
 
-import controlador.Controlador;
-import controlador.TC;
-import vista.iconos.IconLabel;
-import vista.iconos.perspective.allIcon;
-import vista.iconos.perspective.codeIcon;
-import vista.iconos.perspective.diagramIcon;
-import vista.lenguaje.Lenguaje;
-import vista.tema.Theme;
-
-import javax.swing.*;
-import javax.swing.event.MenuListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
+import java.awt.ComponentOrientation;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.Vector;
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSeparator;
+import javax.swing.JToolBar;
+import javax.swing.event.MenuListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import controlador.Controlador;
+import controlador.TC;
+import vista.iconos.IconLabel;
+import vista.iconos.perspective.AllIcon;
+import vista.iconos.perspective.CodeIcon;
+import vista.iconos.perspective.DiagramIcon;
+import vista.lenguaje.Lenguaje;
+import vista.tema.Theme;
 
 @SuppressWarnings("serial")
 public class MyMenu extends JMenuBar {
@@ -40,9 +50,9 @@ public class MyMenu extends JMenuBar {
     private final AbstractButton submenuAcercaDe;
     private final Theme theme;
     private MenuListener a;
-    private final diagramIcon diagramIcon;
-    private final codeIcon codeIcon;
-    private final allIcon allIcon;
+    private final DiagramIcon diagramIcon;
+    private final CodeIcon codeIcon;
+    private final AllIcon allIcon;
 
     public MyMenu(Controlador c) {
         this.theme = Theme.getInstancia();
@@ -63,11 +73,9 @@ public class MyMenu extends JMenuBar {
         menuSistema.add(submenuNuevo);
         submenuNuevo.setText(Lenguaje.text(Lenguaje.NEW));
         submenuNuevo.setMnemonic(Lenguaje.text(Lenguaje.NEW).charAt(0));
-        submenuNuevo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_Nuevo, null);
-            }
-        });
+        submenuNuevo.addActionListener(evt ->
+                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_Nuevo, null)
+        );
         //File/open
         submenuAbrir = new JMenuItem();
         submenuAbrir.setForeground(theme.fontColor());
@@ -75,11 +83,9 @@ public class MyMenu extends JMenuBar {
         menuSistema.add(submenuAbrir);
         submenuAbrir.setText(Lenguaje.text(Lenguaje.OPEN) + "...");
         submenuAbrir.setMnemonic(Lenguaje.text(Lenguaje.OPEN).charAt(0));
-        submenuAbrir.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_Abrir, null);
-            }
-        });
+        submenuAbrir.addActionListener(evt ->
+                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_Abrir, null)
+        );
 
         //File/separator
         menuSistema.add(new JSeparator());
@@ -90,11 +96,9 @@ public class MyMenu extends JMenuBar {
         menuSistema.add(submenuGuardar);
         submenuGuardar.setText(Lenguaje.text(Lenguaje.SAVE));
         submenuGuardar.setMnemonic(Lenguaje.text(Lenguaje.SAVE).charAt(0));
-        submenuGuardar.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_Guardar, null);
-            }
-        });
+        submenuGuardar.addActionListener(evt ->
+                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_Guardar, null)
+        );
         //File/save as...
         submenuGuardarComo = new JMenuItem();
         submenuGuardarComo.setForeground(theme.fontColor());
@@ -102,11 +106,9 @@ public class MyMenu extends JMenuBar {
         menuSistema.add(submenuGuardarComo);
         submenuGuardarComo.setText(Lenguaje.text(Lenguaje.SAVE_AS) + "...");
         submenuGuardarComo.setMnemonic(Lenguaje.text(Lenguaje.SAVE_AS).charAt(1));
-        submenuGuardarComo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_GuardarComo, null);
-            }
-        });
+        submenuGuardarComo.addActionListener(evt ->
+                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_GuardarComo, null)
+        );
         //File/separator2
         menuSistema.add(new JSeparator());
         //File/imprimir
@@ -116,11 +118,9 @@ public class MyMenu extends JMenuBar {
         menuSistema.add(submenuImprimir);
         submenuImprimir.setText(Lenguaje.text(Lenguaje.PRINT_DIAGRAM));
         submenuImprimir.setMnemonic(Lenguaje.text(Lenguaje.PRINT_DIAGRAM).charAt(0));
-        submenuImprimir.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Imprimir, null);
-            }
-        });
+        submenuImprimir.addActionListener(evt ->
+                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Imprimir, null)
+        );
         //File/Export
         submenuExportarJPEG = new JMenuItem();
         submenuExportarJPEG.setFont(theme.font());
@@ -128,11 +128,7 @@ public class MyMenu extends JMenuBar {
         menuSistema.add(submenuExportarJPEG);
         submenuExportarJPEG.setText(Lenguaje.text(Lenguaje.EXPORT_DIAGRAM));
         submenuExportarJPEG.setMnemonic(Lenguaje.text(Lenguaje.EXPORT_DIAGRAM).charAt(0));
-        submenuExportarJPEG.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                exportarJPG(evt);
-            }
-        });
+        submenuExportarJPEG.addActionListener(this::exportarJPG);
         //File/Separator
         menuSistema.add(new JSeparator());
         //File/salir
@@ -142,11 +138,9 @@ public class MyMenu extends JMenuBar {
         menuSistema.add(submenuSalir);
         submenuSalir.setText(Lenguaje.text(Lenguaje.EXIT_MINCASE));
         submenuSalir.setMnemonic(Lenguaje.text(Lenguaje.EXIT_MINCASE).charAt(0));
-        submenuSalir.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_Salir, null);
-            }
-        });
+        submenuSalir.addActionListener(evt ->
+                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Submenu_Salir, null)
+        );
         //Vista
         menuOpciones = new JMenu();
         menuOpciones.setForeground(theme.fontColor());
@@ -158,22 +152,19 @@ public class MyMenu extends JMenuBar {
         menuOpciones.setMnemonic(Lenguaje.text(Lenguaje.OPTIONS).charAt(0));
         optionsMenu = new JMenu();
         optionsMenu.setForeground(theme.fontColor());
-        for (String s : this.theme.getAvaiableThemes()) {
+        for (String s : this.theme.getAvailableThemes()) {
             JRadioButtonMenuItem item = new JRadioButtonMenuItem();
             item.setText(s);
             item.setFont(theme.font());
             item.setForeground(theme.fontColor());
             item.setActionCommand(s);
             if (s.equals(theme.getThemeName())) item.setSelected(true);
-            item.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_CambiarTema, e.getActionCommand());
-                    int i = 0;
-                    for (String s : theme.getAvaiableThemes()) {
-                        optionsMenu.getItem(i).setSelected(theme.getThemeName().equals(s));
-                        i++;
-                    }
+            item.addActionListener(e -> {
+                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_CambiarTema, e.getActionCommand());
+                int i = 0;
+                for (String s1 : theme.getAvailableThemes()) {
+                    optionsMenu.getItem(i).setSelected(theme.getThemeName().equals(s1));
+                    i++;
                 }
             });
             optionsMenu.add(item);
@@ -188,23 +179,20 @@ public class MyMenu extends JMenuBar {
         menuOpciones.add(menuLenguajes);
         menuLenguajes.setText(Lenguaje.text(Lenguaje.SELECT_LANGUAGE));
         menuLenguajes.setMnemonic(Lenguaje.text(Lenguaje.SELECT_LANGUAGE).charAt(0));
-        elementosMenuLenguajes = new Vector<JRadioButtonMenuItem>(0, 1);
+        elementosMenuLenguajes = new Vector<>(0, 1);
         Vector<String> lenguajes = Lenguaje.obtenLenguajesDisponibles();
-        for (int m = 0; m < lenguajes.size(); m++) {
+        for (String s : lenguajes) {
             JRadioButtonMenuItem lenguaje = new JRadioButtonMenuItem();
-            lenguaje.setText(lenguajes.get(m));
+            lenguaje.setText(s);
             lenguaje.setFont(theme.font());
-            lenguaje.setSelected(lenguajes.get(m).equalsIgnoreCase(Lenguaje.getIdiomaActual()));
+            lenguaje.setSelected(s.equalsIgnoreCase(Lenguaje.getIdiomaActual()));
             lenguaje.setForeground(theme.fontColor());
-            lenguaje.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    JRadioButtonMenuItem check = (JRadioButtonMenuItem) e.getSource();
-                    c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_CambiarLenguaje, check.getText());
-                    // Actualizar los checkBox
-                    for (int k = 0; k < elementosMenuLenguajes.size(); k++) {
-                        JRadioButtonMenuItem l = elementosMenuLenguajes.get(k);
-                        l.setSelected(l.getText().equalsIgnoreCase(Lenguaje.getIdiomaActual()));
-                    }
+            lenguaje.addActionListener(e -> {
+                JRadioButtonMenuItem check = (JRadioButtonMenuItem) e.getSource();
+                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_CambiarLenguaje, check.getText());
+                // Actualizar los checkBox
+                for (JRadioButtonMenuItem l : elementosMenuLenguajes) {
+                    l.setSelected(l.getText().equalsIgnoreCase(Lenguaje.getIdiomaActual()));
                 }
             });
             menuLenguajes.add(lenguaje);
@@ -241,7 +229,7 @@ public class MyMenu extends JMenuBar {
             }
         });
         JToolBar iconosPerspectiva = new JToolBar();
-        diagramIcon = new diagramIcon(false);
+        diagramIcon = new DiagramIcon(false);
         IconLabel diagramLabel = new IconLabel(diagramIcon);
         diagramLabel.addMouseListener(new MouseAdapter() {
             @Override
@@ -249,7 +237,7 @@ public class MyMenu extends JMenuBar {
                 c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_ModoDiseno, null);
             }
         });
-        allIcon = new allIcon(false);
+        allIcon = new AllIcon(false);
         IconLabel allLabel = new IconLabel(allIcon);
         allLabel.addMouseListener(new MouseAdapter() {
             @Override
@@ -257,7 +245,7 @@ public class MyMenu extends JMenuBar {
                 c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_ModoVerTodo, null);
             }
         });
-        codeIcon = new codeIcon(false);
+        codeIcon = new CodeIcon(false);
         IconLabel codeLabel = new IconLabel(codeIcon);
         codeLabel.addMouseListener(new MouseAdapter() {
             @Override

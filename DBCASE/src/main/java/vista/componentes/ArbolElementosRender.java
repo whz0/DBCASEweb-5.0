@@ -1,16 +1,21 @@
 package vista.componentes;
 
+import java.awt.Component;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+
 import modelo.transfers.TransferAtributo;
 import modelo.transfers.TransferEntidad;
 import modelo.transfers.TransferRelacion;
 import persistencia.NodoEntidad;
-import vista.iconos.*;
+import vista.iconos.AttributeIcon;
+import vista.iconos.EntityChildIcon;
+import vista.iconos.EntityIcon;
+import vista.iconos.IsaIcon;
+import vista.iconos.RelationIcon;
+import vista.iconos.SubAttributeIcon;
 import vista.tema.Theme;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import java.awt.*;
 
 /*
  * Clase para representar el arbol de elementos del panel de informacion
@@ -43,8 +48,8 @@ public class ArbolElementosRender extends DefaultTreeCellRenderer {
                         String.format(SUBSPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), ((TransferAtributo) userObject).getDominio());
             else
                 text = String.format(SPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), userObject);
-            if (((TransferAtributo) userObject).isSubatributo()) setIcon(new subAttributeIcon("mini"));
-            else setIcon(new attributeIcon("mini"));
+            if (((TransferAtributo) userObject).isSubatributo()) setIcon(new SubAttributeIcon("mini"));
+            else setIcon(new AttributeIcon("mini"));
         } else if (userObject instanceof NodoEntidad) {
             /*
              * NodoEntidad representa las entidades dependientes de una relacion
@@ -55,14 +60,14 @@ public class ArbolElementosRender extends DefaultTreeCellRenderer {
              * */
             if (((NodoEntidad) userObject).esHija()) {
                 text = String.format(SPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), userObject);
-                setIcon(new entityChildIcon("mini"));
+                setIcon(new EntityChildIcon("mini"));
             } else if (((NodoEntidad) userObject).esPadre()) {
                 text = String.format(SPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), userObject);
-                setIcon(new entityIcon("mini"));
+                setIcon(new EntityIcon("mini"));
             } else {
                 text = String.format(SPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), userObject + ": ") +
                         String.format(SUBSPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), ((NodoEntidad) userObject).getRango());
-                setIcon(new entityIcon("mini"));
+                setIcon(new EntityIcon("mini"));
             }
         } else if (userObject instanceof TransferEntidad) {
             /*
@@ -70,11 +75,11 @@ public class ArbolElementosRender extends DefaultTreeCellRenderer {
              * independientemente de las relaciones a las que pertenece
              * */
             text = String.format(SPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), userObject);
-            setIcon(new entityIcon("mini"));
+            setIcon(new EntityIcon("mini"));
         } else if (userObject instanceof TransferRelacion) {
             text = String.format(SPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), userObject);
-            if ((((TransferRelacion) userObject).getTipo().equals("IsA"))) setIcon(new isaIcon("mini"));
-            else setIcon(new relationIcon("mini"));
+            if ((((TransferRelacion) userObject).getTipo().equals("IsA"))) setIcon(new IsaIcon("mini"));
+            else setIcon(new RelationIcon("mini"));
         } else {//Si no es de ningun tipo de los anteriores, es que es un titulo
             text = "<h2 style='padding:10;color:" + (sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue()) + ";'>" + userObject + "</h2>";
             setIcon(null);

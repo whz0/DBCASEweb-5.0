@@ -2,17 +2,20 @@ package vista.iconos;
 
 import vista.tema.Theme;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
-public class superEntityIcon extends icon {
+public class SuperEntityIcon extends Icon {
 
-    public superEntityIcon() {
+    public SuperEntityIcon() {
         super();
     }
 
-    public superEntityIcon(String tipo) {
+    public SuperEntityIcon(String tipo) {
         super(tipo);
     }
 

@@ -1,12 +1,12 @@
 package vista.tema;
 
-import java.awt.*;
+import java.awt.Color;
 
 @SuppressWarnings("serial")
-public class myColor extends Color {
+public class MyColor extends Color {
     int r, g, b;
 
-    public myColor(int r, int g, int b) {
+    public MyColor(int r, int g, int b) {
         super(r, g, b);
         this.r = r;
         this.g = g;

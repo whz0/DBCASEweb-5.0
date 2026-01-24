@@ -1,9 +1,12 @@
 package vista.componentes;
 
-import vista.tema.Theme;
+import java.awt.Component;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+
+import vista.tema.Theme;
 
 @SuppressWarnings("serial")
 public class CustomCellEditor extends DefaultCellEditor {

@@ -1,16 +1,22 @@
 package vista.frames;
 
+import java.awt.Point;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.util.Vector;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 import controlador.Controlador;
 import controlador.TC;
 import modelo.transfers.TransferEntidad;
 import modelo.transfers.TransferRelacion;
 import vista.lenguaje.Lenguaje;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.util.Vector;
 
 
 @SuppressWarnings({"rawtypes", "unchecked", "serial"})

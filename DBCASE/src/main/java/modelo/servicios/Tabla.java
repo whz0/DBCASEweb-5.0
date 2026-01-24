@@ -1,15 +1,15 @@
 package modelo.servicios;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Vector;
+
 import controlador.Controlador;
 import modelo.conectorDBMS.ConectorDBMS;
 import modelo.conectorDBMS.FactoriaConectores;
 import modelo.transfers.TipoDominio;
 import modelo.transfers.TransferConexion;
-
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Vector;
 
 //la clase tabla, almacenara las tablas a traducir del disenio al script.
 @SuppressWarnings({"rawtypes", "unchecked"})

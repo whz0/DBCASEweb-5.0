@@ -1,11 +1,21 @@
 package modelo.servicios;
 
-import controlador.Controlador;
-import modelo.transfers.*;
-import org.springframework.context.MessageSource;
-import persistencia.*;
-
 import java.util.Vector;
+
+import org.springframework.context.MessageSource;
+
+import controlador.Controlador;
+import modelo.transfers.TipoDominio;
+import modelo.transfers.Transfer;
+import modelo.transfers.TransferAtributo;
+import modelo.transfers.TransferDominio;
+import modelo.transfers.TransferEntidad;
+import modelo.transfers.TransferRelacion;
+import persistencia.DAOAtributos;
+import persistencia.DAODominios;
+import persistencia.DAOEntidades;
+import persistencia.DAORelaciones;
+import persistencia.EntidadYAridad;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ValidadorBD extends GeneradorEsquema {

@@ -1,13 +1,14 @@
 package vista.frames;
 
-import vista.lenguaje.Lenguaje;
-import vista.tema.Theme;
-
-import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import javax.swing.JButton;
+import javax.swing.JTextField;
+
+import vista.lenguaje.Lenguaje;
+import vista.tema.Theme;
 
 @SuppressWarnings("serial")
 public class Parent_GUI extends javax.swing.JDialog implements KeyListener, MouseListener {

@@ -1,23 +1,42 @@
 package vista.frames;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
 import controlador.Controlador;
 import controlador.TC;
+import lombok.Getter;
+import lombok.Setter;
 import modelo.transfers.TransferAtributo;
 import modelo.transfers.TransferEntidad;
 import vista.componentes.CustomCellEditor;
 import vista.imagenes.ImagePath;
 import vista.lenguaje.Lenguaje;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Vector;
-
 @SuppressWarnings({"serial", "unchecked"})
+@Setter
+@Getter
 public class GUI_TablaUniqueEntidad extends Parent_GUI {
+
+    /*
+     * Getters y Setters
+     */
 
     private Controlador controlador;
     private TransferEntidad entidad;
@@ -56,11 +75,7 @@ public class GUI_TablaUniqueEntidad extends Parent_GUI {
         {
             botonAceptar = boton(280, 280, Lenguaje.text(Lenguaje.ACCEPT));
             getContentPane().add(botonAceptar);
-            botonAceptar.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent evt) {
-                    botonAceptarActionPerformed(evt);
-                }
-            });
+            botonAceptar.addActionListener(this::botonAceptarActionPerformed);
             botonAceptar.addKeyListener(new KeyListener() {
                 public void keyPressed(KeyEvent e) {
                     if (e.getKeyCode() == 10) botonCancelarActionPerformed(null);
@@ -388,13 +403,13 @@ public class GUI_TablaUniqueEntidad extends Parent_GUI {
         Vector<String> vUniques = this.entidad.getListaUniques();
         Vector<String> vAtributos = this.entidad.getListaAtributos();
         controlador.getTheServiciosAtributos().ListaDeAtributos();
-        for (int i = 0; i < vUniques.size(); i++) {
-            for (int j = 0; j < vAtributos.size(); j++)
-                if (vUniques.get(i).equals(controlador.getTheServiciosAtributos().getNombreAtributo(Integer.parseInt(vAtributos.get(j))))) {
-                    if (!controlador.getTheServiciosAtributos().idUnique(Integer.parseInt(vAtributos.get(j)))) {
+        for (String unique : vUniques) {
+            for (String vAtributo : vAtributos)
+                if (unique.equals(controlador.getTheServiciosAtributos().getNombreAtributo(Integer.parseInt(vAtributo)))) {
+                    if (!controlador.getTheServiciosAtributos().idUnique(Integer.parseInt(vAtributo))) {
                         int numAtributo = -1;
                         for (int k = 0; k < controlador.getTheGUIPrincipal().getListaAtributos().size(); k++) {
-                            String nombre = controlador.getTheServiciosAtributos().getNombreAtributo(Integer.parseInt(vAtributos.get(j)));
+                            String nombre = controlador.getTheServiciosAtributos().getNombreAtributo(Integer.parseInt(vAtributo));
                             if (((TransferAtributo) controlador.getTheGUIPrincipal().getListaAtributos().get(k)).getNombre().equals(nombre)) {
                                 numAtributo = k;
                             }
@@ -405,11 +420,11 @@ public class GUI_TablaUniqueEntidad extends Parent_GUI {
                     }
                 }
         }
-        for (int i = 0; i < vAtributos.size(); i++) {
-            if (controlador.getTheServiciosAtributos().idUnique(Integer.parseInt(vAtributos.get(i)))) {
+        for (String vAtributo : vAtributos) {
+            if (controlador.getTheServiciosAtributos().idUnique(Integer.parseInt(vAtributo))) {
                 boolean encontrado = false;
-                for (int j = 0; j < vUniques.size(); j++) {
-                    if (vUniques.get(j).equals(controlador.getTheServiciosAtributos().getNombreAtributo(Integer.parseInt(vAtributos.get(i))))) {
+                for (String vUnique : vUniques) {
+                    if (vUnique.equals(controlador.getTheServiciosAtributos().getNombreAtributo(Integer.parseInt(vAtributo)))) {
                         encontrado = true;
                     }
                 }
@@ -417,7 +432,7 @@ public class GUI_TablaUniqueEntidad extends Parent_GUI {
                     //hay que arreglar uno unique unitario que acabas de quitar
                     int numAtributo = -1;
                     for (int k = 0; k < controlador.getTheGUIPrincipal().getListaAtributos().size(); k++) {
-                        String nombre = controlador.getTheServiciosAtributos().getNombreAtributo(Integer.parseInt(vAtributos.get(i)));
+                        String nombre = controlador.getTheServiciosAtributos().getNombreAtributo(Integer.parseInt(vAtributo));
                         if (((TransferAtributo) controlador.getTheGUIPrincipal().getListaAtributos().get(k)).getNombre().equals(nombre)) {
                             numAtributo = k;
                         }
@@ -428,20 +443,5 @@ public class GUI_TablaUniqueEntidad extends Parent_GUI {
                 }
             }
         }
-    }
-
-    /*
-     * Getters y Setters
-     */
-    public Controlador getControlador() {
-        return controlador;
-    }
-
-    public void setControlador(Controlador controlador) {
-        this.controlador = controlador;
-    }
-
-    public void setEntidad(TransferEntidad entidad) {
-        this.entidad = entidad;
     }
 }

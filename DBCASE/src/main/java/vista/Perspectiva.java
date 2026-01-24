@@ -1,7 +1,9 @@
 package vista;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Container;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 
 
 /*

@@ -1,17 +1,21 @@
 package vista.iconos;
 
-import vista.tema.Theme;
-
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 
-public class relationIcon extends icon {
+import vista.tema.Theme;
 
-    public relationIcon() {
+public class RelationIcon extends Icon {
+
+    public RelationIcon() {
         super();
     }
 
-    public relationIcon(String tipo) {
+    public RelationIcon(String tipo) {
         super(tipo);
     }
 

@@ -1,19 +1,27 @@
 package vista.frames;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
 import controlador.Controlador;
 import controlador.TC;
 import modelo.transfers.TransferRelacion;
 import vista.componentes.CustomCellEditor;
 import vista.imagenes.ImagePath;
 import vista.lenguaje.Lenguaje;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Vector;
 
 @SuppressWarnings("serial")
 public class GUI_InsertarRestriccionARelacion extends Parent_GUI {

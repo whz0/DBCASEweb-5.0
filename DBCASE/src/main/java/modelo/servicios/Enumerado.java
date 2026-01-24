@@ -1,11 +1,11 @@
 package modelo.servicios;
 
+import java.util.Vector;
+
 import modelo.conectorDBMS.ConectorDBMS;
 import modelo.conectorDBMS.FactoriaConectores;
 import modelo.transfers.TipoDominio;
 import modelo.transfers.TransferConexion;
-
-import java.util.Vector;
 
 /**
  * Almacena los datos referentes a un dominio

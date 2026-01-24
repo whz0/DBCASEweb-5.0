@@ -1,11 +1,15 @@
 package modelo.conectorDBMS;
 
-import vista.lenguaje.Lenguaje;
-
-import javax.swing.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import javax.swing.JOptionPane;
+
+import vista.lenguaje.Lenguaje;
 
 public class ConectorAccessMdb extends ConectorAccessOdbc {
 
@@ -61,15 +65,13 @@ public class ConectorAccessMdb extends ConectorAccessOdbc {
             // OutputStream out = new FileOutputStream(f2,true);
 
             // For Overwrite the file.
-            OutputStream out = new FileOutputStream(f2);
+            OutputStream out = Files.newOutputStream(f2.toPath());
             byte[] buf = new byte[1024];
             int len;
             while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
             in.close();
             out.close();
             return true;
-        } catch (FileNotFoundException ex) {
-            return false;
         } catch (IOException e) {
             return false;
         }

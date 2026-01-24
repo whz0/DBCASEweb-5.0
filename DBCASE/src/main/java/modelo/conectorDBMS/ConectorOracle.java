@@ -1,12 +1,17 @@
 package modelo.conectorDBMS;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Objects;
+import java.util.Vector;
+
 import modelo.servicios.Enumerado;
 import modelo.servicios.Tabla;
 import modelo.transfers.TipoDominio;
 import vista.lenguaje.Lenguaje;
-
-import java.sql.*;
-import java.util.Vector;
 
 /**
  * Conecta la aplicación con un gestor de bases de datos Oracle
@@ -69,94 +74,100 @@ public class ConectorOracle extends ConectorDBMS {
     @Override
     public String obtenerCodigoCreacionTabla(Tabla t) {
         // Crear la tabla
-        String codigo = "CREATE TABLE " + t.getNombreTabla() + " (";
+        StringBuilder codigo = new StringBuilder("CREATE TABLE " + t.getNombreTabla() + " (");
 
         // Para cada atributo...
         Vector<String[]> atributos = t.getAtributos();
         for (int i = 0; i < atributos.size(); i++) {
-            if (i > 0) codigo += ", ";
+            if (i > 0) codigo.append(", ");
             //metemos el atributo
-            codigo += atributos.elementAt(i)[0];
+            codigo.append(atributos.elementAt(i)[0]);
             // metemos el dominio
-            codigo += " " + equivalenciaTipoOracle(atributos.elementAt(i)[1]);
+            codigo.append(" ").append(equivalenciaTipoOracle(atributos.elementAt(i)[1]));
 
             // not null
             if (atributos.elementAt(i)[4].equalsIgnoreCase("1"))
-                codigo += " NOT NULL";
+                codigo.append(" NOT NULL");
         }
         //cerramos la creacion de la tabla
-        codigo += ");\n";
-        return codigo;
+        codigo.append(");\n");
+        return codigo.toString();
     }
 
     @Override
     public String obtenerCodigoCreacionTablaHTML(Tabla t) {
         // Crear la tabla
-        String codigo = "<p><strong>CREATE TABLE </strong>" + t.getNombreTabla() + " (";
+        StringBuilder codigo = new StringBuilder("<p><strong>CREATE TABLE </strong>" + t.getNombreTabla() + " (");
 
         // Para cada atributo...
         Vector<String[]> atributos = t.getAtributos();
         for (int i = 0; i < atributos.size(); i++) {
-            if (i > 0) codigo += ", ";
+            if (i > 0) codigo.append(", ");
             //metemos el atributo
-            codigo += atributos.elementAt(i)[0];
+            codigo.append(atributos.elementAt(i)[0]);
             //metemos el dominio
             String dominio = equivalenciaTipoOracle(atributos.elementAt(i)[1]);
-            codigo += " <strong>" + dominio + "</strong>";
+            codigo.append(" <strong>").append(dominio).append("</strong>");
 
             // Not null
             if (atributos.elementAt(i)[4].equalsIgnoreCase("1"))
-                codigo += "<strong> NOT NULL</strong>";
+                codigo.append("<strong> NOT NULL</strong>");
         }
         //cerramos la creacion de la tabla
-        codigo += ")" + ";</p>";
-        return codigo;
+        codigo.append(")" + ";</p>");
+        return codigo.toString();
     }
 
     @Override
     public String obtenerCodigoClavesTablaHTML(Tabla t) {
-        String codigo = "";
+        StringBuilder codigo = new StringBuilder();
 
         //si tiene claves primarias, las añadimos
         Vector<String[]> primaries = t.getPrimaries();
         if (!primaries.isEmpty()) {
-            codigo += "<p><strong>ALTER TABLE </strong>" + t.getNombreTabla() +
-                    "<strong> ADD CONSTRAINT </strong>" + t.getNombreTabla_ini() + "_pk" + t.getNombreTabla_fin() +
-                    "<strong> PRIMARY KEY </strong>" + "(";
+            codigo.append("<p><strong>ALTER TABLE </strong>").append(t.getNombreTabla()).append("<strong> ADD CONSTRAINT </strong>").append(t.getNombreTabla_ini()).append("_pk").append(t.getNombreTabla_fin()).append("<strong> PRIMARY KEY </strong>").append("(");
             for (int i = 0; i < primaries.size(); i++) {
-                if (i > 0) codigo += ", ";
-                codigo += primaries.elementAt(i)[0];
+                if (i > 0) codigo.append(", ");
+                codigo.append(primaries.elementAt(i)[0]);
             }
-            codigo += ");</p>";
+            codigo.append(");</p>");
         }
         //si tiene claves foraneas:
         Vector<String[]> foreigns = t.getForeigns();
         if (!foreigns.isEmpty()) {
             boolean abierto = false;
-            String keys = "", rfrncs = "";
+            StringBuilder keys = new StringBuilder();
+            StringBuilder rfrncs = new StringBuilder();
             for (int j = 0; j < foreigns.size(); j++) {
                 if (!abierto) {
-                    codigo += "<p><strong>ALTER TABLE </strong>" + t.getNombreTabla() + "<strong> ADD CONSTRAINT </strong>" +
-                            t.getNombreTabla_ini() + "_" + foreigns.elementAt(j)[0].substring(1, foreigns.elementAt(j)[0].length() - 1) + t.getNombreTabla_fin() + "<strong> FOREIGN KEY </strong>(";
+                    codigo
+                            .append("<p><strong>ALTER TABLE </strong>")
+                            .append(t.getNombreTabla())
+                            .append("<strong> ADD CONSTRAINT </strong>")
+                            .append(t.getNombreTabla_ini())
+                            .append("_")
+                            .append(foreigns.elementAt(j)[0], 1, foreigns.elementAt(j)[0].length() - 1)
+                            .append(t.getNombreTabla_fin())
+                            .append("<strong> FOREIGN KEY </strong>(");
                     abierto = true;
                 }
-                keys += foreigns.elementAt(j)[0];
-                rfrncs += nombreColumn(foreigns.elementAt(j)[2], foreigns.elementAt(j)[3]);
+                keys.append(foreigns.elementAt(j)[0]);
+                rfrncs.append(nombreColumn(foreigns.elementAt(j)[2], foreigns.elementAt(j)[3]));
                 if (foreigns.size() - j > 1) {
-                    if (foreigns.elementAt(j + 1)[3] != foreigns.elementAt(j)[3]) {
-                        codigo += keys + ") <strong> REFERENCES </strong>" + foreigns.elementAt(j)[3] + "(" + rfrncs + ");</p>";
+                    if (!Objects.equals(foreigns.elementAt(j + 1)[3], foreigns.elementAt(j)[3])) {
+                        codigo.append(keys).append(") <strong> REFERENCES </strong>").append(foreigns.elementAt(j)[3]).append("(").append(rfrncs).append(");</p>");
                         abierto = false;
-                        keys = "";
-                        rfrncs = "";
+                        keys = new StringBuilder();
+                        rfrncs = new StringBuilder();
                     } else {
-                        keys += ", ";
-                        rfrncs += ", ";
+                        keys.append(", ");
+                        rfrncs.append(", ");
                     }
                 } else {
-                    codigo += keys + ") <strong> REFERENCES </strong>" + foreigns.elementAt(j)[3] + "(" + rfrncs + ");</p>";
+                    codigo.append(keys).append(") <strong> REFERENCES </strong>").append(foreigns.elementAt(j)[3]).append("(").append(rfrncs).append(");</p>");
                     abierto = false;
-                    keys = "";
-                    rfrncs = "";
+                    keys = new StringBuilder();
+                    rfrncs = new StringBuilder();
                 }
             }
         }
@@ -164,68 +175,63 @@ public class ConectorOracle extends ConectorDBMS {
         // Si tiene uniques, se ponen
         Vector<String> uniques = t.getUniques();
         if (!uniques.isEmpty()) {
-            codigo += "<p><strong>ALTER TABLE </strong>" + t.getNombreTabla() +
-                    "<strong> ADD CONSTRAINT </strong>" + t.getNombreTabla_ini() + "_unique_" + t.getNombreTabla_fin() +
-                    "<strong> UNIQUE</strong> (";
+            codigo.append("<p><strong>ALTER TABLE </strong>").append(t.getNombreTabla()).append("<strong> ADD CONSTRAINT </strong>").append(t.getNombreTabla_ini()).append("_unique_").append(t.getNombreTabla_fin()).append("<strong> UNIQUE</strong> (");
             for (int j = 0; j < uniques.size(); j++) {
-                codigo += uniques.elementAt(j);
-                if (uniques.size() - j > 1) codigo += ", ";
+                codigo.append(uniques.elementAt(j));
+                if (uniques.size() - j > 1) codigo.append(", ");
             }
-            codigo += ");</p>";
+            codigo.append(");</p>");
         }
 
-        return codigo;
+        return codigo.toString();
     }
 
     @Override
     public String obtenerCodigoEnumerado(Enumerado e) {
         // Crear la tabla
-        String codigo = "CREATE TABLE " + e.getNombre() + " (";
+        StringBuilder codigo = new StringBuilder("CREATE TABLE " + e.getNombre() + " (");
         if (e.getTipo() == TipoDominio.VARCHAR || e.getTipo() == TipoDominio.CHAR || e.getTipo() == TipoDominio.TEXT)
-            codigo += "value_list " + e.getTipo() + "(" + e.getLongitud() + ")";
-        else codigo += "value_list " + e.getTipo();
-        codigo += ");\n";
+            codigo.append("value_list ").append(e.getTipo()).append("(").append(e.getLongitud()).append(")");
+        else codigo.append("value_list ").append(e.getTipo());
+        codigo.append(");\n");
 
         // Establecer la clave primaria
-        codigo += "ALTER TABLE " + e.getNombre() + " ADD CONSTRAINT " + e.getNombre() + "_pk" + " PRIMARY KEY (value_list);\n";
+        codigo.append("ALTER TABLE ").append(e.getNombre()).append(" ADD CONSTRAINT ").append(e.getNombre()).append("_pk").append(" PRIMARY KEY (value_list);\n");
 
         // Insertar los valores
         for (int i = 0; i < e.getNumeroValores(); i++) {
             String valor = e.getValor(i);
             if (valor.startsWith("'")) valor = valor.substring(1, valor.length() - 1);
             if (e.getTipo() == TipoDominio.VARCHAR || e.getTipo() == TipoDominio.CHAR || e.getTipo() == TipoDominio.TEXT)
-                codigo += "INSERT INTO " + e.getNombre() + " values ('" + valor + "');\n";
-            else codigo += "INSERT INTO " + e.getNombre() + " values (" + valor + ");\n";
+                codigo.append("INSERT INTO ").append(e.getNombre()).append(" values ('").append(valor).append("');\n");
+            else codigo.append("INSERT INTO ").append(e.getNombre()).append(" values (").append(valor).append(");\n");
         }
-        codigo += "\n";
-        return codigo;
+        codigo.append("\n");
+        return codigo.toString();
     }
 
     @Override
     public String obtenerCodigoEnumeradoHTML(Enumerado e) {
         // Crear la tabla
-        String codigo = "<p><strong>CREATE TABLE </strong>" + e.getNombre() + " (";
+        StringBuilder codigo = new StringBuilder("<p><strong>CREATE TABLE </strong>" + e.getNombre() + " (");
         if (e.getTipo() == TipoDominio.VARCHAR)
-            codigo += "value_list " + "<strong>" + e.getTipo() + "(" + e.getLongitud() + ")</strong>";
-        else codigo += "value_list " + "<strong>" + e.getTipo() + "</strong>";
-        codigo += ")" + ";</p>";
+            codigo.append("value_list " + "<strong>").append(e.getTipo()).append("(").append(e.getLongitud()).append(")</strong>");
+        else codigo.append("value_list " + "<strong>").append(e.getTipo()).append("</strong>");
+        codigo.append(")" + ";</p>");
 
         // Establecer la clave primaria
-        codigo += "<p><strong>ALTER TABLE </strong>" + e.getNombre() +
-                "<strong> ADD CONSTRAINT </strong>" + e.getNombre() + "_pk" +
-                "<strong> PRIMARY KEY </strong>" + "(value_list);</p>";
+        codigo.append("<p><strong>ALTER TABLE </strong>").append(e.getNombre()).append("<strong> ADD CONSTRAINT </strong>").append(e.getNombre()).append("_pk").append("<strong> PRIMARY KEY </strong>").append("(value_list);</p>");
 
         // Insertar los valores
         for (int i = 0; i < e.getNumeroValores(); i++) {
             String valor = e.getValor(i);
             if (valor.startsWith("'")) valor = valor.substring(1, valor.length() - 1);
             if (e.getTipo() == TipoDominio.VARCHAR || e.getTipo() == TipoDominio.CHAR || e.getTipo() == TipoDominio.TEXT)
-                codigo += "<p><strong>INSERT INTO </strong>" + e.getNombre() + "<strong> VALUES </strong>" + "(" +
-                        "'" + valor + "'" + ");" + "</p>";
+                codigo.append("<p><strong>INSERT INTO </strong>").append(e.getNombre()).append("<strong> VALUES </strong>").append("(").append("'").append(valor).append("'").append(");").append("</p>");
             else
-                codigo += "<p><strong>INSERT INTO </strong>" + e.getNombre() + "<strong> VALUES </strong>(" + valor + ");</p>";
+                codigo.append("<p><strong>INSERT INTO </strong>").append(e.getNombre()).append("<strong> VALUES </strong>(").append(valor).append(");</p>");
         }
-        return codigo;
+        return codigo.toString();
     }
 
     // METODOS AUXILIARES
@@ -271,9 +277,6 @@ public class ConectorOracle extends ConectorDBMS {
             if (tipoSinParam.equalsIgnoreCase("DECIMAL")) {
                 return "NUMBER" + param;
             }
-/*			if (tipoSinParam.equalsIgnoreCase("GEOMETRY")){
-				return "SDO_GEOMETRY" + param;
-			}*/
         }
 
         // Tipos pertenecientes a los dominios creados

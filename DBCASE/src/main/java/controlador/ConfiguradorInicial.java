@@ -1,19 +1,21 @@
 package controlador;
 
-import modelo.transfers.TransferConexion;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import modelo.transfers.TransferConexion;
 
 /**
  * Clase encargada de gestionar la configuración por defecto de la aplicación
@@ -66,8 +68,7 @@ public class ConfiguradorInicial {
         _modoVista = 0;
         _existe = false;
         _nullAttr = false;
-        _conexiones = new Hashtable<String, TransferConexion>();
-        _conexiones.clear();
+        _conexiones = new Hashtable<>();
     }
 
     /**
@@ -255,29 +256,5 @@ public class ConfiguradorInicial {
 
     public TransferConexion obtenConexion(String nombreConexion) {
         return _conexiones.get(nombreConexion);
-    }
-
-    public void ponLenguaje(String lenguaje) {
-        _lenguaje = lenguaje;
-    }
-
-    public void ponTema(String tema) {
-        _tema = tema;
-    }
-
-    public void ponModoVista(int modoVista) {
-        _modoVista = modoVista;
-    }
-
-    public void ponGestorBBDD(String gestorBBDD) {
-        _gestorBBDD = gestorBBDD;
-    }
-
-    public void ponUltimoProyecto(String ultimoProyecto) {
-        _ultimoProyecto = ultimoProyecto;
-    }
-
-    public void ponConexiones(Hashtable<String, TransferConexion> conexiones) {
-        _conexiones = conexiones;
     }
 }

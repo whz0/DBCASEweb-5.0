@@ -549,12 +549,12 @@ public class Lenguaje {
     /**
      * Almacena las rutas de los distintos lenguajes permitidos.
      */
-    private static final Hashtable<String, String> _lenguajes = new Hashtable<String, String>();
+    private static final Hashtable<String, String> _lenguajes = new Hashtable<>();
     /**
      * Almacena los distintos campos de texto. La clave es el nombre del campo, y el valor
      * su traducción en el lenguaje actual
      */
-    private static final Hashtable<String, String> _textos = new Hashtable<String, String>();
+    private static final Hashtable<String, String> _textos = new Hashtable<>();
 
     // --- --- --- ACCESORES / MUTADORES --- --- ---
 
@@ -571,7 +571,7 @@ public class Lenguaje {
      * Muestra todos los lenguajes disponibles en la aplicación
      */
     public static Vector<String> obtenLenguajesDisponibles() {
-        Vector<String> sol = new Vector<String>();
+        Vector<String> sol = new Vector<>();
         Enumeration<String> lengs = _lenguajes.keys();
         while (lengs.hasMoreElements()) sol.add(lengs.nextElement());
         return sol;
@@ -2036,8 +2036,8 @@ public class Lenguaje {
                 texto = texto.replaceAll("Ã­", "í");
                 texto = texto.replaceAll("Â´", "´");
             }
-        } catch (Exception e) {
-        }
+        } catch (Exception ignored) { }
+
         return texto;
     }
 }

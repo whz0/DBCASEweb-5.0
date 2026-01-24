@@ -1,30 +1,37 @@
 package vista.componentes.GUIPanels;
 
+import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
+import java.util.Vector;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+
 import controlador.Controlador;
 import controlador.TC;
 import modelo.transfers.Transfer;
 import persistencia.DAOAtributos;
 import persistencia.DAOEntidades;
 import persistencia.DAORelaciones;
-import vista.iconos.*;
+import vista.iconos.IconLabel;
+import vista.iconos.AttributeIcon;
+import vista.iconos.EntityIcon;
+import vista.iconos.IsaIcon;
+import vista.iconos.RelationIcon;
 import vista.lenguaje.Lenguaje;
 import vista.tema.Theme;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
-import java.util.Vector;
-
 @SuppressWarnings("serial")
-public class addTransfersPanel extends JPanel {
+public class AddTransfersPanel extends JPanel {
     private final Controlador controlador;
     private Vector<Transfer> listaTransfers;
     private final int[] coords;
     private int diagramWidth;
 
-    public addTransfersPanel(Controlador c, Vector<Transfer> lisTra) {
+    public AddTransfersPanel(Controlador c, Vector<Transfer> lisTra) {
         super();
         coords = new int[2];
         coords[0] = 70;
@@ -32,10 +39,10 @@ public class addTransfersPanel extends JPanel {
         Theme theme = Theme.getInstancia();
         this.controlador = c;
         this.listaTransfers = lisTra;
-        IconLabel anadirEntidad = new IconLabel(new entityIcon(), Lenguaje.text(Lenguaje.ENTITY));
-        IconLabel anadirRelacion = new IconLabel(new relationIcon(), Lenguaje.text(Lenguaje.RELATION));
-        IconLabel anadirIsa = new IconLabel(new isaIcon(), Lenguaje.text(Lenguaje.ISA_RELATION));
-        IconLabel anadirAttribute = new IconLabel(new attributeIcon(), Lenguaje.text(Lenguaje.ATTRIBUTE));
+        IconLabel anadirEntidad = new IconLabel(new EntityIcon(), Lenguaje.text(Lenguaje.ENTITY));
+        IconLabel anadirRelacion = new IconLabel(new RelationIcon(), Lenguaje.text(Lenguaje.RELATION));
+        IconLabel anadirIsa = new IconLabel(new IsaIcon(), Lenguaje.text(Lenguaje.ISA_RELATION));
+        IconLabel anadirAttribute = new IconLabel(new AttributeIcon(), Lenguaje.text(Lenguaje.ATTRIBUTE));
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.add(Box.createRigidArea(new Dimension(0, 30)));
         this.add(anadirEntidad);

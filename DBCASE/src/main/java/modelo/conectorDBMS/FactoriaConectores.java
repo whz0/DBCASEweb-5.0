@@ -18,24 +18,19 @@ public final class FactoriaConectores {
         switch (tipoConector) {
             case CONECTOR_MYSQL:
                 return new ConectorMySQL();
-
             case CONECTOR_MSACCESS_MDB:
                 return new ConectorAccessMdb();
-
             case CONECTOR_MSACCESS_ODBC:
                 return new ConectorAccessOdbc();
-
             case CONECTOR_ORACLE:
                 return new ConectorOracle();
-
             default:
                 return null;
         }
     }
 
     public static Vector<String> obtenerTodosLosConectores() {
-        Vector<String> v = new Vector<String>();
-        v.clear();
+        Vector<String> v = new Vector<>();
         v.add(CONECTOR_MYSQL, "MySQL");
         v.add(CONECTOR_MSACCESS_MDB, "Microsoft Access .mdb");
         v.add(CONECTOR_MSACCESS_ODBC, "Microsoft Access via ODBC");

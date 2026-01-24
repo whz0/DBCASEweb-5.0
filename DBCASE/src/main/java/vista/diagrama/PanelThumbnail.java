@@ -1,14 +1,16 @@
 package vista.diagrama;
 
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.Point;
+import javax.swing.JPanel;
+
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.CrossoverScalingControl;
 import edu.uci.ics.jung.visualization.control.SatelliteVisualizationViewer;
 import edu.uci.ics.jung.visualization.control.ScalingControl;
 import edu.uci.ics.jung.visualization.decorators.EdgeShape;
 import modelo.transfers.Transfer;
-
-import javax.swing.*;
-import java.awt.*;
 
 @SuppressWarnings({"rawtypes", "unchecked", "serial"})
 public class PanelThumbnail extends JPanel {

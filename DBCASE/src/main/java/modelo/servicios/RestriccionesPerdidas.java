@@ -3,22 +3,22 @@ package modelo.servicios;
 import java.util.ArrayList;
 
 @SuppressWarnings("serial")
-public class RestriccionesPerdidas extends ArrayList<restriccionPerdida> {
+public class RestriccionesPerdidas extends ArrayList<RestriccionPerdida> {
 
     @Override
     public String toString() {
         String total = "";
         String candidata = "";
         String tabla = "";
-        for (restriccionPerdida r : this) {
+        for (RestriccionPerdida r : this) {
             switch (r.getTipo()) {
-                case restriccionPerdida.TOTAL:
+                case RestriccionPerdida.TOTAL:
                     total += r;
                     break;
-                case restriccionPerdida.CANDIDATA:
+                case RestriccionPerdida.CANDIDATA:
                     candidata += r;
                     break;
-                case restriccionPerdida.TABLA:
+                case RestriccionPerdida.TABLA:
                     tabla += r;
                     break;
                 default:
@@ -40,15 +40,15 @@ public class RestriccionesPerdidas extends ArrayList<restriccionPerdida> {
         String total = "";
         String candidata = "";
         String tabla = "";
-        for (restriccionPerdida r : this) {
+        for (RestriccionPerdida r : this) {
             switch (r.getTipo()) {
-                case restriccionPerdida.TOTAL:
+                case RestriccionPerdida.TOTAL:
                     total += r;
                     break;
-                case restriccionPerdida.CANDIDATA:
+                case RestriccionPerdida.CANDIDATA:
                     candidata += r;
                     break;
-                case restriccionPerdida.TABLA:
+                case RestriccionPerdida.TABLA:
                     tabla += r;
                     break;
                 default:

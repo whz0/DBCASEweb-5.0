@@ -1,14 +1,21 @@
 package com.tfg.ucm.DBCaseWeb;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import controlador.Controlador;
-import controlador.TC;
-import modelo.conectorDBMS.FactoriaConectores;
-import modelo.servicios.DataAtributoEntidadOrigen;
-import modelo.servicios.GeneradorEsquema;
-import modelo.transfers.*;
+import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -16,23 +23,38 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.awt.geom.Point2D;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.security.Principal;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import controlador.Controlador;
+import controlador.TC;
+import modelo.servicios.DataAtributoEntidadOrigen;
+import modelo.servicios.GeneradorEsquema;
+import modelo.transfers.DataAttribute;
+import modelo.transfers.Edge;
+import modelo.transfers.Generic;
+import modelo.transfers.Node;
+import modelo.transfers.TipoDominio;
+import modelo.transfers.TransferAtributo;
+import modelo.transfers.TransferConexion;
+import modelo.transfers.TransferEntidad;
+import modelo.transfers.TransferRelacion;
+import modelo.conectorDBMS.FactoriaConectores;
+
+import java.util.UUID;
 
 @Controller
 @RestController

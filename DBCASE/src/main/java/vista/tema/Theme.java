@@ -1,15 +1,16 @@
 package vista.tema;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import java.awt.*;
+import java.awt.Font;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Set;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 @SuppressWarnings("unchecked")
 public class Theme {
@@ -17,7 +18,7 @@ public class Theme {
     private static Theme INSTANCE;
     private static ArrayList<String> themes;
     private static String current;
-    private static HashMap<String, myColor> colors;
+    private static HashMap<String, MyColor> colors;
     private static final String DEFAULT = "light";
     private static final Font font = new Font("Verdana", Font.PLAIN, 16);
 
@@ -27,13 +28,13 @@ public class Theme {
     }
 
     public static void loadThemes() {
-        colors = new HashMap<String, myColor>();
-        themes = new ArrayList<String>();
+        colors = new HashMap<>();
+        themes = new ArrayList<>();
         listFilesForFolder(new File("./themes/"));
     }
 
     private static void listFilesForFolder(final File folder) {
-        for (final File fileEntry : folder.listFiles())
+        for (final File fileEntry : Objects.requireNonNull(folder.listFiles()))
             if (fileEntry.isDirectory()) listFilesForFolder(fileEntry);
             else themes.add(fileEntry.getName().split(".json")[0]);
     }
@@ -43,16 +44,15 @@ public class Theme {
         //loadTheme();
     }
 
-
     private static void loadTheme() {
         JSONParser parser = new JSONParser();
         try {
             JSONObject obj = (JSONObject) parser.parse(new FileReader("./themes/" + current + ".json"));
-            JSONObject jsoncolors = (JSONObject) obj.get("colors");
-            Set<String> key = jsoncolors.keySet();
+            JSONObject jsonColors = (JSONObject) obj.get("colors");
+            Set<String> key = jsonColors.keySet();
             for (String s : key) {
-                JSONArray color = (JSONArray) jsoncolors.get(s);
-                colors.put(s, new myColor(Integer.parseInt(color.get(0).toString()), Integer.parseInt(color.get(1).toString()), Integer.parseInt(color.get(2).toString())));
+                JSONArray color = (JSONArray) jsonColors.get(s);
+                colors.put(s, new MyColor(Integer.parseInt(color.get(0).toString()), Integer.parseInt(color.get(1).toString()), Integer.parseInt(color.get(2).toString())));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,70 +74,70 @@ public class Theme {
         return current;
     }
 
-    public ArrayList<String> getAvaiableThemes() {
+    public ArrayList<String> getAvailableThemes() {
         return themes;
     }
 
     /*
      * Getters de los colores
      * */
-    public myColor main() {
+    public MyColor main() {
         return colors.get("main");
     }
 
-    public myColor background() {
+    public MyColor background() {
         return colors.get("background");
     }
 
-    public myColor entity() {
+    public MyColor entity() {
         return colors.get("entity");
     }
 
-    public myColor attribute() {
+    public MyColor attribute() {
         return colors.get("atribute");
     }
 
-    public myColor relation() {
+    public MyColor relation() {
         return colors.get("relation");
     }
 
-    public myColor fontColor() {
+    public MyColor fontColor() {
         return colors.get("fontColor");
     }
 
-    public myColor lines() {
+    public MyColor lines() {
         return colors.get("lines");
     }
 
-    public myColor control() {
+    public MyColor control() {
         return colors.get("control");
     }
 
-    public myColor codeBackground() {
+    public MyColor codeBackground() {
         return colors.get("codeBackground");
     }
 
-    public myColor SelectionBackground() {
+    public MyColor selectionBackground() {
         return colors.get("SelectionBackground");
     }
 
-    public myColor labelFontColorDark() {
+    public MyColor labelFontColorDark() {
         return colors.get("labelFontColorDark");
     }
 
-    public myColor labelFontColorLight() {
+    public MyColor labelFontColorLight() {
         return colors.get("labelFontColorLight");
     }
 
-    public myColor paragraph() {
+    public MyColor paragraph() {
         return colors.get("paragraph");
     }
 
-    public myColor blueFont() {
+    public MyColor blueFont() {
         return colors.get("blueFont");
     }
 
-    public myColor toolBar() {
+    public MyColor toolBar() {
         return colors.get("toolBar");
     }
 }

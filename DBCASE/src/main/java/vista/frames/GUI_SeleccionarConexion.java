@@ -1,5 +1,23 @@
 package vista.frames;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
 import controlador.ConfiguradorInicial;
 import controlador.Controlador;
 import controlador.TC;
@@ -8,15 +26,6 @@ import modelo.transfers.TransferConexion;
 import vista.componentes.CustomCellEditor;
 import vista.imagenes.ImagePath;
 import vista.lenguaje.Lenguaje;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Enumeration;
-import java.util.Hashtable;
 
 @SuppressWarnings("serial")
 public class GUI_SeleccionarConexion extends Parent_GUI {

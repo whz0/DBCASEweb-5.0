@@ -1,31 +1,76 @@
 package vista;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Iterator;
+import java.util.Vector;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.WindowConstants;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+
 import controlador.Controlador;
 import controlador.TC;
-import modelo.transfers.*;
+import lombok.Getter;
+import modelo.transfers.TipoDominio;
+import modelo.transfers.Transfer;
+import modelo.transfers.TransferAtributo;
+import modelo.transfers.TransferConexion;
+import modelo.transfers.TransferDominio;
+import modelo.transfers.TransferEntidad;
+import modelo.transfers.TransferRelacion;
 import vista.componentes.ArbolDominiosRender;
 import vista.componentes.ArbolElementosRender;
-import vista.componentes.GUIPanels.ReportPanel;
-import vista.componentes.GUIPanels.TablaVolumenes;
-import vista.componentes.GUIPanels.addTransfersPanel;
 import vista.componentes.MyComboBoxRenderer;
 import vista.componentes.MyMenu;
+import vista.componentes.GUIPanels.ReportPanel;
+import vista.componentes.GUIPanels.TablaVolumenes;
+import vista.componentes.GUIPanels.AddTransfersPanel;
 import vista.diagrama.PanelGrafo;
 import vista.diagrama.PanelThumbnail;
 import vista.imagenes.ImagePath;
 import vista.lenguaje.Lenguaje;
 import vista.tema.Theme;
-
-import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.awt.event.*;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Iterator;
-import java.util.Vector;
 
 @SuppressWarnings({"rawtypes", "unchecked", "serial"})
 public class GUIPrincipal extends JFrame implements WindowListener, KeyListener {
@@ -45,6 +90,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
     private JTree arbolDom;
     private JScrollPane panelArbolElems;
     private JPanel panelInfo;
+    @Getter
     private PanelGrafo panelDiseno;
     private JScrollPane panelArbolDom;
     private JPanel panelDom;
@@ -232,7 +278,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         Vector<Transfer> listaTransfers = new Vector<Transfer>();
         listaTransfers.addAll(listaEntidades);
         listaTransfers.addAll(listaRelaciones);
-        addTransfersPanel botonesAnadir = new addTransfersPanel(c, listaTransfers);
+        AddTransfersPanel botonesAnadir = new AddTransfersPanel(c, listaTransfers);
         /*Listener del tamano del panel*/
         panelDiseno.addComponentListener(new ComponentListener() {
             @Override
@@ -1350,7 +1396,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                     public void actionPerformed(ActionEvent e) {
                         popup.setVisible(false);
                         TransferAtributo clon_atributo = atributo.clonar();
-                        Vector<Object> v = new Vector<Object>();
+                        Vector<Object> v = new Vector<>();
                         v.add(clon_atributo);
                         v.add(true);
                         c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarAtributo, v);
@@ -1577,22 +1623,18 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
 
                     //Añadir restricciones
                     JMenuItem j8 = new JMenuItem(Lenguaje.text(Lenguaje.RESTRICTIONS));
-                    j8.addActionListener(new java.awt.event.ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            popup.setVisible(false);
-                            TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirRestriccionARelacion, clon_relacion);
-                        }
+                    j8.addActionListener(event ->{
+                        popup.setVisible(false);
+                        TransferRelacion clon_relacion = relacion.clonar();
+                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirRestriccionARelacion, clon_relacion);
                     });
                     popup.add(j8);
                     //Añadir restricciones	Unique
                     JMenuItem j9 = new JMenuItem(Lenguaje.text(Lenguaje.TABLE_UNIQUE));
-                    j9.addActionListener(new java.awt.event.ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            popup.setVisible(false);
-                            TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_TablaUniqueARelacion, clon_relacion);
-                        }
+                    j9.addActionListener(event -> {
+                        popup.setVisible(false);
+                        TransferRelacion clon_relacion = relacion.clonar();
+                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_TablaUniqueARelacion, clon_relacion);
                     });
                     popup.add(j9);
 
@@ -1638,7 +1680,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferRelacion clon_relacion = relacion.clonar();
-                            Vector<Object> v = new Vector<Object>();
+                            Vector<Object> v = new Vector<>();
                             v.add(clon_relacion);
                             v.add(true);
                             c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarRelacionIsA, v);
@@ -1652,9 +1694,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
     };
 
     private TransferEntidad esAtributoDirecto(TransferAtributo ta) {
-        //Collection<TransferEntidad> listaEntidades = this.entidades.values();
-        for (Iterator<TransferEntidad> it = listaEntidades.iterator(); it.hasNext(); ) {
-            TransferEntidad te = it.next();
+        for (TransferEntidad te : listaEntidades) {
             if (te.getListaAtributos().contains(String.valueOf(ta.getIdAtributo()))) return te;
         }
         return null;
@@ -1669,16 +1709,8 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         botonEjecutarEnDBMS.setEnabled(true);
     }
 
-    public GUIPrincipal getThePrincipal() {
-        return this;
-    }
-
     public JPopupMenu getPopUp() {
         return popup;
-    }
-
-    public PanelGrafo getPanelDiseno() {
-        return panelDiseno;
     }
 
     public void cambiarConexion(String nombreConexion) {
@@ -1796,15 +1828,15 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         UIManager.put("Tree.font", theme.font());
         UIManager.put("nimbusBase", theme.main());
         UIManager.put("control", theme.control());
-        UIManager.put("nimbusSelectionBackground", theme.SelectionBackground());
+        UIManager.put("nimbusSelectionBackground", theme.selectionBackground());
         UIManager.put("text", theme.fontColor());
         UIManager.put("nimbusSelectedText", theme.fontColor());
-        UIManager.put("nimbusFocus", theme.SelectionBackground());
+        UIManager.put("nimbusFocus", theme.selectionBackground());
         UIManager.put("menu", theme.background());
         UIManager.put("menuText", theme.background());
         UIManager.put("nimbusBlueGrey", theme.background());
         UIManager.put("nimbusBorder", theme.background());
-        UIManager.put("nimbusSelection", theme.SelectionBackground());
+        UIManager.put("nimbusSelection", theme.selectionBackground());
         UIManager.put("Tree.collapsedIcon", false);
         UIManager.put("Tree.expandedIcon", false);
         for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())

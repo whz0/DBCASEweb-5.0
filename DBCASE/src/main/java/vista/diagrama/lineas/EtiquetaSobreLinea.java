@@ -10,6 +10,15 @@ package vista.diagrama.lineas;
  * Created on Aug 23, 2005
  */
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Collection;
+
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
@@ -21,13 +30,6 @@ import edu.uci.ics.jung.visualization.transform.shape.GraphicsDecorator;
 import modelo.transfers.TransferAtributo;
 import modelo.transfers.TransferEntidad;
 import modelo.transfers.TransferRelacion;
-
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class EtiquetaSobreLinea<V, E> extends edu.uci.ics.jung.visualization.renderers.BasicEdgeLabelRenderer<V, E> {
 

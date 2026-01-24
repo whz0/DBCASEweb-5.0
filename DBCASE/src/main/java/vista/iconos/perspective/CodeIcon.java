@@ -1,14 +1,18 @@
 package vista.iconos.perspective;
 
-import vista.iconos.icon;
-import vista.tema.Theme;
-
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.RoundRectangle2D;
 
-public class codeIcon extends icon {
-    public codeIcon(boolean selected) {
+import vista.iconos.Icon;
+import vista.tema.Theme;
+
+public class CodeIcon extends Icon {
+    public CodeIcon(boolean selected) {
         super("perspective", selected);
     }
 

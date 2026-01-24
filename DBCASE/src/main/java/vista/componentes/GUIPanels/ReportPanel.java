@@ -1,8 +1,9 @@
 package vista.componentes.GUIPanels;
 
-import vista.tema.Theme;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 
-import javax.swing.*;
+import vista.tema.Theme;
 
 /*
  *

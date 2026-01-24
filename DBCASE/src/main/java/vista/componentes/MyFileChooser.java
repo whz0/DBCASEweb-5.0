@@ -1,10 +1,12 @@
 package vista.componentes;
 
-import vista.tema.Theme;
-
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import javax.accessibility.AccessibleContext;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFileChooser;
+
+import vista.tema.Theme;
 
 /*
  * Clase que modifica los colores de fuente del JFileChooser

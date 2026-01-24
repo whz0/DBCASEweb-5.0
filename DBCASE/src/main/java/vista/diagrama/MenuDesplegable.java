@@ -1,5 +1,17 @@
 package vista.diagrama;
 
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.geom.Point2D;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Vector;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
+
 import controlador.Controlador;
 import controlador.TC;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
@@ -10,15 +22,6 @@ import modelo.transfers.TransferEntidad;
 import modelo.transfers.TransferRelacion;
 import vista.lenguaje.Lenguaje;
 import vista.tema.Theme;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.geom.Point2D;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Vector;
 
 @SuppressWarnings("serial")
 public class MenuDesplegable extends JPopupMenu {

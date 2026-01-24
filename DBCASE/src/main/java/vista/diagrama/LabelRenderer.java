@@ -1,5 +1,28 @@
 package vista.diagrama;
 
+import java.awt.Color;
+
+/*
+ * Copyright (c) 2005, the JUNG Project and the Regents of the University of
+ * California All rights reserved.
+ *
+ * This software is open-source under the BSD license; see either "license.txt"
+ * or http://jung.sourceforge.net/license.txt for a description.
+ *
+ * Created on Aug 23, 2005
+ */
+
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.geom.Point2D;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.collections15.Transformer;
+
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
@@ -8,13 +31,7 @@ import edu.uci.ics.jung.visualization.RenderContext;
 import edu.uci.ics.jung.visualization.renderers.VertexLabelRenderer;
 import edu.uci.ics.jung.visualization.transform.shape.GraphicsDecorator;
 import modelo.transfers.Transfer;
-import org.apache.commons.collections15.Transformer;
 import vista.tema.Theme;
-
-import java.awt.*;
-import java.awt.geom.Point2D;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Renders Vertex Labels, but can also supply Shapes for vertices.

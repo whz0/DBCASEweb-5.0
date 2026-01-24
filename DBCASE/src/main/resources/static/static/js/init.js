@@ -7,7 +7,7 @@ var normalize = (function () {
         mapping[from.charAt(i)] = to.charAt(i);
 
     return function (str) {
-        if (str == undefined)
+        if (str === undefined)
             return '';
         var ret = [];
         for (var i = 0, j = str.length; i < j; i++) {

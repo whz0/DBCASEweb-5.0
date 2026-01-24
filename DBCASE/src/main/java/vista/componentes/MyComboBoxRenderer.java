@@ -1,10 +1,10 @@
 package vista.componentes;
 
-import vista.tema.Theme;
-
-import javax.swing.*;
+import java.awt.Component;
+import javax.swing.JList;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
-import java.awt.*;
+
+import vista.tema.Theme;
 
 @SuppressWarnings("serial")
 public class MyComboBoxRenderer extends BasicComboBoxRenderer {
@@ -14,7 +14,7 @@ public class MyComboBoxRenderer extends BasicComboBoxRenderer {
     @SuppressWarnings("rawtypes")
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-        if (isSelected) setBackground(theme.SelectionBackground());
+        if (isSelected) setBackground(theme.selectionBackground());
         else setBackground(theme.toolBar());
         return this;
     }

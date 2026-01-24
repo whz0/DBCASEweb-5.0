@@ -1,15 +1,14 @@
 package vista.diagrama.lineas;
 
+import java.awt.*;
+import java.awt.geom.*;
+
+import javax.swing.*;
+import javax.swing.event.*;
+
 import vista.diagrama.geometria.Punto;
 import vista.diagrama.geometria.Recta;
 import vista.tema.Theme;
-
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Path2D;
 
 
 @SuppressWarnings("serial")

@@ -1,18 +1,21 @@
 package vista.iconos;
 
-import vista.tema.Theme;
-
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 
-public class subAttributeIcon extends icon {
+import vista.tema.Theme;
 
-    public subAttributeIcon() {
+public class SubAttributeIcon extends Icon {
+
+    public SubAttributeIcon() {
         super();
     }
 
-    public subAttributeIcon(String tipo) {
+    public SubAttributeIcon(String tipo) {
         super(tipo);
     }
 

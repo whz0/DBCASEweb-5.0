@@ -1,12 +1,14 @@
 package vista.frames;
 
-import vista.lenguaje.Lenguaje;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import javax.swing.JButton;
+import javax.swing.JTextPane;
+
+import vista.frames.Parent_GUI;
+import vista.lenguaje.Lenguaje;
 
 @SuppressWarnings("serial")
 public class GUI_Pregunta extends Parent_GUI {

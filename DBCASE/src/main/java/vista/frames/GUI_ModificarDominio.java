@@ -1,5 +1,17 @@
 package vista.frames;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 import controlador.Controlador;
 import controlador.TC;
 import modelo.transfers.TipoDominio;
@@ -7,13 +19,6 @@ import modelo.transfers.TransferDominio;
 import vista.componentes.MyComboBoxRenderer;
 import vista.imagenes.ImagePath;
 import vista.lenguaje.Lenguaje;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.util.Vector;
 
 @SuppressWarnings({"rawtypes", "serial", "unchecked"})
 public class GUI_ModificarDominio extends Parent_GUI {

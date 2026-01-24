@@ -10,6 +10,13 @@ package vista.diagrama.lineas;
  * Created on Aug 23, 2005
  */
 
+import java.awt.Graphics2D;
+import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Collection;
+
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
@@ -22,11 +29,6 @@ import modelo.transfers.TransferEntidad;
 import modelo.transfers.TransferRelacion;
 import persistencia.EntidadYAridad;
 import vista.tema.Theme;
-
-import java.awt.*;
-import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Collection;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class CreaLineas<V, E> implements Renderer.Edge<V, E> {

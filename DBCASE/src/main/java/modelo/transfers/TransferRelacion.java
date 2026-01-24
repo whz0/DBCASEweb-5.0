@@ -1,11 +1,12 @@
 package modelo.transfers;
 
-import persistencia.EntidadYAridad;
-
-import java.awt.*;
+import java.awt.Polygon;
+import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.Vector;
+
+import persistencia.EntidadYAridad;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class TransferRelacion extends Transfer {

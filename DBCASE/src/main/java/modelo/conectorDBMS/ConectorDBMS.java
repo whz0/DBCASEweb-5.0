@@ -1,9 +1,9 @@
 package modelo.conectorDBMS;
 
+import java.sql.SQLException;
+
 import modelo.servicios.Enumerado;
 import modelo.servicios.Tabla;
-
-import java.sql.SQLException;
 
 /**
  * Clase que determina el comportamiento de los conectores a gestores de

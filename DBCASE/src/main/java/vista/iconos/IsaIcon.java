@@ -1,16 +1,20 @@
 package vista.iconos;
 
-import vista.tema.Theme;
-
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 
-public class isaIcon extends icon {
-    public isaIcon() {
+import vista.tema.Theme;
+
+public class IsaIcon extends Icon {
+    public IsaIcon() {
         super();
     }
 
-    public isaIcon(String tipo) {
+    public IsaIcon(String tipo) {
         super(tipo);
     }
 

@@ -1,5 +1,19 @@
 package vista.frames;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.Vector;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import controlador.ConfiguradorInicial;
 import controlador.Controlador;
 import controlador.TC;
@@ -10,14 +24,6 @@ import modelo.transfers.TransferRelacion;
 import vista.componentes.MyFileChooser;
 import vista.imagenes.ImagePath;
 import vista.lenguaje.Lenguaje;
-
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.util.Vector;
 
 @SuppressWarnings("serial")
 public class GUI_Conexion extends Parent_GUI {
@@ -493,60 +499,58 @@ public class GUI_Conexion extends Parent_GUI {
     private JButton getBtnComprobar() {
         if (btnComprobar == null) btnComprobar = boton(140, 275, Lenguaje.text(Lenguaje.TEST_DATA));
 
-        btnComprobar.addActionListener(new ActionListener() {
-            // Comprueba si los datos de conexión son correctos
-            public void actionPerformed(ActionEvent evt) {
-                // Extraer datos
-                String txtServer = cajaServer.getText();
-                String txtPuerto = cajaPuerto.getText();
-                String txtDatabase = cajaBase.getText();
-                String txtUsuario = cajaUsuario.getText();
-                String txtPassword = new String(cajaPass.getPassword());
+        // Comprueba si los datos de conexión son correctos
+        btnComprobar.addActionListener(evt -> {
+            // Extraer datos
+            String txtServer = cajaServer.getText();
+            String txtPuerto = cajaPuerto.getText();
+            String txtDatabase = cajaBase.getText();
+            String txtUsuario = cajaUsuario.getText();
+            String txtPassword = new String(cajaPass.getPassword());
 
-                // Comprobar datos
-                boolean faltanDatos = false;
-                faltanDatos &= txtDatabase.equals("");
-                faltanDatos &= cajaBase.getText().equalsIgnoreCase("");
-                if (faltanDatos) {
-                    // Notificar error
-                    JOptionPane.showMessageDialog(
-                            null,
-                            (Lenguaje.text(Lenguaje.ERROR)) + "\n" +
-                                    (Lenguaje.text(Lenguaje.INFORMATION_INCOMPLETE)),
-                            (Lenguaje.text(Lenguaje.DBDT)),
-                            JOptionPane.PLAIN_MESSAGE);
+            // Comprobar datos
+            boolean faltanDatos = false;
+            faltanDatos &= txtDatabase.equals("");
+            faltanDatos &= cajaBase.getText().equalsIgnoreCase("");
+            if (faltanDatos) {
+                // Notificar error
+                JOptionPane.showMessageDialog(
+                        null,
+                        (Lenguaje.text(Lenguaje.ERROR)) + "\n" +
+                                (Lenguaje.text(Lenguaje.INFORMATION_INCOMPLETE)),
+                        (Lenguaje.text(Lenguaje.DBDT)),
+                        JOptionPane.PLAIN_MESSAGE);
 
-                } else {
-                    // Generar la connectionString
-                    String connectionString = "";
+            } else {
+                // Generar la connectionString
+                String connectionString = "";
 
-                    switch (_conexion.getTipoConexion()) {
-                        case (FactoriaConectores.CONECTOR_MYSQL):
-                            connectionString += "jdbc:mysql://";
-                            break;
-                        case (FactoriaConectores.CONECTOR_ORACLE):
-                            connectionString += "";
-                            break;
-                        case (FactoriaConectores.CONECTOR_MSACCESS_ODBC):
-                            connectionString += "jdbc:odbc:";
-                            break;
-                    }
-
-                    connectionString += txtServer;
-                    if (!txtPuerto.equalsIgnoreCase("")) connectionString += ":" + txtPuerto;
-
-                    if (_conexion.getTipoConexion() != FactoriaConectores.CONECTOR_ORACLE) connectionString += "/";
-                    else connectionString += "#" + txtDatabase;
-
-                    if (_conexion.getTipoConexion() == FactoriaConectores.CONECTOR_MSACCESS_MDB)
-                        connectionString = _conexion.getDatabase();
-
-                    // Probar conexion
-                    TransferConexion con = new TransferConexion(
-                            _conexion.getTipoConexion(), connectionString, false, txtDatabase, txtUsuario, txtPassword);
-
-                    controlador.mensajeDesde_GUI(TC.GUIConexionDBMS_PruebaConexion, con);
+                switch (_conexion.getTipoConexion()) {
+                    case (FactoriaConectores.CONECTOR_MYSQL):
+                        connectionString += "jdbc:mysql://";
+                        break;
+                    case (FactoriaConectores.CONECTOR_ORACLE):
+                        connectionString += "";
+                        break;
+                    case (FactoriaConectores.CONECTOR_MSACCESS_ODBC):
+                        connectionString += "jdbc:odbc:";
+                        break;
                 }
+
+                connectionString += txtServer;
+                if (!txtPuerto.equalsIgnoreCase("")) connectionString += ":" + txtPuerto;
+
+                if (_conexion.getTipoConexion() != FactoriaConectores.CONECTOR_ORACLE) connectionString += "/";
+                else connectionString += "#" + txtDatabase;
+
+                if (_conexion.getTipoConexion() == FactoriaConectores.CONECTOR_MSACCESS_MDB)
+                    connectionString = _conexion.getDatabase();
+
+                // Probar conexion
+                TransferConexion con = new TransferConexion(
+                        _conexion.getTipoConexion(), connectionString, false, txtDatabase, txtUsuario, txtPassword);
+
+                controlador.mensajeDesde_GUI(TC.GUIConexionDBMS_PruebaConexion, con);
             }
         });
 

@@ -20,10 +20,6 @@ public class NodoEntidad {
         }
     }
 
-    public EntidadYAridad getEntidadYAridad() {
-        return entidadYAridad;
-    }
-
     @Override
     public String toString() {
         return nombre;

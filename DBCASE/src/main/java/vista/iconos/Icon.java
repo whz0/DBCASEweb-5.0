@@ -1,8 +1,7 @@
 package vista.iconos;
 
-import javax.swing.*;
 
-public abstract class icon implements Icon {
+public abstract class Icon implements javax.swing.Icon {
 
     private final int size;
     private final boolean pintarMas;
@@ -12,13 +11,13 @@ public abstract class icon implements Icon {
     private final int PERSPECTIVESIZE = 50;
     protected double offset = .1;
 
-    public icon() {
+    public Icon() {
         super();
         pintarMas = true;
         size = DEFAULTSIZE;
     }
 
-    public icon(String tipo) {
+    public Icon(String tipo) {
         super();
         switch (tipo) {
             case "mini":
@@ -35,7 +34,7 @@ public abstract class icon implements Icon {
         }
     }
 
-    public icon(String string, boolean selected) {
+    public Icon(String string, boolean selected) {
         this(string);
         this.selected = selected;
     }

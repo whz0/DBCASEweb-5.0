@@ -308,7 +308,7 @@ export class Network {
 
     /**
      * Programatically disable the edit mode.
-     * Similar effect to pressing the close icon (small cross in the corner of the toolbar).
+     * Similar effect to pressing the close Icon (small cross in the corner of the toolbar).
      */
     disableEditMode(): void;
 

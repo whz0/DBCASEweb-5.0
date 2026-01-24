@@ -1,5 +1,8 @@
 package modelo.servicios;
 
+import java.util.Iterator;
+import java.util.Vector;
+
 import controlador.Controlador;
 import controlador.TC;
 import modelo.transfers.TransferAtributo;
@@ -9,9 +12,6 @@ import persistencia.DAOAtributos;
 import persistencia.DAOEntidades;
 import persistencia.DAORelaciones;
 import persistencia.EntidadYAridad;
-
-import java.util.Iterator;
-import java.util.Vector;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ServiciosEntidades {
