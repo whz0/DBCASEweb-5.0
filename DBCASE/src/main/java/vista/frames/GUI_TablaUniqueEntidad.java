@@ -444,4 +444,13 @@ public class GUI_TablaUniqueEntidad extends Parent_GUI {
             }
         }
     }
+
+    // Temporary manual methods until Lombok is properly configured
+    public void setControlador(Controlador controlador) {
+        this.controlador = controlador;
+    }
+
+    public void setEntidad(TransferEntidad entidad) {
+        this.entidad = entidad;
+    }
 }

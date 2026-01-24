@@ -1764,6 +1764,11 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         return this.dealer.getPanelsMode();
     }
 
+    // Temporary manual method until Lombok is properly configured
+    public PanelGrafo getPanelDiseno() {
+        return this.panelDiseno;
+    }
+
     public void modoProgramador() {
         if (this.dealer.getPanelsMode() == 2) return;
         this.dealer.modoProgramador();
