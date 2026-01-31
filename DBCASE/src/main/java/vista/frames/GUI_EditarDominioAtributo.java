@@ -77,7 +77,7 @@ public class GUI_EditarDominioAtributo extends Parent_GUI {
         this.centraEnPantalla();
 
         // Si el atributo es compuesto, su dominio es null y no se puede editar
-        if (this.getAtributo().getCompuesto()) {
+        if (this.getAtributo().isCompuesto()) {
             JOptionPane.showMessageDialog(
                     null, (Lenguaje.text(Lenguaje.ERROR)) + "\n" +
                             (Lenguaje.text(Lenguaje.IMPOSIBLE_EDIT_DOMAIN)) + "\"" + this.getAtributo().getNombre() + "\"\n" +

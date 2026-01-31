@@ -434,7 +434,7 @@ public class ValidadorBD extends GeneradorEsquema {
                 while (contador < atbs.size()) {
                     aux.setIdAtributo(this.objectToInt(atbs.elementAt(contador)));
                     aux = daoAtributos.consultarAtributo(aux);
-                    if (aux.getCompuesto()) {
+                    if (aux.isCompuesto()) {
                         if (compruebaClaveCompuesto(keys, aux)) compuesto = true;
 
                     }
@@ -522,7 +522,7 @@ public class ValidadorBD extends GeneradorEsquema {
         boolean todosBien = true;
         Vector subs = ta.getListaComponentes();
         TransferAtributo aux = new TransferAtributo(controlador);
-        if (!ta.getCompuesto()) {
+        if (!ta.isCompuesto()) {
             return estaEnVectorDeEnteros(clavesEntidad, ta.getIdAtributo());
         } else {
             while (i < subs.size() && todosBien) {
@@ -549,7 +549,7 @@ public class ValidadorBD extends GeneradorEsquema {
         while (i < atributos.size()) {
             t = atributos.elementAt(i);
             valido &= validaFidelidadAtributo(t) && validaDominioDeAtributo(t);
-            if (t.getCompuesto()) valido &= validaCompuesto(t);
+            if (t.isCompuesto()) valido &= validaCompuesto(t);
             i++;
         }
         return valido;
@@ -594,7 +594,7 @@ public class ValidadorBD extends GeneradorEsquema {
             TransferAtributo aux = new TransferAtributo(controlador);
             while (i < atributos.size() && contSubAtrib <= 1) {
                 aux = atributos.elementAt(i);
-                if (aux.getCompuesto())
+                if (aux.isCompuesto())
                     if (estaEnVectorDeEnteros(aux.getListaComponentes(), ta.getIdAtributo()))
                         contSubAtrib++;
                 i++;
@@ -635,13 +635,13 @@ public class ValidadorBD extends GeneradorEsquema {
         //comprueba que tenga dominio
         boolean valido = true;
         String dom = ta.getDominio();
-        if (ta.getCompuesto()) {
+        if (ta.isCompuesto()) {
             if (!dom.equals("null")) {
                 valido = false;
                 error(ta, this.getTraduction("textosId.composedAttribute"));
             }
         } else {
-            if (dom.equals("") || dom.equals("null")) {
+            if (dom.isEmpty() || dom.equals("null")) {
                 valido = false;
                 error(ta, this.getTraduction("textosId.noDomain"));
             } else {

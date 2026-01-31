@@ -427,7 +427,7 @@ public class Controlador {
                         if (((TransferRelacion) t).isIsA())
                             itr.remove();
                     } else if (t instanceof TransferAtributo)
-                        if (!((TransferAtributo) t).getCompuesto())
+                        if (!((TransferAtributo) t).isCompuesto())
                             itr.remove();
                 }
                 if (listaTransfers.isEmpty())
@@ -578,7 +578,7 @@ public class Controlador {
                             Lenguaje.text(Lenguaje.DELETE_ATTRIB));
                 }
                 if (respuesta == 0) {
-                    if (ta.getUnique()) {
+                    if (ta.isUnique()) {
                         TransferAtributo clon_atributo = ta.clonar();
                         this.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarUniqueAtributo, clon_atributo);
                     }
@@ -704,7 +704,7 @@ public class Controlador {
             case PanelDiseno_Click_EditarCompuestoAtributo: {
                 TransferAtributo ta = (TransferAtributo) datos;
                 // Si es un atributo compuesto y tiene subatributos al ponerlo como simple hay que eliminar sus atributos
-                if (ta.getCompuesto() && !ta.getListaComponentes().isEmpty()) {
+                if (ta.isCompuesto() && !ta.getListaComponentes().isEmpty()) {
 			/*	Object[] options = {Lenguaje.getMensaje(Lenguaje.YES),Lenguaje.getMensaje(Lenguaje.NO)};
 				int respuesta = JOptionPane.showOptionDialog(
 						null,
@@ -1102,7 +1102,7 @@ public class Controlador {
                                 Lenguaje.text(Lenguaje.WISH_CONTINUE),
                         Lenguaje.text(Lenguaje.DELETE_DOMAIN));
                 if (respuesta == 0) {
-                    modelo.transfers.TipoDominio valorBase = td.getTipoBase();
+                    TipoDominio valorBase = td.getTipoBase();
                     String dominioEliminado = td.getNombre();
                     this.getTheServiciosAtributos().ListaDeAtributos();
                     int cont = 0;

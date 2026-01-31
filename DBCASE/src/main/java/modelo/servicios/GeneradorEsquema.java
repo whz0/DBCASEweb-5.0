@@ -91,13 +91,13 @@ public class GeneradorEsquema {
                 //recorremos los atributos aniadiendolos a la tabla
                 for (int j = 0; j < atribs.size(); j++) {
                     TransferAtributo ta = atribs.elementAt(j);
-                    if (ta.getUnique())
+                    if (ta.isUnique())
                         restriccionesPerdidas.add(new RestriccionPerdida(te.getNombre(), ta + " " + this.msgSrc.getMessage("textosId.isUnique", null, this.loc), RestriccionPerdida.TABLA));
-                    if (ta.getCompuesto())
+                    if (ta.isCompuesto())
                         tabla.aniadeListaAtributos(this.atributoCompuesto(ta, te.getNombre(), ""), te.getListaRestricciones(), tiposEnumerados);
                     else if (ta.isMultivalorado()) multivalorados.add(ta);
                     else {
-                        tabla.aniadeAtributo(ta.getNombre(), ta.getDominio(), te.getNombre(), tiposEnumerados, ta.getListaRestricciones(), ta.getUnique(), ta.getNotnull());
+                        tabla.aniadeAtributo(ta.getNombre(), ta.getDominio(), te.getNombre(), tiposEnumerados, ta.getListaRestricciones(), ta.isUnique(), ta.isNotnull());
                         for (String rest : (Vector<String>) ta.getListaRestricciones())
                             restriccionesPerdidas.add(new RestriccionPerdida(te.getNombre(), rest, RestriccionPerdida.TABLA));
                     }
@@ -109,7 +109,7 @@ public class GeneradorEsquema {
                 for (int c = 0; c < claves.size(); c++) {
                     TransferAtributo ta = claves.elementAt(c);
                     if (ta.isMultivalorado()) multivalorados.add(ta);
-                    else if (ta.getCompuesto())
+                    else if (ta.isCompuesto())
                         tabla.aniadeListaClavesPrimarias(this.atributoCompuesto(ta, te.getNombre(), ""));
 
                     else //si es normal, lo aniadimos como clave primaria.
@@ -152,13 +152,13 @@ public class GeneradorEsquema {
                 Vector<TransferAtributo> ats = this.dameAtributosEnTransfer(tr.getListaAtributos());
                 for (int a = 0; a < ats.size(); a++) {
                     TransferAtributo ta = ats.elementAt(a);
-                    if (ta.getUnique())
+                    if (ta.isUnique())
                         restriccionesPerdidas.add(new RestriccionPerdida(tr.getNombre(), ta + " " + this.msgSrc.getMessage("textosId.isUnique", null, this.loc), RestriccionPerdida.TABLA));
-                    if (ta.getCompuesto())
+                    if (ta.isCompuesto())
                         tabla.aniadeListaAtributos(this.atributoCompuesto(ta, tr.getNombre(), ""), ta.getListaRestricciones(), tiposEnumerados);
                     else if (ta.isMultivalorado()) multivalorados.add(ta);
                     else {
-                        tabla.aniadeAtributo(ta.getNombre(), ta.getDominio(), tr.getNombre(), tiposEnumerados, ta.getListaRestricciones(), ta.getUnique(), ta.getNotnull());
+                        tabla.aniadeAtributo(ta.getNombre(), ta.getDominio(), tr.getNombre(), tiposEnumerados, ta.getListaRestricciones(), ta.isUnique(), ta.isNotnull());
                         for (String rest : (Vector<String>) ta.getListaRestricciones())
                             restriccionesPerdidas.add(new RestriccionPerdida(tr.getNombre(), rest, RestriccionPerdida.TABLA));
                     }
@@ -883,7 +883,7 @@ public class GeneradorEsquema {
 
         for (int i = 0; i < subs.size(); i++) {
             TransferAtributo aux = subs.elementAt(i);
-            if (aux.getCompuesto()) {
+            if (aux.isCompuesto()) {
                 //caso recursivo
                 String p = "";
                 if (procedencia != "") p = procedencia + ta.getNombre() + "_";
@@ -914,11 +914,11 @@ public class GeneradorEsquema {
 
         // aniadimos el campo del atributo, incluso teniendo en cuenta que sea
         // compuesto.
-        if (ta.getCompuesto())
+        if (ta.isCompuesto())
             tablaMulti.aniadeListaAtributos(this.atributoCompuesto(ta,
                     tablaEntidad.getNombreTabla(), ""), ta.getListaRestricciones(), tiposEnumerados);
         else tablaMulti.aniadeAtributo(ta.getNombre(), ta.getDominio(),
-                tablaEntidad.getNombreTabla(), tiposEnumerados, ta.getListaRestricciones(), ta.getUnique(), ta.getNotnull());
+                tablaEntidad.getNombreTabla(), tiposEnumerados, ta.getListaRestricciones(), ta.isUnique(), ta.isNotnull());
         tablaMulti.aniadeListaAtributos(tablaEntidad.getPrimaries(), ta.getListaRestricciones(), tiposEnumerados);
 
         Vector<String[]> clavesEntidad = tablaEntidad.getPrimaries();

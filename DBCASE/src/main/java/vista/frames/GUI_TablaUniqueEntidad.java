@@ -30,13 +30,7 @@ import vista.imagenes.ImagePath;
 import vista.lenguaje.Lenguaje;
 
 @SuppressWarnings({"serial", "unchecked"})
-@Setter
-@Getter
 public class GUI_TablaUniqueEntidad extends Parent_GUI {
-
-    /*
-     * Getters y Setters
-     */
 
     private Controlador controlador;
     private TransferEntidad entidad;
@@ -49,6 +43,11 @@ public class GUI_TablaUniqueEntidad extends Parent_GUI {
     private JButton botonAceptar;
     private JTable tablaConjuntos;
     private Vector<JButton> botones;
+
+    public Controlador getControlador() { return controlador; }
+    public void setControlador(Controlador controlador) { this.controlador = controlador; }
+    public TransferEntidad getEntidad() { return entidad; }
+    public void setEntidad(TransferEntidad entidad) { this.entidad = entidad; }
 
     public GUI_TablaUniqueEntidad() {
         initComponents();
@@ -443,14 +442,5 @@ public class GUI_TablaUniqueEntidad extends Parent_GUI {
                 }
             }
         }
-    }
-
-    // Temporary manual methods until Lombok is properly configured
-    public void setControlador(Controlador controlador) {
-        this.controlador = controlador;
-    }
-
-    public void setEntidad(TransferEntidad entidad) {
-        this.entidad = entidad;
     }
 }

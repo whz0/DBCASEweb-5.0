@@ -6,11 +6,16 @@ import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.Vector;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import persistencia.EntidadYAridad;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class TransferRelacion extends Transfer {
-
     private int idRelacion;
     private String nombre;
     private String tipo;
@@ -23,9 +28,6 @@ public class TransferRelacion extends Transfer {
     private int volumen;
     private int frecuencia;
     private int offsetAttr = 0;
-
-    public TransferRelacion() {
-    }
 
     public boolean isIsA() {
         return getTipo().equals("IsA");
@@ -79,8 +81,7 @@ public class TransferRelacion extends Transfer {
             if (vectorIdsEntidades.contains(idBuscado)) repetido = true;
             cont++;
         }
-        if (repetido) this.posicion = new Point2D.Double(arg0.getPosicion().getX(), arg0.getPosicion().getY());
-        else this.posicion = new Point2D.Double(arg0.getPosicion().getX(), arg0.getPosicion().getY());
+        this.posicion = new Point2D.Double(arg0.getPosicion().getX(), arg0.getPosicion().getY());
     }
 
     public Point2D nextAttributePos(Point2D p) {
@@ -122,8 +123,8 @@ public class TransferRelacion extends Transfer {
     }
 
     public boolean hayFlechas() {
-        for (Iterator it = listaEntidadesYAridades.iterator(); it.hasNext(); ) {
-            EntidadYAridad e = (EntidadYAridad) it.next();
+        for (Object listaEntidadesYAridade : listaEntidadesYAridades) {
+            EntidadYAridad e = (EntidadYAridad) listaEntidadesYAridade;
             if (e.getFinalRango() == 1) return true;
         }
         return false;
@@ -181,107 +182,10 @@ public class TransferRelacion extends Transfer {
         return figura;
     }
 
-    public int getIdRelacion() {
-        return idRelacion;
-    }
-
-    public void setIdRelacion(int idRelacion) {
-        this.idRelacion = idRelacion;
-    }
-
-    public Vector getListaAtributos() {
-        return listaAtributos;
-    }
-
-    public void setListaAtributos(Vector listaAtributos) {
-        this.listaAtributos = listaAtributos;
-    }
-
-    public Vector getListaEntidadesYAridades() {
-        return listaEntidadesYAridades;
-    }
-
-    public void setListaEntidadesYAridades(Vector listaEntidadesYAridades) {
-        this.listaEntidadesYAridades = listaEntidadesYAridades;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getRol() {
-        return rol;
-    }
-
-    public void setRol(String nuevoRol) {
-        this.rol = nuevoRol;
-    }
-
-    public int getOffsetAttr() {
-        return offsetAttr;
-    }
-
-    public void setOffsetAttr(int offsetAttr) {
-        this.offsetAttr = offsetAttr;
-    }
-
-    @Override
-    public Point2D getPosicion() {
-        return posicion;
-    }
-
-    public void setPosicion(Point2D posicion) {
-        this.posicion = posicion;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
-    public Vector getListaRestricciones() {
-        return listaRestricciones;
-    }
-
-    public void setListaRestricciones(Vector listaRestricciones) {
-        this.listaRestricciones = listaRestricciones;
-    }
-
-    public Vector getListaUniques() {
-        return listaUniques;
-    }
-
-    public void setListaUniques(Vector listaUniques) {
-        this.listaUniques = listaUniques;
-    }
-
-    public int getVolumen() {
-        return volumen;
-    }
-
-    public void setVolumen(int volumen) {
-        this.volumen = volumen;
-    }
-
-    public int getFrecuencia() {
-        return frecuencia;
-    }
-
-    public void setFrecuencia(int frecuencia) {
-        this.frecuencia = frecuencia;
-    }
-
     public EntidadYAridad getEntidadYAridad(int idEntidad) {
-        for (int i = 0; i < listaEntidadesYAridades.size(); i++)
-            if (((EntidadYAridad) listaEntidadesYAridades.get(i)).getEntidad() == idEntidad)
-                return (EntidadYAridad) listaEntidadesYAridades.get(i);
+        for (Object listaEntidadesYAridade : listaEntidadesYAridades)
+            if (((EntidadYAridad) listaEntidadesYAridade).getEntidad() == idEntidad)
+                return (EntidadYAridad) listaEntidadesYAridade;
         return null;
     }
 }

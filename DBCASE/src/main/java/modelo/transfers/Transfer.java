@@ -7,7 +7,6 @@ import java.awt.geom.Point2D;
  *	Clase abstracta para realizar polimorfismo sobre todos los Transfers
  */
 public abstract class Transfer {
-
     /*
      *	Transforma el transfer en la cadena mostrada
      */

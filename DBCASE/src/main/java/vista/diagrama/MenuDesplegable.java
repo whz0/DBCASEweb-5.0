@@ -295,9 +295,9 @@ public class MenuDesplegable extends JPopupMenu {
             JCheckBoxMenuItem j3 = new JCheckBoxMenuItem(Lenguaje.text(Lenguaje.COMPOSED));
             j3.setFont(theme.font());
             j3.setForeground(theme.fontColor());
-            final boolean notnul = ((TransferAtributo) nodo).getNotnull();
-            final boolean unique = ((TransferAtributo) nodo).getUnique();
-            j3.setSelected(((TransferAtributo) nodo).getCompuesto());
+            final boolean notnul = ((TransferAtributo) nodo).isNotnull();
+            final boolean unique = ((TransferAtributo) nodo).isUnique();
+            j3.setSelected(((TransferAtributo) nodo).isCompuesto());
             j3.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     MenuDesplegable menu = (MenuDesplegable) ((JMenuItem) e.getSource()).getParent();
@@ -313,7 +313,7 @@ public class MenuDesplegable extends JPopupMenu {
             this.add(j3);
 
             // Si es compuesto
-            if (((TransferAtributo) nodo).getCompuesto()) {
+            if (((TransferAtributo) nodo).isCompuesto()) {
                 JMenuItem j4 = new JMenuItem(Lenguaje.text(Lenguaje.ADD_SUBATTRIBUTE));
                 j4.setFont(theme.font());
                 j4.setForeground(theme.fontColor());
@@ -329,11 +329,11 @@ public class MenuDesplegable extends JPopupMenu {
             }
 
             // Es un atributo NotNull
-            if (!((TransferAtributo) nodo).getCompuesto() && !((TransferAtributo) nodo).isClavePrimaria()) {
+            if (!((TransferAtributo) nodo).isCompuesto() && !((TransferAtributo) nodo).isClavePrimaria()) {
                 JCheckBoxMenuItem j3a = new JCheckBoxMenuItem(Lenguaje.text(Lenguaje.NOT_NULL));
                 j3a.setFont(theme.font());
                 j3a.setForeground(theme.fontColor());
-                j3a.setSelected(((TransferAtributo) nodo).getNotnull());
+                j3a.setSelected(((TransferAtributo) nodo).isNotnull());
                 j3a.addActionListener(new java.awt.event.ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         MenuDesplegable menu = (MenuDesplegable) ((JMenuItem) e.getSource()).getParent();
@@ -346,11 +346,11 @@ public class MenuDesplegable extends JPopupMenu {
                 // this.add(new JSeparator());
             }
             // Es un atributo Unique
-            if (!((TransferAtributo) nodo).getCompuesto() && !((TransferAtributo) nodo).isClavePrimaria()) {
+            if (!((TransferAtributo) nodo).isCompuesto() && !((TransferAtributo) nodo).isClavePrimaria()) {
                 JCheckBoxMenuItem j3b = new JCheckBoxMenuItem(Lenguaje.text(Lenguaje.UNIQUE));
                 j3b.setFont(theme.font());
                 j3b.setForeground(theme.fontColor());
-                j3b.setSelected(((TransferAtributo) nodo).getUnique());
+                j3b.setSelected(((TransferAtributo) nodo).isUnique());
                 j3b.addActionListener(new java.awt.event.ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         MenuDesplegable menu = (MenuDesplegable) ((JMenuItem) e.getSource()).getParent();

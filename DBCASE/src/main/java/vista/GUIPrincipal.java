@@ -1,13 +1,7 @@
 package vista;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -52,6 +46,7 @@ import javax.swing.tree.TreePath;
 import controlador.Controlador;
 import controlador.TC;
 import lombok.Getter;
+import lombok.Setter;
 import modelo.transfers.TipoDominio;
 import modelo.transfers.Transfer;
 import modelo.transfers.TransferAtributo;
@@ -72,9 +67,12 @@ import vista.imagenes.ImagePath;
 import vista.lenguaje.Lenguaje;
 import vista.tema.Theme;
 
-@SuppressWarnings({"rawtypes", "unchecked", "serial"})
+@Getter
+@Setter
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class GUIPrincipal extends JFrame implements WindowListener, KeyListener {
-    private Controlador c;
+
+    private Controlador controlador;
     private TransferConexion conexionActual = null;
     private boolean scriptGeneradoCorrectamente = false;
     private Vector<TransferConexion> listaConexiones;
@@ -90,7 +88,6 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
     private JTree arbolDom;
     private JScrollPane panelArbolElems;
     private JPanel panelInfo;
-    @Getter
     private PanelGrafo panelDiseno;
     private JScrollPane panelArbolDom;
     private JPanel panelDom;
@@ -117,15 +114,23 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
      */
     public void setActiva(int modo) {
         //Miniatura de aplicacion para macOS
-        if (System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0)
-            com.apple.eawt.Application.getApplication().setDockIconImage(new ImageIcon(getClass().getResource("/vista/imagenes/DBCase_logo.png")).getImage());
+        if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+            try {
+                if (Taskbar.isTaskbarSupported()) {
+                    Taskbar.getTaskbar().setIconImage(new ImageIcon(getClass().getResource(ImagePath.ICONO_MAC)).getImage());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         Toolkit tk = Toolkit.getDefaultToolkit();
         int xSize = ((int) tk.getScreenSize().getWidth());
         int ySize = ((int) tk.getScreenSize().getHeight());
 
         this.panelDiagrama = new JPanel();
         this.panelGeneracion = new JPanel();
-        c.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ObtenDBMSDisponibles, null);
+        controlador.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ObtenDBMSDisponibles, null);
         conexionActual = listaConexiones.get(0);
 
         setLookAndFeel();
@@ -145,15 +150,15 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         int modo = dealer.getPanelsMode();
         this.panelDiagrama = new JPanel();
         this.panelGeneracion = new JPanel();
-        c.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ObtenDBMSDisponibles, null);
+        controlador.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ObtenDBMSDisponibles, null);
         conexionActual = listaConexiones.get(0);
         setLookAndFeel();
         initComponents();
         dealer = new Perspectiva(this.getContentPane(), panelDiagrama, panelGeneracion, infoTabPane);
         setModoVista(modo);
         loadInfo();
-        c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_IniciaFrames, null);
-        c.getTheGUIAnadirAtributo().setListaDominios(getListaDominios());
+        controlador.mensajeDesde_GUIPrincipal(TC.GUI_Principal_IniciaFrames, null);
+        controlador.getTheGUIAnadirAtributo().setListaDominios(getListaDominios());
     }
 
     public static void changeFont(Component component, Font font) {
@@ -165,8 +170,8 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
 
     private void initComponents() {
         try {
-            c.getPath();
-            this.setTitle(c.getTitle());
+            controlador.getPath();
+            this.setTitle(controlador.getTitle());
             this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
             initMenu();
             initDiagrama();
@@ -181,7 +186,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
     }
 
     private void initMenu() {
-        barraDeMenus = new MyMenu(c);
+        barraDeMenus = new MyMenu(controlador);
         setJMenuBar(barraDeMenus);
     }//initMenu
 
@@ -201,9 +206,9 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         infoTabPane.setFocusable(false);
 
         // Actualizacion de listas y creacion del grafo
-        c.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeEntidades, null);
-        c.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeAtributos, null);
-        c.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeRelaciones, null);
+        controlador.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeEntidades, null);
+        controlador.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeAtributos, null);
+        controlador.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeRelaciones, null);
         panelDiseno = new PanelGrafo(listaEntidades, listaAtributos, listaRelaciones);
         panelDiseno.setControlador(this.getControlador());
 
@@ -233,12 +238,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         nuevoDom.setFont(theme.font());
         JPanel panelBoton = new JPanel();
         panelBoton.setBackground(theme.background());
-        nuevoDom.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_CrearDominio, 0);
-            }
-        });
+        nuevoDom.addActionListener(e -> controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_CrearDominio, 0));
         nuevoDom.setFocusable(false);
         panelBoton.add(nuevoDom);
         panelDom.add(panelBoton, BorderLayout.NORTH);
@@ -249,12 +249,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         panelTablas.setBackground(theme.background());
         tablaVolumenes = new TablaVolumenes();
         tablaVolumenes.setFont(theme.font());
-        tablaVolumenes.getModel().addTableModelListener(new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                c.mensajeDesde_PanelDiseno(TC.PanelDiseno_ActualizarDatosEnTablaDeVolumenes, e);
-            }
-        });
+        tablaVolumenes.getModel().addTableModelListener(e -> controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_ActualizarDatosEnTablaDeVolumenes, e));
         tablaVolumenes.setBackground(theme.background());
         scrollPanelTablas = new JScrollPane(tablaVolumenes);
         scrollPanelTablas.setBackground(theme.background());
@@ -278,7 +273,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         Vector<Transfer> listaTransfers = new Vector<Transfer>();
         listaTransfers.addAll(listaEntidades);
         listaTransfers.addAll(listaRelaciones);
-        AddTransfersPanel botonesAnadir = new AddTransfersPanel(c, listaTransfers);
+        AddTransfersPanel botonesAnadir = new AddTransfersPanel(controlador, listaTransfers);
         /*Listener del tamano del panel*/
         panelDiseno.addComponentListener(new ComponentListener() {
             @Override
@@ -326,18 +321,10 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         JButton generaModelo = new JButton(Lenguaje.text(Lenguaje.GENERATE));
         generaModelo.setFont(theme.font());
         generaModelo.setToolTipText("Genera el modelo relacional a partir del diagrama entidad relacion.");
-        generaModelo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                botonModeloRelacionalActionPerformed(evt);
-            }
-        });
+        generaModelo.addActionListener(this::botonModeloRelacionalActionPerformed);
         JButton exportarModelo = new JButton(Lenguaje.text(Lenguaje.SAVE_AS));
         exportarModelo.setFont(theme.font());
-        exportarModelo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                botonExportarArchivoActionPerformed(evt, false);
-            }
-        });
+        exportarModelo.addActionListener(evt -> botonExportarArchivoActionPerformed(evt, false));
         textPanel.setBorder(BorderFactory.createEmptyBorder(10, 50, 10, 50));
         textPanel.add(text);
         textPanel.add(generaModelo);
@@ -356,11 +343,9 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
             cboSeleccionDBMS.insertItemAt(listaConexiones.get(i).getRuta(), listaConexiones.get(i).getTipoConexion());
 
         cboSeleccionDBMS.setSelectedIndex(0);
-        cboSeleccionDBMS.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                JComboBox cbo = (JComboBox) e.getSource();
-                cambiarConexion((String) cbo.getSelectedItem());// Cambiar la conexionActual
-            }
+        cboSeleccionDBMS.addActionListener(e -> {
+            JComboBox cbo = (JComboBox) e.getSource();
+            cambiarConexion((String) cbo.getSelectedItem());// Cambiar la conexionActual
         });
         cboSeleccionDBMS.setMaximumSize(new Dimension(500, 40));
         cboSeleccionDBMS.setFont(theme.font());
@@ -370,25 +355,13 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         JLabel text2 = new JLabel("<html><span style='font-size:20px'>" + Lenguaje.text(Lenguaje.PHYS_MODEL) + "</span></html>");
         JButton generaCodigo = new JButton(Lenguaje.text(Lenguaje.GENERATE));
         generaCodigo.setFont(theme.font());
-        generaCodigo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                botonScriptSQLActionPerformed(evt);
-            }
-        });
+        generaCodigo.addActionListener(this::botonScriptSQLActionPerformed);
         JButton exportarCodigo = new JButton(Lenguaje.text(Lenguaje.SAVE_AS));
         exportarCodigo.setFont(theme.font());
-        exportarCodigo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                botonExportarArchivoActionPerformed(evt, true);
-            }
-        });
+        exportarCodigo.addActionListener(evt -> botonExportarArchivoActionPerformed(evt, true));
         JButton ejecutarCodigo = new JButton(Lenguaje.text(Lenguaje.EXECUTE));
         ejecutarCodigo.setFont(theme.font());
-        ejecutarCodigo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                botonEjecutarEnDBMSActionPerformed(evt);
-            }
-        });
+        ejecutarCodigo.addActionListener(this::botonEjecutarEnDBMSActionPerformed);
         JPanel accionesCodigo = new JPanel();
         accionesCodigo.setLayout(new BoxLayout(accionesCodigo, BoxLayout.Y_AXIS));
         textPanel2.setBorder(BorderFactory.createEmptyBorder(10, 50, 10, 50));
@@ -417,7 +390,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
     private void botonModeloRelacionalActionPerformed(ActionEvent evt) {
         new Thread(new Runnable() {
             public void run() {
-                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonGenerarModeloRelacional, null);
+                controlador.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonGenerarModeloRelacional, null);
                 modeloText.goToTop();
             }
         }).start();
@@ -427,7 +400,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
         Thread hilo = new Thread(new Runnable() {
             public void run() {
                 conexionActual.setDatabase("");
-                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonGenerarScriptSQL, conexionActual);
+                controlador.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonGenerarScriptSQL, conexionActual);
 
                 // Restaurar el sistema
                 conexionActual.setDatabase("");
@@ -443,37 +416,33 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
      * true: panel de codigo
      * */
     private void botonExportarArchivoActionPerformed(ActionEvent evt, boolean sql) {
-        Thread hilo = new Thread(new Runnable() {
-            public void run() {
-                if (sql)
-                    c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonGenerarArchivoScriptSQL, codigoText.getText());
-                else
-                    c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonGenerarArchivoModelo, modeloText.getText());
-            }
+        Thread hilo = new Thread(() -> {
+            if (sql)
+                controlador.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonGenerarArchivoScriptSQL, codigoText.getText());
+            else
+                controlador.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonGenerarArchivoModelo, modeloText.getText());
         });
         hilo.start();
     }
 
     private void botonEjecutarEnDBMSActionPerformed(ActionEvent evt) {
-        Thread hilo = new Thread(new Runnable() {
-            public void run() {
-                // Comprobar si hay codigo
-                if (!scriptGeneradoCorrectamente) {
-                    JOptionPane.showMessageDialog(null,
-                            Lenguaje.text(Lenguaje.ERROR) + ".\n" +
-                                    Lenguaje.text(Lenguaje.MUST_GENERATE_SCRIPT_EX),
-                            Lenguaje.text(Lenguaje.DBCASE),
-                            JOptionPane.PLAIN_MESSAGE);
-                    return;
-                }
-
-                // Ejecutar en DBMS
-                TransferConexion tc = new TransferConexion(
-                        cboSeleccionDBMS.getSelectedIndex(),
-                        cboSeleccionDBMS.getSelectedItem().toString());
-
-                c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonEjecutarEnDBMS, tc);
+        Thread hilo = new Thread(() -> {
+            // Comprobar si hay codigo
+            if (!scriptGeneradoCorrectamente) {
+                JOptionPane.showMessageDialog(null,
+                        Lenguaje.text(Lenguaje.ERROR) + ".\n" +
+                                Lenguaje.text(Lenguaje.MUST_GENERATE_SCRIPT_EX),
+                        Lenguaje.text(Lenguaje.DBCASE),
+                        JOptionPane.PLAIN_MESSAGE);
+                return;
             }
+
+            // Ejecutar en DBMS
+            TransferConexion tc = new TransferConexion(
+                    cboSeleccionDBMS.getSelectedIndex(),
+                    cboSeleccionDBMS.getSelectedItem().toString());
+
+            controlador.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_BotonEjecutarEnDBMS, tc);
         });
         hilo.start();
     }
@@ -829,61 +798,23 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
     /*
      * Getters y Setters
      */
-    public Controlador getControlador() {
-        return c;
-    }
 
-    public void setControlador(Controlador controlador) {
-        this.c = controlador;
-    }
-
-    public void setScriptGeneradoCorrectamente(boolean valor) {
-        scriptGeneradoCorrectamente = valor;
-    }
-
-    public Vector getListaConexiones() {
-        return listaConexiones;
-    }
-
-    public void setListaConexiones(Vector<TransferConexion> listaConexiones) {
-        this.listaConexiones = listaConexiones;
-    }
 
     public Vector getListaEntidades() {
         return listaEntidades;
-    }
-
-    public void setListaEntidades(Vector<TransferEntidad> listaEntidades) {
-        this.listaEntidades = listaEntidades;
     }
 
     public Vector getListaAtributos() {
         return listaAtributos;
     }
 
-    public void setListaAtributos(Vector<TransferAtributo> listaAtributos) {
-        this.listaAtributos = listaAtributos;
-    }
-
     public Vector getListaRelaciones() {
         return listaRelaciones;
     }
 
-    public void setListaRelaciones(Vector<TransferRelacion> listaRelaciones) {
-        this.listaRelaciones = listaRelaciones;
-    }
-
-    public Vector getListaDominios() {
-        return listaDominios;
-    }
-
-    public TransferConexion getConexionActual() {
-        return conexionActual;
-    }
-
-    public void setListaDominios(Vector<TransferDominio> listaDominios) {
-        this.listaDominios = listaDominios;
-    }
+    //public Vector getListaDominios() {
+     //   return listaDominios;
+    //}
 
     public void escribeEnModelo(String mensaje) {
         try {
@@ -918,7 +849,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
      * ARBOL DOMINIOS
      */
     public void actualizaArbolDominio(String expandir) {
-        c.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeDominios, null);
+        controlador.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeDominios, null);
         this.panelArbolDom.setVisible(true);
         this.arbolDom = generaArbolDominio(this.listaDominios, expandir);
         this.panelArbolDom.setViewportView(arbolDom);
@@ -1022,35 +953,29 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                     JMenuItem m1 = new JMenuItem(Lenguaje.text(Lenguaje.DOM_MENU_RENAME));
                     m1.setFont(theme.font());
                     m1.setForeground(theme.fontColor());
-                    m1.addActionListener(new java.awt.event.ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            TransferDominio clon_dominio = dominio.clonar();
-                            getPopUp().setVisible(false);
-                            getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_RenombrarDominio, clon_dominio);
-                            actualizaArbolDominio(clon_dominio.getNombre());
-                        }
+                    m1.addActionListener(e1 -> {
+                        TransferDominio clon_dominio = dominio.clonar();
+                        getPopUp().setVisible(false);
+                        getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_RenombrarDominio, clon_dominio);
+                        actualizaArbolDominio(clon_dominio.getNombre());
                     });
                     JMenuItem m2 = new JMenuItem(Lenguaje.text(Lenguaje.DOM_MENU_DELETE));
                     m2.setFont(theme.font());
                     m2.setForeground(theme.fontColor());
-                    m2.addActionListener(new java.awt.event.ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            TransferDominio clon_dominio = dominio.clonar();
-                            getPopUp().setVisible(false);
-                            getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarDominio, clon_dominio);
-                            actualizaArbolDominio(null);
-                        }
+                    m2.addActionListener(e1 -> {
+                        TransferDominio clon_dominio = dominio.clonar();
+                        getPopUp().setVisible(false);
+                        getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarDominio, clon_dominio);
+                        actualizaArbolDominio(null);
                     });
                     JMenuItem m3 = new JMenuItem(Lenguaje.text(Lenguaje.DOM_MENU_MODIFY));
                     m3.setFont(theme.font());
                     m3.setForeground(theme.fontColor());
-                    m3.addActionListener(new java.awt.event.ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            TransferDominio clon_dominio = dominio.clonar();
-                            getPopUp().setVisible(false);
-                            getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_ModificarDominio, clon_dominio);
-                            actualizaArbolDominio(clon_dominio.getNombre());
-                        }
+                    m3.addActionListener(e1 -> {
+                        TransferDominio clon_dominio = dominio.clonar();
+                        getPopUp().setVisible(false);
+                        getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_ModificarDominio, clon_dominio);
+                        actualizaArbolDominio(clon_dominio.getNombre());
                     });
                     popup.add(m1);
                     popup.addSeparator();
@@ -1086,13 +1011,11 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                     JMenuItem m5 = new JMenuItem(Lenguaje.text(Lenguaje.DOM_MENU_MODIFY));
                     m5.setFont(theme.font());
                     m5.setForeground(theme.fontColor());
-                    m5.addActionListener(new java.awt.event.ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            TransferDominio clon_dominio = dominio.clonar();
-                            getPopUp().setVisible(false);
-                            getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_ModificarDominio, clon_dominio);
-                            actualizaArbolDominio(clon_dominio.getNombre());
-                        }
+                    m5.addActionListener(e1 -> {
+                        TransferDominio clon_dominio = dominio.clonar();
+                        getPopUp().setVisible(false);
+                        getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_ModificarDominio, clon_dominio);
+                        actualizaArbolDominio(clon_dominio.getNombre());
                     });
                     popup.add(m5);
                 }
@@ -1111,26 +1034,22 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                 JMenuItem m6 = new JMenuItem(Lenguaje.text(Lenguaje.DOM_MENU_MODIFY));
                 m6.setFont(theme.font());
                 m6.setForeground(theme.fontColor());
-                m6.addActionListener(new java.awt.event.ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        TransferDominio clon_dominio = dominio.clonar();
-                        getPopUp().setVisible(false);
-                        getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_ModificarDominio, clon_dominio);
-                        actualizaArbolDominio(clon_dominio.getNombre());
-                    }
+                m6.addActionListener(e1 -> {
+                    TransferDominio clon_dominio = dominio.clonar();
+                    getPopUp().setVisible(false);
+                    getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_ModificarDominio, clon_dominio);
+                    actualizaArbolDominio(clon_dominio.getNombre());
                 });
                 popup.add(m6);
                 popup.addSeparator();
                 JMenuItem m8 = new JMenuItem(Lenguaje.text(Lenguaje.DOM_MENU_IN_ORDER));
                 m8.setFont(theme.font());
                 m8.setForeground(theme.fontColor());
-                m8.addActionListener(new java.awt.event.ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        TransferDominio clon_dominio = dominio.clonar();
-                        getPopUp().setVisible(false);
-                        getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_OrdenarValoresDominio, clon_dominio);
-                        actualizaArbolDominio(clon_dominio.getNombre());
-                    }
+                m8.addActionListener(e1 -> {
+                    TransferDominio clon_dominio = dominio.clonar();
+                    getPopUp().setVisible(false);
+                    getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_OrdenarValoresDominio, clon_dominio);
+                    actualizaArbolDominio(clon_dominio.getNombre());
                 });
                 popup.add(m8);
             } else if (selPath.getParentPath().getLastPathComponent().toString().equals(Lenguaje.text(Lenguaje.DOM_TREE_VALUES)) && (selPath.getPathCount() == 4)) {
@@ -1147,26 +1066,22 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                 JMenuItem m7 = new JMenuItem(Lenguaje.text(Lenguaje.DOM_MENU_MODIFY));
                 m7.setFont(theme.font());
                 m7.setForeground(theme.fontColor());
-                m7.addActionListener(new java.awt.event.ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        TransferDominio clon_dominio = dominio.clonar();
-                        getPopUp().setVisible(false);
-                        getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_ModificarDominio, clon_dominio);
-                        actualizaArbolDominio(clon_dominio.getNombre());
-                    }
+                m7.addActionListener(e1 -> {
+                    TransferDominio clon_dominio = dominio.clonar();
+                    getPopUp().setVisible(false);
+                    getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_ModificarDominio, clon_dominio);
+                    actualizaArbolDominio(clon_dominio.getNombre());
                 });
                 popup.add(m7);
                 popup.addSeparator();
                 JMenuItem m8 = new JMenuItem(Lenguaje.text(Lenguaje.DOM_MENU_IN_ORDER));
                 m8.setFont(theme.font());
                 m8.setForeground(theme.fontColor());
-                m8.addActionListener(new java.awt.event.ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        TransferDominio clon_dominio = dominio.clonar();
-                        getPopUp().setVisible(false);
-                        getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_OrdenarValoresDominio, clon_dominio);
-                        actualizaArbolDominio(clon_dominio.getNombre());
-                    }
+                m8.addActionListener(e1 -> {
+                    TransferDominio clon_dominio = dominio.clonar();
+                    getPopUp().setVisible(false);
+                    getControlador().mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_OrdenarValoresDominio, clon_dominio);
+                    actualizaArbolDominio(clon_dominio.getNombre());
                 });
                 popup.add(m8);
             }
@@ -1197,9 +1112,9 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
 
         private void muestraMenu(MouseEvent e, TreePath selPath) {
             popup.removeAll();
-            c.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeEntidades, null);
-            c.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeAtributos, null);
-            c.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeRelaciones, null);
+            controlador.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeEntidades, null);
+            controlador.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeAtributos, null);
+            controlador.mensajeDesde_GUIPrincipal(TC.GUIPrincipal_ActualizameLaListaDeRelaciones, null);
 
             //if(selPath.getPathCount()==1){//Nodo The entity, the attribute, the relation...
             String nombre = selPath.getPathComponent(0).toString();
@@ -1225,54 +1140,46 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                     public void actionPerformed(ActionEvent e) {
                         popup.setVisible(false);
                         TransferEntidad clon_entidad = entidad.clonar();
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirAtributoEntidad, clon_entidad);
+                        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirAtributoEntidad, clon_entidad);
                     }
                 });
                 popup.add(j3);
                 popup.add(new JSeparator());
                 // Renombrar la entidad
                 JMenuItem j1 = new JMenuItem(Lenguaje.text(Lenguaje.RENAME_ENTITY));
-                j1.addActionListener(new java.awt.event.ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        popup.setVisible(false);
-                        TransferEntidad clon_entidad = entidad.clonar();
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_RenombrarEntidad, clon_entidad);
+                j1.addActionListener(e1 -> {
+                    popup.setVisible(false);
+                    TransferEntidad clon_entidad = entidad.clonar();
+                    controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_RenombrarEntidad, clon_entidad);
 
-                    }
                 });
                 popup.add(j1);
                 // Eliminar una entidad
                 JMenuItem j4 = new JMenuItem(Lenguaje.text(Lenguaje.DELETE_ENT));
-                j4.addActionListener(new java.awt.event.ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        popup.setVisible(false);
-                        TransferEntidad clon_entidad = entidad.clonar();
-                        Vector<Object> v = new Vector<Object>();
-                        v.add(clon_entidad);
-                        v.add(true);
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarEntidad, v);
-                    }
+                j4.addActionListener(e1 -> {
+                    popup.setVisible(false);
+                    TransferEntidad clon_entidad = entidad.clonar();
+                    Vector<Object> v = new Vector<Object>();
+                    v.add(clon_entidad);
+                    v.add(true);
+                    controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarEntidad, v);
                 });
                 popup.add(j4);
                 popup.add(new JSeparator());
                 //Añadir restricciones
                 JMenuItem j5 = new JMenuItem(Lenguaje.text(Lenguaje.RESTRICTIONS));
-                j5.addActionListener(new java.awt.event.ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        popup.setVisible(false);
-                        TransferEntidad clon_entidad = entidad.clonar();
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirRestriccionAEntidad, clon_entidad);
-                    }
+                j5.addActionListener(e1 -> {
+                    popup.setVisible(false);
+                    TransferEntidad clon_entidad = entidad.clonar();
+                    controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirRestriccionAEntidad, clon_entidad);
                 });
                 popup.add(j5);
                 //Añadir restricciones	Unique
                 JMenuItem j6 = new JMenuItem(Lenguaje.text(Lenguaje.TABLE_UNIQUE));
-                j6.addActionListener(new java.awt.event.ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        popup.setVisible(false);
-                        TransferEntidad clon_entidad = entidad.clonar();
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_TablaUniqueAEntidad, clon_entidad);
-                    }
+                j6.addActionListener(e1 -> {
+                    popup.setVisible(false);
+                    TransferEntidad clon_entidad = entidad.clonar();
+                    controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_TablaUniqueAEntidad, clon_entidad);
                 });
                 popup.add(j6);
 
@@ -1370,7 +1277,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                     public void actionPerformed(ActionEvent e) {
                         popup.setVisible(false);
                         TransferAtributo clon_atributo = atributo.clonar();
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarDominioAtributo, clon_atributo);
+                        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarDominioAtributo, clon_atributo);
                     }
                 });
                 popup.add(j2);
@@ -1383,7 +1290,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                     public void actionPerformed(ActionEvent e) {
                         popup.setVisible(false);
                         TransferAtributo clon_atributo = atributo.clonar();
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_RenombrarAtributo, clon_atributo);
+                        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_RenombrarAtributo, clon_atributo);
                     }
                 });
                 popup.add(j1);
@@ -1399,7 +1306,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         Vector<Object> v = new Vector<>();
                         v.add(clon_atributo);
                         v.add(true);
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarAtributo, v);
+                        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarAtributo, v);
                     }
                 });
                 popup.add(j7);
@@ -1419,7 +1326,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                             Vector<Transfer> vector = new Vector<Transfer>();
                             vector.add(clon_atributo);
                             vector.add(clon_entidad);
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarClavePrimariaAtributo, vector);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarClavePrimariaAtributo, vector);
                         }
                     });
                     popup.add(j6);
@@ -1427,32 +1334,32 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
 
                 // Es un atributo compuesto
                 JCheckBoxMenuItem j3 = new JCheckBoxMenuItem(Lenguaje.text(Lenguaje.COMPOSED));
-                final boolean notnul = atributo.getNotnull();
-                final boolean unique = atributo.getUnique();
-                j3.setSelected(atributo.getCompuesto());
+                final boolean notnul = atributo.isNotnull();
+                final boolean unique = atributo.isUnique();
+                j3.setSelected(atributo.isCompuesto());
                 j3.addActionListener(new java.awt.event.ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         popup.setVisible(false);
                         TransferAtributo clon_atributo = atributo.clonar();
                         if (notnul) {
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarNotNullAtributo, clon_atributo);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarNotNullAtributo, clon_atributo);
                         }
                         if (unique) {
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarUniqueAtributo, clon_atributo);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarUniqueAtributo, clon_atributo);
                         }
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarCompuestoAtributo, clon_atributo);
+                        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarCompuestoAtributo, clon_atributo);
                     }
                 });
                 popup.add(j3);
 
                 // Si es compuesto
-                if (atributo.getCompuesto()) {
+                if (atributo.isCompuesto()) {
                     JMenuItem j4 = new JMenuItem(Lenguaje.text(Lenguaje.ADD_SUBATTRIBUTE));
                     j4.addActionListener(new java.awt.event.ActionListener() {
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferAtributo clon_atributo = atributo.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirSubAtributoAAtributo, clon_atributo);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirSubAtributoAAtributo, clon_atributo);
                         }
                     });
                     popup.add(j4);
@@ -1460,28 +1367,28 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                 //popup.add(new JSeparator());
 
                 // Es un atributo NotNull
-                if (!atributo.getCompuesto() && !atributo.isClavePrimaria()) {
+                if (!atributo.isCompuesto() && !atributo.isClavePrimaria()) {
                     JCheckBoxMenuItem j3a = new JCheckBoxMenuItem(Lenguaje.text(Lenguaje.NOT_NULL));
-                    j3a.setSelected(atributo.getNotnull());
+                    j3a.setSelected(atributo.isNotnull());
                     j3a.addActionListener(new java.awt.event.ActionListener() {
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferAtributo clon_atributo = atributo.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarNotNullAtributo, clon_atributo);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarNotNullAtributo, clon_atributo);
                         }
                     });
                     popup.add(j3a);
                     //popup.add(new JSeparator());
                 }
                 // Es un atributo Unique
-                if (!atributo.getCompuesto() && !atributo.isClavePrimaria()) {
+                if (!atributo.isCompuesto() && !atributo.isClavePrimaria()) {
                     JCheckBoxMenuItem j3b = new JCheckBoxMenuItem(Lenguaje.text(Lenguaje.UNIQUE));
-                    j3b.setSelected(atributo.getUnique());
+                    j3b.setSelected(atributo.isUnique());
                     j3b.addActionListener(new java.awt.event.ActionListener() {
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferAtributo clon_atributo = atributo.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarUniqueAtributo, clon_atributo);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarUniqueAtributo, clon_atributo);
                         }
                     });
                     popup.add(j3b);
@@ -1496,7 +1403,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferAtributo clon_atributo = atributo.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarMultivaloradoAtributo, clon_atributo);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarMultivaloradoAtributo, clon_atributo);
                         }
                     });
                     popup.add(j5);
@@ -1511,7 +1418,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                     public void actionPerformed(ActionEvent e) {
                         popup.setVisible(false);
                         TransferAtributo clon_atributo = atributo.clonar();
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirRestriccionAAtributo, clon_atributo);
+                        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirRestriccionAAtributo, clon_atributo);
                     }
                 });
                 popup.add(j8);
@@ -1550,7 +1457,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirEntidadARelacion, clon_relacion);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirEntidadARelacion, clon_relacion);
                         }
                     });
                     popup.add(j3);
@@ -1561,7 +1468,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_QuitarEntidadARelacion, clon_relacion);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_QuitarEntidadARelacion, clon_relacion);
                         }
                     });
                     popup.add(j4);
@@ -1572,7 +1479,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarCardinalidadEntidad, clon_relacion);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EditarCardinalidadEntidad, clon_relacion);
                         }
                     });
                     popup.add(j5);
@@ -1588,7 +1495,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                             public void actionPerformed(ActionEvent e) {
                                 popup.setVisible(false);
                                 TransferRelacion clon_relacion = relacion.clonar();
-                                c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirAtributoRelacion, clon_relacion);
+                                controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirAtributoRelacion, clon_relacion);
                             }
                         });
                     }
@@ -1601,7 +1508,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_RenombrarRelacion, clon_relacion);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_RenombrarRelacion, clon_relacion);
                         }
                     });
                     popup.add(j1);
@@ -1615,7 +1522,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                             Vector<Object> v = new Vector<Object>();
                             v.add(clon_relacion);
                             v.add(true);
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarRelacionNormal, v);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarRelacionNormal, v);
                         }
                     });
                     popup.add(j7);
@@ -1626,7 +1533,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                     j8.addActionListener(event ->{
                         popup.setVisible(false);
                         TransferRelacion clon_relacion = relacion.clonar();
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirRestriccionARelacion, clon_relacion);
+                        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirRestriccionARelacion, clon_relacion);
                     });
                     popup.add(j8);
                     //Añadir restricciones	Unique
@@ -1634,7 +1541,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                     j9.addActionListener(event -> {
                         popup.setVisible(false);
                         TransferRelacion clon_relacion = relacion.clonar();
-                        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_TablaUniqueARelacion, clon_relacion);
+                        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_TablaUniqueARelacion, clon_relacion);
                     });
                     popup.add(j9);
 
@@ -1644,14 +1551,14 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EstablecerEntidadPadre, clon_relacion);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EstablecerEntidadPadre, clon_relacion);
                         }
                     }));
                     popup.add(new JMenu().add(new AbstractAction(Lenguaje.text(Lenguaje.REMOVE_PARENT_ENT)) {
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_QuitarEntidadPadre, clon_relacion);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_QuitarEntidadPadre, clon_relacion);
                         }
                     }));
 
@@ -1661,7 +1568,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirEntidadHija, clon_relacion);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_AnadirEntidadHija, clon_relacion);
                         }
                     }));
 
@@ -1669,7 +1576,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                         public void actionPerformed(ActionEvent e) {
                             popup.setVisible(false);
                             TransferRelacion clon_relacion = relacion.clonar();
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_QuitarEntidadHija, clon_relacion);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_QuitarEntidadHija, clon_relacion);
                         }
                     }));
 
@@ -1683,7 +1590,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
                             Vector<Object> v = new Vector<>();
                             v.add(clon_relacion);
                             v.add(true);
-                            c.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarRelacionIsA, v);
+                            controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_Click_EliminarRelacionIsA, v);
                         }
                     }));
                 }
@@ -1740,7 +1647,7 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
     }
 
     public void windowClosing(WindowEvent e) {
-        this.c.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Salir, null);
+        this.controlador.mensajeDesde_GUIPrincipal(TC.GUI_Principal_Click_Salir, null);
     }
 
     public void windowDeactivated(WindowEvent e) {
@@ -1756,8 +1663,8 @@ public class GUIPrincipal extends JFrame implements WindowListener, KeyListener 
     }
 
     public void loadInfo() {
-        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_MostrarDatosEnPanelDeInformacion, getPanelDiseno().generaArbolInformacion());
-        c.mensajeDesde_PanelDiseno(TC.PanelDiseno_MostrarDatosEnTablaDeVolumenes, getPanelDiseno().generaTablaVolumenes());
+        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_MostrarDatosEnPanelDeInformacion, getPanelDiseno().generaArbolInformacion());
+        controlador.mensajeDesde_PanelDiseno(TC.PanelDiseno_MostrarDatosEnTablaDeVolumenes, getPanelDiseno().generaTablaVolumenes());
     }
 
     public int getPanelsMode() {

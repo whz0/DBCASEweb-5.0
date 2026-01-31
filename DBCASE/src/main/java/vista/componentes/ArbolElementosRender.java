@@ -43,7 +43,7 @@ public class ArbolElementosRender extends DefaultTreeCellRenderer {
          * if - else que crea el texto a mostrar y su icono
          * */
         if (userObject instanceof TransferAtributo) {
-            if (!((TransferAtributo) userObject).getCompuesto())
+            if (!((TransferAtributo) userObject).isCompuesto())
                 text = String.format(SPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), userObject + " : ") +
                         String.format(SUBSPAN_FORMAT, sel ? theme.labelFontColorLight().hexValue() : theme.fontColor().hexValue(), ((TransferAtributo) userObject).getDominio());
             else

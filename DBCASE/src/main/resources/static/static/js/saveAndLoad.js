@@ -42,7 +42,7 @@ function importNetwork(type, value = null) {
     edges.clear();
     nodes_super.clear();
     edges_super.clear();
-    if (type != "session") {
+    if (type !== "session") {
         var inputValue = value;
     } else {
         var inputValue = sessionStorage.getItem('codeSave');
@@ -52,9 +52,7 @@ function importNetwork(type, value = null) {
         actionHistory = JSON.parse(sessionStorage.getItem('actionHistorySave')) || [];
         console.log("actionHistorySave " + actionHistory + " - " + JSON.parse(sessionStorage.getItem('actionHistorySave')) || []);
         undoneHistory = JSON.parse(sessionStorage.getItem('undoneHistorySave')) || [];
-        console.log("undoneHistorySave " + actionHistory + " - " + JSON.parse(sessionStorage.getItem('undoneHistorySave')) || []);
-
-
+        console.log("undoneHistorySave " + undoneHistory + " - " + JSON.parse(sessionStorage.getItem('undoneHistorySave')) || []);
     }
     var inputData = JSON.parse(inputValue);
     for (var i = 0; i < inputData.nodesA.length; i++) {

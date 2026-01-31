@@ -15,8 +15,10 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import modelo.transfers.TipoDominio;
 import modelo.transfers.TransferDominio;
@@ -282,34 +284,34 @@ public class DAODominios {
     }
 
     private void guardaDoc() {
-        //OutputFormat formato = new OutputFormat(doc, "utf-8", true);
-        OutputFormat formato = new OutputFormat();
-        StringWriter s = new StringWriter();
-        XMLSerializer ser = new XMLSerializer(s, formato);
         try {
-            ser.serialize(doc);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // El FileWriter necesita espacios en la ruta
-        this.path = this.path.replace("%20", " ");
-        FileWriter f = null;
-        /*debido a que la funcion FileWriter da un error de acceso
-         * de vez en cuando, forzamos su ejecucion hasta que funcione correctamente*/
-        boolean centinela = true;
-        while (centinela) {
-            try {
-                f = new FileWriter(this.path);
-                centinela = false;
-            } catch (IOException e) {
-                centinela = true;
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.ENCODING, "UTF-8");
+            
+            DOMSource source = new DOMSource(doc);
+            
+            // El FileWriter necesita espacios en la ruta
+            this.path = this.path.replace("%20", " ");
+            FileWriter f = null;
+            /*debido a que la funcion FileWriter da un error de acceso
+             * de vez en cuando, forzamos su ejecucion hasta que funcione correctamente*/
+            boolean centinela = true;
+            while (centinela) {
+                try {
+                    f = new FileWriter(this.path);
+                    centinela = false;
+                } catch (IOException e) {
+                    centinela = true;
+                }
             }
-        }
-        this.path = this.path.replace(" ", "%20");
-        ser = new XMLSerializer(f, formato);
-        try {
-            ser.serialize(doc);
-        } catch (IOException e) {
+            this.path = this.path.replace(" ", "%20");
+            
+            StreamResult result = new StreamResult(f);
+            transformer.transform(source, result);
+            f.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

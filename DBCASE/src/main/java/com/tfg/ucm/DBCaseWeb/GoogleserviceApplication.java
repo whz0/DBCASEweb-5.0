@@ -68,8 +68,12 @@ public class GoogleserviceApplication {
         DBASEWEB V.3
 
     */
-    @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    public void setMessageSource(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(GoogleserviceApplication.class, args);
@@ -950,7 +954,7 @@ public class GoogleserviceApplication {
     public String fileUpload(@RequestParam("file") MultipartFile file) throws IOException {
         String fileRead = "";
         Pattern pat = Pattern.compile(".*dbw");
-        HashMap<Integer, String> result = new HashMap<Integer, String>();
+        HashMap<Integer, String> result = new HashMap<>();
 
         if (!file.isEmpty()) {
             Matcher mat = pat.matcher(file.getOriginalFilename());

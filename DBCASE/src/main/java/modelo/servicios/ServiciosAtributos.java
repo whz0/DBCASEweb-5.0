@@ -109,7 +109,7 @@ public class ServiciosAtributos {
             return;
         }
         // Si no es compuesto
-        if (!ta.getCompuesto()) {
+        if (!ta.isCompuesto()) {
             if (!daoAtributos.borrarAtributo(ta))
                 controlador.mensajeDesde_SA(TC.SA_EliminarAtributo_ERROR_DAOAtributos, ta);
             else {
@@ -401,9 +401,9 @@ public class ServiciosAtributos {
 
     public void editarCompuestoAtributo(TransferAtributo ta) {
         // Modificamos el atributo
-        ta.setCompuesto(!ta.getCompuesto());
+        ta.setCompuesto(!ta.isCompuesto());
         // Ponemos su dominio a null si es compuesto
-        if (ta.getCompuesto()) ta.setDominio("null");
+        if (ta.isCompuesto()) ta.setDominio("null");
         // Persistimos
         DAOAtributos daoAtributos = new DAOAtributos(this.controlador);
         if (!daoAtributos.modificarAtributo(ta))
@@ -430,7 +430,7 @@ public class ServiciosAtributos {
 
     public void editarNotNullAtributo(TransferAtributo ta) {
         // Modificamos el atributo
-        ta.setNotnull(!ta.getNotnull());
+        ta.setNotnull(!ta.isNotnull());
         DAOAtributos daoAtributos = new DAOAtributos(this.controlador);
         if (!daoAtributos.modificarAtributo(ta))
             controlador.mensajeDesde_SA(TC.SA_EditarNotNullAtributo_ERROR_DAOAtributos, ta);
@@ -440,7 +440,7 @@ public class ServiciosAtributos {
 
     public void editarUniqueAtributo(TransferAtributo ta) {
         // Modificamos el atributo
-        ta.setUnique(!ta.getUnique());
+        ta.setUnique(!ta.isUnique());
         DAOAtributos daoAtributos = new DAOAtributos(this.controlador);
         if (!daoAtributos.modificarAtributo(ta))
             controlador.mensajeDesde_SA(TC.SA_EditarUniqueAtributo_ERROR_DAOAtributos, ta);

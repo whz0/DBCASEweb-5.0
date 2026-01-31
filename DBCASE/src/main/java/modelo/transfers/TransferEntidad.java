@@ -1,11 +1,16 @@
 package modelo.transfers;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.Vector;
 
 @SuppressWarnings("rawtypes")
+@Getter
+@Setter
 public class TransferEntidad extends Transfer {
     private int idEntidad;
     private String nombre;
@@ -49,15 +54,6 @@ public class TransferEntidad extends Transfer {
         this.offsetAttr = arg0.getOffsetAttr();
     }
 
-    @Override
-    public Point2D getPosicion() {
-        return posicion;
-    }
-
-    public void setPosicion(Point2D posicion) {
-        this.posicion = posicion;
-    }
-
     public Point2D nextAttributePos(Point2D p) {
         int ancho = getNombre().length();
         //para evitar las esquinas
@@ -77,86 +73,6 @@ public class TransferEntidad extends Transfer {
         );
         offsetAttr++;
         return p;
-    }
-
-    public boolean isDebil() {
-        return debil;
-    }
-
-    public void setDebil(boolean debil) {
-        this.debil = debil;
-    }
-
-    public int getIdEntidad() {
-        return idEntidad;
-    }
-
-    public void setIdEntidad(int idEntidad) {
-        this.idEntidad = idEntidad;
-    }
-
-    public Vector getListaAtributos() {
-        return listaAtributos;
-    }
-
-    public void setListaAtributos(Vector listaAtributos) {
-        this.listaAtributos = listaAtributos;
-    }
-
-    public Vector getListaClavesPrimarias() {
-        return listaClavesPrimarias;
-    }
-
-    public void setListaClavesPrimarias(Vector listaClavesPrimarias) {
-        this.listaClavesPrimarias = listaClavesPrimarias;
-    }
-
-    public Vector getListaRestricciones() {
-        return listaRestricciones;
-    }
-
-    public void setListaRestricciones(Vector listaRestricciones) {
-        this.listaRestricciones = listaRestricciones;
-    }
-
-    public Vector getListaUniques() {
-        return listaUniques;
-    }
-
-    public void setListaUniques(Vector listaUniques) {
-        this.listaUniques = listaUniques;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public int getVolumen() {
-        return volumen;
-    }
-
-    public void setVolumen(int volumen) {
-        this.volumen = volumen;
-    }
-
-    public int getFrecuencia() {
-        return frecuencia;
-    }
-
-    public void setFrecuencia(int frecuencia) {
-        this.frecuencia = frecuencia;
-    }
-
-    public int getOffsetAttr() {
-        return offsetAttr;
-    }
-
-    public void setOffsetAttr(int offsetAttr) {
-        this.offsetAttr = offsetAttr;
     }
 
     @Override

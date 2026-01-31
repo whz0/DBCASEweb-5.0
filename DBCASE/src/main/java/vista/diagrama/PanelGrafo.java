@@ -1,11 +1,6 @@
 package vista.diagrama;
 
-import java.awt.BasicStroke;
-import java.awt.Cursor;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridLayout;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -100,74 +95,67 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
         // Inserta las entidades, atributos, relaciones al grafo
         this.generaTablasNodos(entidades, atributos, relaciones);
         Collection<TransferEntidad> entities = this.entidades.values();
-        for (Iterator<TransferEntidad> it = entities.iterator(); it.hasNext(); ) {
-            TransferEntidad entidad = it.next();
+        for (TransferEntidad entidad : entities) {
             graph.addVertex(entidad);
             layout.setLocation(entidad, entidad.getPosicion());
         }
         Collection<TransferAtributo> attributes = this.atributos.values();
-        for (Iterator<TransferAtributo> it = attributes.iterator(); it.hasNext(); ) {
-            TransferAtributo atributo = it.next();
+        for (TransferAtributo atributo : attributes) {
             graph.addVertex(atributo);
             layout.setLocation(atributo, atributo.getPosicion());
         }
         Collection<TransferRelacion> relations = this.relaciones.values();
-        for (Iterator<TransferRelacion> it = relations.iterator(); it.hasNext(); ) {
-            TransferRelacion relation = it.next();
+        for (TransferRelacion relation : relations) {
             graph.addVertex(relation);
             layout.setLocation(relation, relation.getPosicion());
         }
 
         // Añade las aristas al grafo
         // Aristas entre relaciones y entidades
-        for (Iterator<TransferRelacion> it = relations.iterator(); it.hasNext(); ) {
-            TransferRelacion relation = it.next();
+        for (TransferRelacion relation : relations) {
             if (!relation.getListaAtributos().isEmpty())
                 // Añado sus atributos
-                for (Iterator<String> it2 = relation.getListaAtributos().iterator(); it2.hasNext(); ) {
-                    Integer id = Integer.parseInt(it2.next());
-                    graph.addEdge(new Double(Math.random()), relation, this.atributos.get(id));
+                for (String o : (Iterable<String>) relation.getListaAtributos()) {
+                    Integer id = Integer.parseInt(o);
+                    graph.addEdge(Math.random(), relation, this.atributos.get(id));
                 }
             if (!relation.getListaEntidadesYAridades().isEmpty())
-                for (Iterator<EntidadYAridad> it3 = relation.getListaEntidadesYAridades().iterator(); it3.hasNext(); ) {
-                    EntidadYAridad data = it3.next();
+                for (EntidadYAridad data : (Iterable<EntidadYAridad>) relation.getListaEntidadesYAridades()) {
                     graph.addEdge(data, relation, this.entidades.get(data.getEntidad()));
                 }
         }
         // Aristas entre entidades y atributos
-        for (Iterator<TransferEntidad> it = entities.iterator(); it.hasNext(); ) {
-            TransferEntidad entity = it.next();
+        for (TransferEntidad entity : entities) {
             if (!entity.getListaAtributos().isEmpty())
-                for (Iterator<String> it2 = entity.getListaAtributos().iterator(); it2.hasNext(); ) {
-                    Integer id = Integer.parseInt(it2.next());
-                    graph.addEdge(new Double(Math.random()), entity, this.atributos.get(id));
+                for (String o : (Iterable<String>) entity.getListaAtributos()) {
+                    Integer id = Integer.parseInt(o);
+                    graph.addEdge(Math.random(), entity, this.atributos.get(id));
                 }
             // Señala la/s claves primarias como tales
             if (!entity.getListaClavesPrimarias().isEmpty())
-                for (Iterator<String> it2 = entity.getListaClavesPrimarias().iterator(); it2.hasNext(); ) {
-                    Integer id = Integer.parseInt(it2.next());
+                for (String o : (Iterable<String>) entity.getListaClavesPrimarias()) {
+                    Integer id = Integer.parseInt(o);
                     this.atributos.get(id).setClavePrimaria(true);
                 }
         }
         // Aristas entre atributos compuestos y sus valores
-        for (Iterator<TransferAtributo> it = attributes.iterator(); it.hasNext(); ) {
-            TransferAtributo atrib = it.next();
-            if (atrib.getCompuesto())
-                for (Iterator<String> it2 = atrib.getListaComponentes().iterator(); it2.hasNext(); ) {
-                    Integer id = Integer.parseInt(it2.next());
-                    graph.addEdge(new Double(Math.random()), atrib, this.atributos.get(id));
+        for (TransferAtributo atrib : attributes) {
+            if (atrib.isCompuesto())
+                for (String o : (Iterable<String>) atrib.getListaComponentes()) {
+                    Integer id = Integer.parseInt(o);
+                    graph.addEdge(Math.random(), atrib, this.atributos.get(id));
                 }
         }
 
-        vv = new VisualizationViewer<Transfer, Object>(layout);
+        vv = new VisualizationViewer<>(layout);
         clickDerecho = new MenuDesplegable(vv, this.entidades);
         // this class will provide both label drawing and vertex shapes
-        LabelRenderer<Transfer, Object> vlasr = new LabelRenderer<Transfer, Object>();
+        LabelRenderer<Transfer, Object> vlasr = new LabelRenderer<>();
         vv.setDoubleBuffered(true); // Incrementa rendimiento
         // Color del panel grande sobre el que se pinta
         vv.setBackground(theme.background());
         // Renderiza las lineas que unen los elementos
-        vv.getRenderer().setEdgeLabelRenderer(new EtiquetaSobreLinea<Transfer, Object>());
+        vv.getRenderer().setEdgeLabelRenderer(new EtiquetaSobreLinea<>());
 
         RenderContext<Transfer, Object> rc = vv.getRenderContext();
         rc.getEdgeLabelRenderer();
@@ -183,8 +171,7 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
                 if (input instanceof TransferEntidad)
                     return "<html><center><font color=" + theme.labelFontColorDark().hexValue() + ">" + input
                             + "<p></font>";
-                if (input instanceof TransferAtributo) {
-                    TransferAtributo atributo = (TransferAtributo) input;
+                if (input instanceof TransferAtributo atributo) {
                     String texto = "";
                     texto += "<html><center><center><font color=" + theme.labelFontColorDark().hexValue() + ">";
                     if (atributo.isClavePrimaria())
@@ -212,8 +199,7 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
         // Escribe datos sobre las lineas
         vv.getRenderContext().setEdgeLabelTransformer(new Transformer<Object, String>() {
             public String transform(Object input) {
-                if (input instanceof EntidadYAridad) {
-                    EntidadYAridad dato = (EntidadYAridad) input;
+                if (input instanceof EntidadYAridad dato) {
                     String iniRango, finRango, strRol, numerito = "";
 
                     if (dato.getFinalRango() == Integer.MAX_VALUE) finRango = "N";
@@ -437,22 +423,19 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
 
     private void generaTablasNodos(Vector<TransferEntidad> entidades, Vector<TransferAtributo> atributos,
                                    Vector<TransferRelacion> relaciones) {
-        this.entidades = new HashMap<Integer, TransferEntidad>();
-        this.atributos = new HashMap<Integer, TransferAtributo>();
-        this.relaciones = new HashMap<Integer, TransferRelacion>();
+        this.entidades = new HashMap<>();
+        this.atributos = new HashMap<>();
+        this.relaciones = new HashMap<>();
         // Inserta las entidades con su id como clave
-        for (Iterator<TransferEntidad> it = entidades.iterator(); it.hasNext(); ) {
-            TransferEntidad entidad = it.next();
+        for (TransferEntidad entidad : entidades) {
             this.entidades.put(entidad.getIdEntidad(), entidad);
         }
         // Inserta los atributos con su id como clave
-        for (Iterator<TransferAtributo> it = atributos.iterator(); it.hasNext(); ) {
-            TransferAtributo atributo = it.next();
+        for (TransferAtributo atributo : atributos) {
             this.atributos.put(atributo.getIdAtributo(), atributo);
         }
         // Inserta las relaciones con su id como clave
-        for (Iterator<TransferRelacion> it = relaciones.iterator(); it.hasNext(); ) {
-            TransferRelacion relacion = it.next();
+        for (TransferRelacion relacion : relaciones) {
             this.relaciones.put(relacion.getIdRelacion(), relacion);
         }
         creaArrayTablas();
@@ -511,7 +494,7 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
     }
 
     private void creaArrayTablas() {
-        tablas = new ArrayList<Transfer>();
+        tablas = new ArrayList<>();
         tablas.addAll(entidades.values());
         for (HashMap.Entry<Integer, TransferRelacion> rel : this.relaciones.entrySet())
             if (!rel.getValue().isIsA()) tablas.add(rel.getValue());
@@ -533,7 +516,7 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
     }
 
     private HashMap<Integer, TransferAtributo> listaMultivalorados() {
-        HashMap<Integer, TransferAtributo> multis = new HashMap<Integer, TransferAtributo>();
+        HashMap<Integer, TransferAtributo> multis = new HashMap<>();
         int p = 1;
         for (HashMap.Entry<Integer, TransferAtributo> a : atributos.entrySet())
             if (a.getValue().isMultivalorado()) multis.put(p++, a.getValue());
@@ -557,7 +540,7 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
     }
 
     private DefaultMutableTreeNode nodoAtributo(TransferAtributo a, DefaultMutableTreeNode nodoAtr) {
-        if (a.getCompuesto())
+        if (a.isCompuesto())
             for (int k = 0; k < a.getListaComponentes().size(); k++) {
                 TransferAtributo subAtr = atributos.get(Integer.parseInt((String) a.getListaComponentes().get(k)));
                 DefaultMutableTreeNode subNode = new DefaultMutableTreeNode(subAtr);
@@ -616,10 +599,8 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
     /**
      * Este método modificará el transfer que se envíe en el grafo. Es necesario
      * para actualizar contenidos por parte del Controlador.
-     *
-     * @param object Dato que actualizará en el grafo
      */
-    public Transfer ModificaValorInterno(Transfer object) {
+    public void ModificaValorInterno(Transfer object) {
         // Si es entidad se actualiza
         if (object instanceof TransferEntidad) {
             TransferEntidad entidad = (TransferEntidad) object;
@@ -627,36 +608,34 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
             antigua.CopiarEntidad(entidad);
             if (!antigua.getListaAtributos().isEmpty()) {
                 // Añado sus atributos
-                for (Iterator<String> it2 = antigua.getListaAtributos().iterator(); it2.hasNext(); ) {
-                    Integer id = Integer.parseInt(it2.next());
+                for (String o : (Iterable<String>) antigua.getListaAtributos()) {
+                    Integer id = Integer.parseInt(o);
                     //	if (!graph.areNeighbors(antigua, this.atributos.get(id))) { // Añade aristas que no existiesen
-                    graph.addEdge(new Double(Math.random()), antigua, this.atributos.get(id));
+                    graph.addEdge(Math.random(), antigua, this.atributos.get(id));
                     //	}
                 }
             }
             vv.repaint(); // Se redibuja todo el grafo actualizado
-            return antigua;
+            return;
         }
         // Si es atributo se actualiza
-        if (object instanceof TransferAtributo) {
-            TransferAtributo atributo = (TransferAtributo) object;
+        if (object instanceof TransferAtributo atributo) {
             TransferAtributo antigua = atributos.get(atributo.getIdAtributo());
             antigua.CopiarAtributo(atributo);
             if (!antigua.getListaComponentes().isEmpty()) {
                 // Añado sus atributos
-                for (Iterator<String> it2 = antigua.getListaComponentes().iterator(); it2.hasNext(); ) {
-                    Integer id = Integer.parseInt(it2.next());
+                for (String o : (Iterable<String>) antigua.getListaComponentes()) {
+                    Integer id = Integer.parseInt(o);
                     //		if (!graph.areNeighbors(antigua, this.atributos.get(id))) { // Añade aristas que no existiesen
-                    graph.addEdge(new Double(Math.random()), antigua, this.atributos.get(id));
+                    graph.addEdge(Math.random(), antigua, this.atributos.get(id));
                     //		}
                 }
             }
             vv.repaint(); // Se redibuja todo el grafo actualizado
-            return antigua;
+            return;
         }
         // Si es relacion se actualiza
-        if (object instanceof TransferRelacion) {
-            TransferRelacion relacion = (TransferRelacion) object;
+        if (object instanceof TransferRelacion relacion) {
             TransferRelacion antigua = relaciones.get(relacion.getIdRelacion());
             Boolean rolRepe = false;
             antigua.CopiarRelacion(relacion, relacion.getIdRelacion(), rolRepe);
@@ -665,30 +644,25 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
             layout.setLocation(antigua, antigua.getPosicion());
             if (!antigua.getListaAtributos().isEmpty())
                 // Añado sus atributos
-                for (Iterator<String> it2 = antigua.getListaAtributos().iterator(); it2.hasNext(); ) {
-                    Integer id = Integer.parseInt(it2.next());
-                    graph.addEdge(new Double(Math.random()), antigua, this.atributos.get(id));
+                for (String o : (Iterable<String>) antigua.getListaAtributos()) {
+                    Integer id = Integer.parseInt(o);
+                    graph.addEdge(Math.random(), antigua, this.atributos.get(id));
                 }
             // Añado las aristas del grafo con las aridades.
             if (!antigua.getListaEntidadesYAridades().isEmpty()) {
-                for (Iterator<EntidadYAridad> it3 = antigua.getListaEntidadesYAridades().iterator(); it3.hasNext(); ) {
-                    EntidadYAridad data = it3.next();
+                for (EntidadYAridad data : (Iterable<EntidadYAridad>) antigua.getListaEntidadesYAridades()) {
                     graph.addEdge(data, antigua, this.entidades.get(data.getEntidad()));
                 }
             }
             vv.repaint(); // Se redibuja todo el grafo actualizado
-            return antigua;
         }
-        return null;
     }
 
     /**
      * Este método es parecido a ModificaVAlorInterno. Es necesario para actualizar
      * contenidos por parte del Controlador.
-     *
-     * @param object Dato que actualizará en el grafo
      */
-    public Transfer ModificaValorInterno1a1(Vector v) {
+    public void ModificaValorInterno1a1(Vector v) {
         // Si es relacion se actualiza
         TransferRelacion antigua = relaciones.get(v.get(0));
         antigua.CopiarRelacionUnoUno(v);
@@ -697,19 +671,17 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
         layout.setLocation(antigua, antigua.getPosicion());
         if (!antigua.getListaAtributos().isEmpty()) {
             // Añado sus atributos
-            for (Iterator<String> it2 = antigua.getListaAtributos().iterator(); it2.hasNext(); ) {
-                Integer id = Integer.parseInt(it2.next());
-                graph.addEdge(new Double(Math.random()), antigua, this.atributos.get(id));
+            for (String o : (Iterable<String>) antigua.getListaAtributos()) {
+                Integer id = Integer.parseInt(o);
+                graph.addEdge(Math.random(), antigua, this.atributos.get(id));
             }
         }
         // Añado las aristas del grafo con las aridades.
         if (!antigua.getListaEntidadesYAridades().isEmpty())
-            for (Iterator<EntidadYAridad> it3 = antigua.getListaEntidadesYAridades().iterator(); it3.hasNext(); ) {
-                EntidadYAridad data = it3.next();
+            for (EntidadYAridad data : (Iterable<EntidadYAridad>) antigua.getListaEntidadesYAridades()) {
                 graph.addEdge(data, antigua, this.entidades.get(data.getEntidad()));
             }
         vv.repaint(); // Se redibuja todo el grafo actualizado
-        return antigua;
     }
 
     /**
@@ -718,18 +690,15 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
      * @param arg0 Objeto entidad que se añade
      */
     public void anadirNodo(Transfer arg0) {
-        if (arg0 instanceof TransferEntidad) {
-            TransferEntidad entidad = (TransferEntidad) arg0;
+        if (arg0 instanceof TransferEntidad entidad) {
             entidades.put(entidad.getIdEntidad(), entidad);
             layout.anadeVertice(entidad);
         }
-        if (arg0 instanceof TransferAtributo) {
-            TransferAtributo atributo = (TransferAtributo) arg0;
+        if (arg0 instanceof TransferAtributo atributo) {
             atributos.put(atributo.getIdAtributo(), atributo);
             layout.anadeVertice(atributo);
         }
-        if (arg0 instanceof TransferRelacion) {
-            TransferRelacion relacion = (TransferRelacion) arg0;
+        if (arg0 instanceof TransferRelacion relacion) {
             relaciones.put(relacion.getIdRelacion(), relacion);
             layout.anadeVertice(relacion);
         }
@@ -743,58 +712,26 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
      * @param arg0 Objeto que se elimina del grafo
      */
     public void eliminaNodo(Transfer arg0) {
-        if (arg0 instanceof TransferEntidad) {
-            TransferEntidad entidad = (TransferEntidad) arg0;
+        if (arg0 instanceof TransferEntidad entidad) {
             entidad = entidades.get(entidad.getIdEntidad());
             graph.removeVertex(entidad);
             entidades.remove(entidad.getIdEntidad());
             tablas.remove(entidad);
         }
-        if (arg0 instanceof TransferAtributo) {
-            TransferAtributo atributo = (TransferAtributo) arg0;
+        if (arg0 instanceof TransferAtributo atributo) {
             atributo = atributos.get(atributo.getIdAtributo());
             graph.removeVertex(atributo);
             atributos.remove(atributo.getIdAtributo());
             if (atributo.isMultivalorado())
                 tablas.remove(atributo);
         }
-        if (arg0 instanceof TransferRelacion) {
-            TransferRelacion relacion = (TransferRelacion) arg0;
+        if (arg0 instanceof TransferRelacion relacion) {
             relacion = relaciones.get(relacion.getIdRelacion());
             graph.removeVertex(relacion);
             relaciones.remove(relacion.getIdRelacion());
             tablas.remove(relacion);
         }
         vv.repaint();
-    }
-
-    /**
-     * Añade la arista entre los nodos especificados
-     */
-    public void anadirArista(Transfer arg0, Transfer arg1) {
-        graph.addEdge("", arg0, arg1);
-        vv.repaint();
-    }
-
-    /**
-     * Guarda el grafo en un fichero gráfico JPEG
-     *
-     * @param file Fichero a guardar la imagen
-     */
-    public void writeJPEGGraph(File file) {
-        int width = vv.getWidth();
-        int height = vv.getHeight();
-
-        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics = bi.createGraphics();
-        vv.paint(graphics);
-        graphics.dispose();
-
-        try {
-            ImageIO.write(bi, "jpeg", file);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -842,5 +779,4 @@ public class PanelGrafo extends JPanel implements Printable, KeyListener {
     private Point2D obtenerPuntoExacto(MouseEvent ev) {
         return vv.getRenderContext().getMultiLayerTransformer().inverseTransform(ev.getPoint());
     }
-
 }
