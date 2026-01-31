@@ -1,0 +1,5 @@
+﻿# This file lists all the .lng files contained in the application, 
+# and the name of its language
+ 
+default.lng=English
+spanish.lng=Español

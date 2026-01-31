@@ -1,0 +1,504 @@
+# Language
+# This name must be appear in file "index.txt", associated to 
+# the physical name of this file
+# If this file is called "default.lng", this language will be 
+# loaded as default.
+#
+# WARNING: There cannot be empty lines before this information
+English
+
+#
+# Application name
+dbcase=DBCASE 2.0
+
+#
+# General messages
+yes=Yes
+no=No
+select=Select
+cancel=Cancel
+insert=Insert
+info=INFO.
+error=ERRORS
+success=SUCCESS
+warning=WARNINGS
+wishContinue=Do you want to continue?
+exit=Exit
+execute=Execute
+edit=Edit
+remove=Remove
+entity=Entity
+theentity=The entity
+relation=Relation
+therelation=The relation
+relations=Relations
+attribute=Attribute
+theattribute=The attribute
+isaRelation=IsA
+entities=Entities
+attributes=Attributes
+cardinality=Cardinality
+attributes=Attributes
+composed=Composed
+domain=Domain
+thedomain=The domain
+primaryKeys=Primary keys
+candidateKeys=Candidate keys
+delete=Delete
+rename=Rename
+new=New
+new2=New
+open=Open
+close=Close
+save=Save
+saveAs=Save as
+name=Name
+type=Type
+values=Values separated by commas
+accept=Ok
+nullableAttr=Mark Nullable Attributes
+
+#
+# "Selecting workspace" window
+selectWorkspace=Select workspace
+errorCreatingFile=An error occurred while trying to create file 
+errorTempFile=An error occurred while trying to create temporal file.
+wrongFile=Selected file is not a DBCASE file.
+notExistFile=The file does not exist.
+
+#
+# Controlador 
+workspaceChanged=The workspace has been changed successfully.
+workspaceIs=The current workspace is:
+initialError=An error has occurred when creating
+ofXMLfiles= of XML files.
+deleteEntity=Delete Entity
+deleteAttribute=Delete Attribute
+deleteDomain=Delete Domain
+addEntityRelation=Add new entity to Relation
+deleteIsaRelation=Delete IsA relation
+deleteRelation=Delete Relation
+deleteAttributes=Also its attributes will be deleted.
+warningDeleteWeakEntity=Also its weak entity will be deleted.
+warningDeleteWeakRelation=Also its weak relation will be deleted.
+removeFromSystem=will be removed from the system.
+weakRelation=If the relation is weakened
+deleteAttributes2= all of its attributes will be removed.
+modifyingCardinality=,the cardinality of the weak entity will be modified to 1..1.
+modifyAttribute=If you change the composite attribute 
+deleteAttributes3=to a simple one, all of its sub-attributes will be deleted.
+deleteIsaRelation=The selected IsA relation will be deleted from the system.
+domain=Domain
+modifyingAttributesWarning=All attributes of this domain will be modified.
+relationWeakEntities= has more than one weak entity.
+noAttributesRelation=It is not possible to add attributes to the relation.
+alreadyWeakEntity=There is already a weak entity in the relation.
+isWeak=is a weak relation.
+incorrectValue=Some values are incorrect.
+entitiesFileError=An error has occurred in the entities file access. 
+relationsFileError=An error has occurred in the relations file access.
+attributesFileError=An error has occurred in the attributes file access.
+domainsFileError=An error has occurred in the domains file access.
+emptyAttribName=The attribute name is empty. 
+emptyDomName=The domain name is empty.
+emptyDiagram=Diagram is empty.
+emptyEntName=The entity name is empty.
+emptyRelName= name is empty.
+emptySubattribName=The sub-attribute name is empty.
+emptyTypeName=The new type name is empty.
+emptyValues=The field "Values" is empty.
+repeatedEntName=There is already an entity using the same name.
+repeatedAttribName=The entity already has an attribute with this name.
+repeatedAttribNameRel= already has an attribute with this name.		
+repeatedRelName=There is already a relation using the same name.
+repeatedRolName=There is already a role using the same name.
+repeatedSubattrName=There is already a sub-attribute using the same name.
+repeatedDomName=There is already a domain using the same name.
+incorrectSize1=The size of the attribute domain must be a positive integer.
+incorrectSize2=The size of the attribute domain is null or negative.
+incorrectSize3=The size of the attribute domain must be a positive integer. 
+incorrectCardinality1=The starting value must be a positive integer or 'n'.
+incorrectCardinality2=The starting value is negative.
+incorrectCardinality3=The ending value must be a positive integer or 'n'.
+incorrectCardinality4=The ending value is negative.
+incorrectCardinality5=The starting value is bigger than the ending one.
+necesaryRol=An entity role must be specified.
+#successFile=Project saved successfully.
+wishSave=Do you wish to save the current project?
+weakEntity=If the entity is weak  
+repeatedEntyRel=Relation and entity names can't be the same.
+
+
+#"Servicios"
+emptyValue=One of the values is empty.
+incorrectNumber=One of the values is not correct. Please type positive integers.
+incorrectValueEx=One of the values is not correct. Examples:
+incorrectBitValue=One of the values is not correct. The only acceptable values are 0 and 1.
+quotationMarks=Insert the values between single quotation marks.
+incorrectDate=One of the values is not correct. Insert values in YYYYMMDD format.
+
+#
+#servicios sistema
+ratifying=Checking 
+ratifyinAttribDomain=Checking attribute domain
+composedAttribute=is composed, so it can't have a domain.
+correctDomain=The attribute domain is correct.
+noDomain=has no domain.
+unkownDomain=domain does not exist.
+ratifyingAttribute=Checking that there is no other attribute with the same name
+oneAttribSubattrib= is sub-attribute of just one attribute.
+manyAttribSubattrib= is sub-attribute of more than one attribute.
+oneEntity= belongs to only one entity.
+manyEntities= belongs to more than one entity.
+ratifyingChildren=Checking children (composite attribute).
+noSubattrib=has no sub-attributes.
+oneSubattrib=has only one sub-attribute.
+ratifyingPrimaryKeys=Checking entity's primary keys.
+noKeyWeakEntity=is weak and it does not have a discriminating attribute (it needs to have primary key).
+noKeyEntRel= is associated to a relation and it does not have primary key.
+allChildrenKey=is composed and all its leafs are keys. You can also mark as key the father attribute.
+noAttribKey= The primary key is not part of the attributes of the entity.
+multivalueKey= can have multiple values so it cannot be marked as primary key.
+isaParent= The entity is a children in an IsA relation, so it can inherit the primary key from the parent.
+noPrimaryKey= has no primary key.
+correctKeys= The keys of the entity are correct.
+ratifyingAttribNames=Checking entity attribute's names
+noAttrib= has no attributes.
+attribName= The attribute 
+isRepeatedInEnt= is used more than once in the entity 
+attribNames= The names of the entity's attributes 
+areCorrect= are correct.
+entParentIn=is the parent in
+isaRelations= IsA relations
+noWeakEntRel= This relation cannot have weak entities.
+noParentRel= has no parent.
+noChildRel= needs at least one child.
+okRelation= has one parent and at least one child.
+isNormalType= is a normal relation.
+noEntRelation= has no entities.
+oneEntRel= has only one entity.
+manyEntRel= has two or more entities.
+isWeakType= is a weak relation.
+oneEntWeakRel= is weak so it needs more than one entity.
+noWeakEntRel= has no weak entity.
+manyWeakEntRel= cannot have more than one weak entity.
+noStrongEntRel= needs a strong entity.
+okEntRel= has a correct set of entities.
+ratifyingDomain=Checking the uniqueness of the domain
+repeatedDomNames=There are domains using the same name.
+okDomain=The domain's name is unique.
+ratifyingDomainValues=Checking domain's values
+noValueDom=has no value.
+theValue=The value 
+isRepeated= is repeated.
+okDomValues=The values of the domain are not repeated.
+ratifyingDomUse=Checking domain use
+useDom=The domain is used in the design.
+noUseDom=is not in use.
+ratifyingDB=STARTING DATABASE CHECKING.
+ratifyingDomains=DOMAINS
+ratifyingAttributes=ATTRIBUTES
+ratifyingEntities=ENTITIES
+ratifyingRelations=RELATIONS
+ratifySuccess=CHECKING FINISHED SUCCESSFULLY
+ratifyingError=AN ERROR HAS OCCURRED.	
+mustRatifyModel=You must validate model before generating the script.
+designSqlCode=SQL CODE IMPLEMENTING THE DESIGN
+mustGenerateScript=You must generate the script before exporting it.
+sqlFiles=SQL Files
+okFile=The file has been generated successfully.
+file=File
+scriptError=An error occurred while writing the script in the file.
+scriptGeneratedFor=Script was generated for DBMSs of type 
+conexionTypeIs=but actual connection type is 
+possibleErrorScript=Maybe the script will not run correctly.
+shouldGenerateScript=To avoid this problem, generate the script again for the type 
+ofConexion=of the actual connection.
+continueAnyway=Do you want to continue anyway?
+noDBConexion=Could not connect database.
+reason=Reason
+cantExecuteScript=The script could not be executed.
+enquiryError=There was a mistake in query 
+cantCloseConexion=Connection could not be closed.
+okScriptExecut=Script executed correctly.
+analysis=Analysis
+typesSection=Enumerated Types
+keysSection=Keys
+constraintsSection=Constraints
+mustValidateModel=You must validate model before generating the relational model.
+relationalModelGenerated=RELATIONAL MODEL GENERATED		
+
+#Persistencia
+unespectedXMLerror=Unspected error in file
+entArity=Entity and arity: 
+rol=Role 
+idEnt=, entity Id 	
+
+#"GUI_InsertEntity" window
+insertNewEntity=Insert a new entity
+writeEntityName=Entity:
+weakEntity=Is a weak entity.
+allEntity=A weak entity needs to be relationed with a strong one. It will inherit its primary key.
+selectStrongEntity=Strong entity: 
+writeRelationWeak=Relation:
+createStrongEntity=It's necesary a strong entity. 
+
+#"GUI_InsertRelation" window
+insertNewRelation=Insert a new relation
+writeRelationName=Relation:	
+
+#"GUI_AnadirAtributoEntidad AND GUI_AnadirAtributoRelacion" window
+insertNewAttribute=Add new attribute
+compositeAttribute=Composite
+primaryKeyAttribute=Primary key
+notNullAttribute=Not Null
+uniqueAttribute=Unique
+valueAttribute=Multivalued
+domainAttribute=Domain:
+sizeAttribute=Size:
+
+#"GUI_AnadirSubAtributoAtributo" window
+insertNewSubAttribute=Add new sub-attribute
+
+#"GUI_AnadirEntidadARelacion" window
+insertNewEntityToRelation=Add an entity to the relation
+imposibleToInsertEntity=You cannot add any entoty to the relation.
+noEntities=There is not any entity to add.
+selectEntity=Entity:
+writeNumbersRelation=Cardinality:
+the=min
+to=max
+writeRoll=Role name:
+label1a1=Max 1
+label1aN=Unused
+labelNaN=Max N
+
+#"GUI_AnadirEntiadHija" window
+insertNewDaughter=Add child entity
+imposibleToInsertDaughter=You cannot ad any  child entity.
+noEntitiesAvailables=There is not any entity available.
+noFather=IsA relation does not have any parent.
+selectEntityDaughter=Child entity:
+
+#GUI_ConfigurarConexionDBMS" window
+shapeDBMS=Configure DBMS connection
+explanationDBMS1=DBCASE will try to connect a DBMS of type 
+explanationDBMS2=. If you want to use a different one, 
+explanationDBMS3=change actual connection type.
+stringConnection=DBMS connection string:
+user=User:
+password=Password:
+informationIncomplete=Some necessary information has not been given
+dbdt=DBCASE
+
+#"GUI_EditarCardinalidadEntidad" window
+editArityAndRolle=Editing role and cardinality of an entity
+imposibleToEditRolle=You cannot edit the cardinality of any entity.
+noEntitiesInRelation=There is no entity associated to the relation.
+editArity= Edit cardinality of an entity
+selectEntityToChange=Entity whose cardinality will be modified.
+writeNewArity=New cardinality:
+writeNewRolle=New rol name:
+ifEntityHasRolle=Entity's role:
+
+#"GUI_EditarDominioAtributo" window
+editDomainAttribute=Edit attribute's domain
+imposibleEditDomain=You cannot edit the attribute's domain
+complexAttribute=It is a composed attribute.
+selectDomaninForAttribute=Select the new domain from the list and specify its range, if necessary.
+
+#"GUI_EstablecerEntidadPadre" window
+setParentEntity=Assign parent entity
+imposibleSetParent=You cannot assign the parent entity.
+otherParent=IsA relation already has a parent entity.
+imposibleSetParenInISA=You cannot assign the parent entity to the IsA relation.
+selectParentEntity=Parent entity:
+
+#"GUI_InsertarDominio" window
+insertNewDomain=Insert new domain
+
+#"GUI_ModificarDominio" window
+editDomain=Edit domain
+
+#"GUI_QuitarEntidadARelacion" window
+quitEntity=Separate entity from relation
+imposibleQuitEntity=You cannot separate any entity from the relation.
+selectEntityToQuit=Quit the entity:
+
+#"GUI_QuitarEntidadHija" window
+quitDaughterEntity=Separate child entity
+imposibleQuitDaughterEntity=You cannot separate any child entity.
+noDaughterEntity=IsA relation does not have any child.
+selectDaughterToQuit=Quit child entity:
+
+#"GUI_QuitarEntidadPadre" window
+quitParentEntity=Drop parent entity
+explicationQuitParent=If you drop the parent entity from the IsA relation, the children entities will also be separated from the relation.
+doYouWhisQuitParent=Do you still wish to drop parent entity?
+imposibleQuitParent=You cannot drop parent entity.
+
+#"GUI_RenombrarAtributo" window
+renameAttribute=Rename attribute
+writeNameAttributeSelected=New name for attribute.
+
+#"GUI_RenombrarDominio" window
+renameDomain=Rename domain
+writeNewDomainName=New name for domain:
+
+#"GUI_RenombrarEntidad" window
+renameEntityDBCase=Rename entity
+writeNewEntityName=New name for entity:		
+
+#"GUI_RenombrarRelation" window
+renameRelationDBCase=Rename relation
+explicationRenameRelation1=New name for relation.
+
+#"GUI_Conexion" window
+server=Server: 
+port=Port:
+dataBase=Data Base:
+create=Create
+user=User:
+password=Password:
+connect=Execute
+
+#"GUI_SeleccionarConexion" window
+selectConnection=Select Connection
+existingConns=Existing connections
+chooseConn=Choose a connection from the list
+
+#Presentacion.Grafo
+deleteAllNodes=All selected nodes will be removed.
+dbcaseDelete=Remove
+noEntityInvolved=There is no entity involved
+parentEntity=Parent entity
+noChildEntities=has no child entities
+childrenEntities=Child entities
+isMultivaluated=is multivalued
+isNotNull=is not null
+isUnique=is unique
+isComposed=is composed
+noComponents=Has no components
+components=Components
+isWeakEnt=is weak
+addEntity=Add new entity
+addRelation=Add new relation
+addIsaRelation=Add new IsA relation
+addDomain=Create domain
+renameEntity=Rename entity
+addAttribute=Add new attribute
+deleteEnt=Remove entity
+renameAttrib=Rename attribute
+editDomain=Edit domain
+addSubAttribute=Add subattribute
+notNull=Not Null
+Unique=Unique
+isPrimaryKey=Is the primary key of
+deleteAttrib=Remove attribute
+setParentEnt=Set parent entity
+removeParentEnt=Remove parent entity
+addChilEnt=Add child entity
+removeChildEnt=Remove child entity
+deleteRel=Remove relation
+renameRelation=Rename relation
+addEnt=Add entity
+removeEntity=Remove entity
+editCardRol=Modify
+
+#GUIPrincipal + utilidades.AccionMenu 
+domMenuRename=Rename
+domMenuDelete=Remove
+domMenuModify=Edit domain
+domMenuAdd=Add new domain
+domMenuRenameInOrder=Sort values
+domTreeCreatedDoms=Available domains
+domTreeTypes=Base type
+domTreeValues=Values
+dbCaseTool=DBCASE 2.0
+toolForDesing=A tool for designing databases.
+ssii=Computer engineering (2018/2019)
+college=Facultad de Informática
+university=Universidad Computense de Madrid
+director=Project director: 
+teacherName=Fernando Sáenz Pérez
+author=Project author:
+authors=Project authors:
+author1=Miguel Arriba García
+contact=Contact: fernan@sip.ucm.es
+based=Based on:
+based1=DBCASE 1.0 - Sistemas Informáticos (2008/2009).
+based1a1=Rodrigo Denis Cepeda Mateos
+based1a2=Cristina Marco de Francisco
+based1a3=Tello Serrano Gordillo.
+based2=DBDT 1.0 - Sistemas Informáticos (2007/2008).
+based2a1=Alberto Milán Gutiérrez
+based2a2=Miguel Martínez Segura
+based2a3=Francisco Javier Cáceres González
+based2p=Professor: Yolanda García Ruiz.
+dbcaseLabel=DBCASE 2.0
+system=System
+exitMincase=Exit
+options=Options
+currentDBMS=Current DataBase Management System
+selectLanguage=Language
+exportDiagram=Export conceptual schema
+printDiagram=Print conceptual schema
+help=Help
+contents=Contents
+about=About DBCASE
+erModel=Entity-Relationship Model
+concModel=Conceptual Schema
+logicModel=Logical Schema
+physicModel=Physical Schema
+infPanel=Information Panel
+domPanel=Domains
+graphPanel=Graph Panel
+eventPanel=Events Panel
+showEventsPanel=Events Panel
+codeGeneration=Code Generation
+clean=Clean text area
+validateDesign=Validate design
+generateRelModel=Generate Entity-Relationship Model
+generateSQLmodel=Generate SQL code
+exportSQLfile=Export SQL script as a file
+executeScript=Execute SQL script in a DBMS
+mustGenerateScriptEx=SQL script must be generated before executing it.
+jpegFiles=JPEG files
+okExport=The diagram has been exported to a file successfully
+
+#utilidades.conectorDBMS
+noConector=Error: JDBC connector can't be found
+tableTitle=Connections:
+testData=Test data
+cleanFields=Clean
+hint=Hint
+explore=Explore...
+scriptGenerated=SCRIPT GENERATED BY DBCASE
+syntax=Syntax
+
+#restricciones
+restrictions=Constraints
+ric=Referential Integrity Constraints
+lostConstr=Lost Constraints
+tableconstraints=Table constraints
+addRestrictionsTo=Add constraints to
+tableUnique=Table Unique
+addUnique=Modify table 'unique'
+uniqueError=One out of the 'unique' constraints is not correct, set the attributes names separated by commas.
+errorTable=Select one row of table unique
+theme=Theme
+generate=Generate
+elements=Elements
+view=View
+table=Table
+tables=Tables
+volume=Volume
+freq=Frequency
+partTotal=Total participation
+cardMinde=Minimum cardinality of 
+yCardMinde= and minimum cardinality of 
+cardMaxde=Maximum cardinality of 
+yCardMaxde= and maximum cardinality of 
+yMaxde= and maximum of 
+of= of 
+for= in 
