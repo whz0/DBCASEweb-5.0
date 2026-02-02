@@ -4,7 +4,7 @@ import ProfileData from "@/components/ProfileData.vue";
 </script>
 
 <template>
-  <h1>Bienvenido de vuelta</h1>
+  <h2>Bienvenido de vuelta</h2>
   <ProfileData/>
 </template>
 

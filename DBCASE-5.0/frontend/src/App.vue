@@ -9,21 +9,29 @@
       <div id="navbarBar" class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <button class="btn-outline-light">
+            <a class="nav-link dropdown-toggle" href="#" role="button">
               Dibujar
-            </button>
-            <button class="btn-outline-light">
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link dropdown-toggle" href="#" role="button">
               Archivo
-            </button>
-            <button class="btn-outline-light">
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link dropdown-toggle" href="#" role="button">
               Opciones
-            </button>
-            <button class="btn-outline-light">
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link dropdown-toggle" href="#" role="button">
               Diseño
-            </button>
-            <button class="btn-outline-light">
+            </a>
+          </li>
+          <li class="nav-item">
+            <RouterLink to="/help" class="nav-link">
               Ayuda
-            </button>
+            </RouterLink>
           </li>
         </ul>
       </div>
@@ -43,7 +51,7 @@
       </div>
     </nav>
   </header>
-  <main class="container-fluid">
+  <main class="container-fluid vh-100">
     <RouterView />
   </main>
 </template>
@@ -62,7 +70,6 @@ export default {
   text-align: center;
   margin-top: 60px;
   background-color: hsl(210, 10%, 23%);
-  height: 100vh;
 }
 
 header {
@@ -84,6 +91,7 @@ button {
 }
 
 i {
-  width: 5rem;
+  width: 10rem;
 }
+
 </style>

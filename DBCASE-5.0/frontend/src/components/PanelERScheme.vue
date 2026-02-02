@@ -1,5 +1,5 @@
 <template>
-  <aside class="col-md-6">
+  <aside class="col-md-6 h-100">
     <h2>Esquema Conceptual</h2>
     <button>Atrás</button>
     <button>Adelante</button>

@@ -1,11 +1,11 @@
 <script setup>
   import {ref} from 'vue'
 
-  const count = ref(0)
+  const help = ref('NO')
 </script>
 
 <template>
-  <button @click="count++"> You clicked me {{count}} times</button>
+  <button @click="help = 'SI' ? help === 'NO' : 'SI'"> {{help}} lo necesito</button>
 </template>
 
 <style scoped>

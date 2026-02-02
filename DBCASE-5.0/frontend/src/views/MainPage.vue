@@ -6,10 +6,10 @@ import PanelERScheme from "@/components/PanelERScheme.vue";
 </script>
 
 <template>
-  <div class="row">
+  <div class="row vh-100">
     <PanelERScheme/>
     <div class="col-md-6">
-      <div class="container">
+      <div class="container-fluid h-100">
         <PanelLogicalScheme/>
         <PanelDBScheme/>
       </div>

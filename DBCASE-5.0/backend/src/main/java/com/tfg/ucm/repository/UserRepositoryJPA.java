@@ -1,4 +1,7 @@
 package com.tfg.ucm.repository;
 
-public class UserRepositoryJPA {
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class UserRepositoryJPA implements UserRepository{
 }
