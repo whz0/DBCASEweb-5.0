@@ -1,9 +1,9 @@
 <template>
-  <div class="col-md-6">
+  <aside class="col-md-6">
     <h2>Esquema Conceptual</h2>
     <button>Atrás</button>
     <button>Adelante</button>
-  </div>
+  </aside>
 </template>
 
 <script>
@@ -14,7 +14,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  div {
+  aside {
     border-style: solid;
     border-width: 2px;
     border-color: hsl(128, 50%, 50%);
