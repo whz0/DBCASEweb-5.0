@@ -1,17 +1,43 @@
 <script setup lang="ts">
   import {ref} from 'vue';
+  import { useTheme } from '@/composables/useTheme';
+  import Dropdown from 'primevue/dropdown';
 
   const visible = ref(false);
+  const { theme, setTheme } = useTheme();
+
+  const themeOptions = [
+    { label: 'Light', value: 'light', icon: 'bi bi-sun' },
+    { label: 'Dark', value: 'dark', icon: 'bi bi-moon' },
+    { label: 'System', value: 'system', icon: 'bi bi-circle-half' }
+  ];
 </script>
 
 <template>
   <Button severity="secondary" class="bi bi-universal-access-circle" @click="visible = true" text />
 
-  <Dialog v-model:visible="visible"  modal header="Header" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-    <p class="m-0">
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    </p>
+  <Dialog v-model:visible="visible" modal :dismissable-mask="true" :draggable="false" header="Settings" :style="{ width: '30rem' }">
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <label>Theme</label>
+        <Dropdown
+          :modelValue="theme"
+          @update:modelValue="setTheme"
+          :options="themeOptions"
+          optionLabel="label"
+          optionValue="value"
+        >
+          <template #value="{ value }">
+            <i :class="themeOptions.find(o => o.value === value)?.icon"></i>
+            <span class="ml-2">{{ themeOptions.find(o => o.value === value)?.label }}</span>
+          </template>
+          <template #option="{ option }">
+            <i :class="option.icon"></i>
+            <span class="ml-2">{{ option.label }}</span>
+          </template>
+        </Dropdown>
+      </div>
+    </div>
   </Dialog>
 </template>
 
