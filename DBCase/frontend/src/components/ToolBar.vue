@@ -1,54 +1,81 @@
 <script setup lang="ts">
   import { ref } from 'vue';
+  import { useDialogs } from '@/composables/useDialogs';
   import HelpDialog from "@/components/HelpDialog.vue";
   import AccessibilityDialog from "@/components/AccessibilityDialog.vue";
   import AboutUsDialog from "@/components/AboutUsDialog.vue";
+  import SaveSchemaDialog from "@/components/SaveSchemaDialog.vue";
+  import AddEntityDialog from "@/components/AddEntityDialog.vue";
+  import TieredMenu from 'primevue/tieredmenu';
 
   const items = ref([
     {icon: 'bi bi-person', label: 'Nombre'},
     {icon: 'bi bi-box-arrow-right', label: 'Logout'}
   ])
 
-  const selectComponent = ref();
-  const components = ref([
+  const drawMenu = ref();
+  const { addEntityDialogVisible, openAddEntityDialog } = useDialogs();
+  const drawMenuItems = ref([
     {
-      name: 'Entidad',
-      types: [
-        {cname: 'Simple'},
-        {cname: 'Compuesto'},
+      label: 'Entidad',
+      icon: 'bi bi-square',
+      items: [
+        {
+          label: 'Add Entity',
+          command: openAddEntityDialog
+        }
       ]
     },
     {
-      name: 'Relación',
-      types: [
-        {cname: 'Simple'},
-        {cname: 'IsA'},
+      label: 'Relación',
+      icon: 'bi bi-diamond',
+      items: [
+        {
+          label: 'Simple',
+          command: () => {
+            console.log('Add Simple Relación');
+          }
+        },
+        {
+          label: 'IsA',
+          command: () => {
+            console.log('Add IsA Relación');
+          }
+        }
       ]
     },
     {
-      name: 'Dominio',
-      types:[
-        {cname: 'Compuesto'},
+      label: 'Dominio',
+      icon: 'bi bi-collection',
+      items: [
+        {
+          label: 'Compuesto',
+          command: () => {
+            console.log('Add Compuesto Dominio');
+          }
+        }
       ]
     }
-  ])
+  ]);
+
+  const toggleDrawMenu = (event: Event) => {
+    drawMenu.value.toggle(event);
+  };
 </script>
 
 <template>
   <div>
     <Toolbar>
       <template #start>
-        <CascadeSelect v-model="selectComponent" :options="components" optionLabel="cname" optionGroupLabel="name"
-                       :optionGroupChildren="['types']" class="w-56" size="small" placeholder="Dibujar">
-          <template #dropdownicon>
-            <i class="bi bi-pencil"></i>
-          </template>
-        </CascadeSelect>
+        <Button type="button" icon="bi bi-pencil" label="Draw" @click="toggleDrawMenu" aria-haspopup="true" aria-controls="overlay_menu" severity="secondary" text/>
+        <TieredMenu ref="drawMenu" :model="drawMenuItems" popup />
         <Button icon="bi bi-folder" severity="secondary" text />
         <Button icon="bi bi-grid-1x2" severity="secondary" text />
         <AccessibilityDialog />
         <HelpDialog />
         <AboutUsDialog />
+        <SaveSchemaDialog />
+        <AddEntityDialog v-model:visible="addEntityDialogVisible" />
       </template>
 
       <template #end>

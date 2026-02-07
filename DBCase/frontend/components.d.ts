@@ -12,8 +12,8 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AboutUsDialog: typeof import('./src/components/AboutUsDialog.vue')['default']
-    AccesibilityDialog: typeof import('./src/components/AccesibilityDialog.vue')['default']
     AccessibilityDialog: typeof import('./src/components/AccessibilityDialog.vue')['default']
+    AddEntityDialog: typeof import('./src/components/AddEntityDialog.vue')['default']
     Button: typeof import('primevue/button')['default']
     CascadeSelect: typeof import('primevue/cascadeselect')['default']
     CommandTable: typeof import('./src/components/CommandTable.vue')['default']
@@ -30,6 +30,7 @@ declare module 'vue' {
     ProfileData: typeof import('./src/components/ProfileData.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SaveSchemaDialog: typeof import('./src/components/SaveSchemaDialog.vue')['default']
     SplitButton: typeof import('primevue/splitbutton')['default']
     Toolbar: typeof import('primevue/toolbar')['default']
     ToolBar: typeof import('./src/components/ToolBar.vue')['default']

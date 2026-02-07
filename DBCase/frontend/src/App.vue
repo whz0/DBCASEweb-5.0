@@ -8,7 +8,6 @@
   </header>
   <ToolBar />
   <main>
-
     <RouterView />
   </main>
 </template>
