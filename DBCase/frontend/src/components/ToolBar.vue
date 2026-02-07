@@ -1,11 +1,11 @@
 <script setup lang="ts">
   import { ref } from 'vue';
   import { useDialogs } from '@/composables/useDialogs';
-  import HelpDialog from "@/components/HelpDialog.vue";
-  import AccessibilityDialog from "@/components/AccessibilityDialog.vue";
-  import AboutUsDialog from "@/components/AboutUsDialog.vue";
-  import SaveSchemaDialog from "@/components/SaveSchemaDialog.vue";
-  import AddEntityDialog from "@/components/AddEntityDialog.vue";
+  import HelpDialog from "@/components/Dialog/HelpDialog.vue";
+  import AccessibilityDialog from "@/components/Dialog/AccessibilityDialog.vue";
+  import AboutUsDialog from "@/components/Dialog/AboutUsDialog.vue";
+  import SaveSchemaDialog from "@/components/Dialog/SaveSchemaDialog.vue";
+  import AddEntityDialog from "@/components/Dialog/AddEntityDialog.vue";
   import TieredMenu from 'primevue/tieredmenu';
 
   const items = ref([
@@ -76,6 +76,9 @@
         <AboutUsDialog />
         <SaveSchemaDialog />
         <AddEntityDialog v-model:visible="addEntityDialogVisible" />
+      </template>
+
+      <template #center>
       </template>
 
       <template #end>
