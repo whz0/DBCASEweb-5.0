@@ -1,9 +1,9 @@
 <script setup lang="ts">
 
-import PanelLogicalScheme from "@/components/Panels/PanelLogicalScheme.vue";
-import PanelDBScheme from "@/components/Panels/PanelDBScheme.vue";
-import PanelERScheme from "@/components/Panels/PanelERScheme.vue";
-import GenerateSchemeDialog from "@/components/Dialog/GenerateSchemeDialog.vue";
+import PanelLogicalScheme from "@/components/panels/PanelLogicalScheme.vue";
+import PanelDBScheme from "@/components/panels/PanelDBScheme.vue";
+import PanelERScheme from "@/components/panels/PanelERScheme.vue";
+import GenerateSchemeDialog from "@/components/dialogs/GenerateSchemeDialog.vue";
 
 import {ref} from "vue";
 

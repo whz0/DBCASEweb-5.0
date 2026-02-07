@@ -1,11 +1,12 @@
 <script setup lang="ts">
   import { ref } from 'vue';
-  import { useDialogs } from '@/composables/useDialogs';
-  import HelpDialog from "@/components/Dialog/HelpDialog.vue";
-  import AccessibilityDialog from "@/components/Dialog/AccessibilityDialog.vue";
-  import AboutUsDialog from "@/components/Dialog/AboutUsDialog.vue";
-  import SaveSchemaDialog from "@/components/Dialog/SaveSchemaDialog.vue";
-  import AddEntityDialog from "@/components/Dialog/AddEntityDialog.vue";
+  import { useDialog } from '@/composables/useDialogs';
+  import HelpDialog from "@/components/dialogs/HelpDialog.vue";
+  import AccessibilityDialog from "@/components/dialogs/AccessibilityDialog.vue";
+  import AboutUsDialog from "@/components/dialogs/AboutUsDialog.vue";
+  import SaveSchemaDialog from "@/components/dialogs/SaveSchemaDialog.vue";
+  import AddEntityDialog from "@/components/dialogs/AddEntityDialog.vue";
+
   import TieredMenu from 'primevue/tieredmenu';
 
   const items = ref([
@@ -14,7 +15,7 @@
   ])
 
   const drawMenu = ref();
-  const { addEntityDialogVisible, openAddEntityDialog } = useDialogs();
+  const addEntityDialog = useDialog('addEntity');
   const drawMenuItems = ref([
     {
       label: 'Entidad',
@@ -22,7 +23,7 @@
       items: [
         {
           label: 'Add Entity',
-          command: openAddEntityDialog
+          command: addEntityDialog.open
         }
       ]
     },
@@ -64,8 +65,8 @@
 </script>
 
 <template>
-  <div>
-    <Toolbar>
+  <div class="p-4">
+    <Toolbar class="border-round-lg shadow-3">
       <template #start>
         <Button type="button" icon="bi bi-pencil" label="Draw" @click="toggleDrawMenu" aria-haspopup="true" aria-controls="overlay_menu" severity="secondary" text/>
         <TieredMenu ref="drawMenu" :model="drawMenuItems" popup />
@@ -75,7 +76,7 @@
         <HelpDialog />
         <AboutUsDialog />
         <SaveSchemaDialog />
-        <AddEntityDialog v-model:visible="addEntityDialogVisible" />
+        <AddEntityDialog v-model:visible="addEntityDialog.visible.value" />
       </template>
 
       <template #center>

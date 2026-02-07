@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import {ref} from 'vue';
-import { useDialogs } from '@/composables/useDialogs.ts';
-import GenerateSchemeDialog from "@/components/Dialog/GenerateSchemeDialog.vue";
+import { useDialog } from '@/composables/useDialogs';
 
 const menu = ref();
-const { openAddEntityDialog } = useDialogs();
+const addEntityDialog = useDialog('addEntity');
 const items = ref([
   {
     label: 'Insertar una nueva entidad',
     icon: 'bi bi-square',
-    command: openAddEntityDialog
+    command: addEntityDialog.open
   },
   {label: 'Insertar una nueva relación', icon: 'bi bi-diagram-3'},
   {label: 'Insertar una nueva relación IsA', icon: 'bi bi-diagram-2'},
