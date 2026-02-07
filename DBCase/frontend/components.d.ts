@@ -11,13 +11,27 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AboutUsDialog: typeof import('./src/components/AboutUsDialog.vue')['default']
+    AccesibilityDialog: typeof import('./src/components/AccesibilityDialog.vue')['default']
+    AccessibilityDialog: typeof import('./src/components/AccessibilityDialog.vue')['default']
+    Button: typeof import('primevue/button')['default']
+    CascadeSelect: typeof import('primevue/cascadeselect')['default']
     CommandTable: typeof import('./src/components/CommandTable.vue')['default']
     ContextMenu: typeof import('primevue/contextmenu')['default']
+    Dialog: typeof import('primevue/dialog')['default']
+    FileUpload: typeof import('primevue/fileupload')['default']
+    HelpDialog: typeof import('./src/components/HelpDialog.vue')['default']
+    IconField: typeof import('primevue/iconfield')['default']
+    InputIcon: typeof import('primevue/inputicon')['default']
+    InputText: typeof import('primevue/inputtext')['default']
     PanelDBScheme: typeof import('./src/components/PanelDBScheme.vue')['default']
     PanelERScheme: typeof import('./src/components/PanelERScheme.vue')['default']
     PanelLogicalScheme: typeof import('./src/components/PanelLogicalScheme.vue')['default']
     ProfileData: typeof import('./src/components/ProfileData.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SplitButton: typeof import('primevue/splitbutton')['default']
+    Toolbar: typeof import('primevue/toolbar')['default']
+    ToolBar: typeof import('./src/components/ToolBar.vue')['default']
   }
 }

@@ -6,14 +6,8 @@ import PanelERScheme from "@/components/PanelERScheme.vue";
 </script>
 
 <template>
-  <div class="row vh-100">
+  <div>
     <PanelERScheme/>
-    <div class="col-md-6">
-      <div class="container-fluid h-100">
-        <PanelLogicalScheme/>
-        <PanelDBScheme/>
-      </div>
-    </div>
   </div>
 </template>
 
