@@ -7,7 +7,7 @@
 
   </header>
   <ToolBar />
-  <main>
+  <main class="flex-1 overflow-auto">
     <RouterView />
   </main>
 </template>
@@ -24,5 +24,6 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
+  @apply flex flex-col h-screen;
 }
 </style>

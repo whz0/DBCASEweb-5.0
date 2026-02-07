@@ -6,7 +6,7 @@ import PanelERScheme from "@/components/PanelERScheme.vue";
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <PanelERScheme/>
   </div>
 </template>

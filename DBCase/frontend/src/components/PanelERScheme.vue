@@ -21,7 +21,7 @@ const onRightClick = (e: Event) => {
 </script>
 
 <template>
-  <aside @contextmenu="onRightClick" aria-haspopup="true">
+  <aside @contextmenu="onRightClick" aria-haspopup="true" class="h-full">
     <h2>Esquema Conceptual</h2>
     <Button severity="secondary" class="bi bi-arrow-90deg-left" text />
     <Button severity="secondary" class="bi bi-arrow-90deg-right" text />
