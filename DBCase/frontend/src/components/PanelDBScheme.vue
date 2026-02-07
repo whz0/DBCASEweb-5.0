@@ -8,12 +8,6 @@
   </div>
 </template>
 
-<script>
-  export default {
-    name: 'PanelDBScheme'
-  }
-</script>
-
 <style scoped>
   div {
     border-style: solid;

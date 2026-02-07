@@ -8,12 +8,6 @@ import CommandTable from "../components/CommandTable.vue";
   <CommandTable/>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'HelpPage',
-}
-</script>
-
 <style scoped>
 
 </style>

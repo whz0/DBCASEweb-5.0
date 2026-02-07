@@ -8,12 +8,6 @@ import ProfileData from "@/components/ProfileData.vue";
   <ProfileData/>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'ProfilePage'
-}
-</script>
-
 <style scoped>
 
 </style>
