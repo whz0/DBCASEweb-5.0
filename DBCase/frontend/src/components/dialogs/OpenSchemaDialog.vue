@@ -3,13 +3,13 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
-import FileUpload from 'primevue/fileupload'
+import FileUpload, { type FileUploadSelectEvent } from 'primevue/fileupload'
 
 const { t } = useI18n()
 const visible = ref(false)
 const selectedFile = ref<File | null>(null)
 
-const onFileSelect = (event: any) => {
+const onFileSelect = (event: FileUploadSelectEvent) => {
   if (event.files && event.files.length > 0) {
     selectedFile.value = event.files[0]
   } else {
