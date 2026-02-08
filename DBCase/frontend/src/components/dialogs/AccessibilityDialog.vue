@@ -14,7 +14,7 @@
 </script>
 
 <template>
-  <Button severity="secondary" class="bi bi-universal-access-circle" @click="visible = true" text />
+  <Button severity="secondary" class="bi bi-universal-access-circle" @click="visible = true" text v-tooltip.bottom="'Settings'" />
 
   <Dialog v-model:visible="visible" modal :dismissable-mask="true" :draggable="false" header="Settings" :style="{ width: '30rem' }">
     <div class="flex flex-col gap-4">

@@ -6,6 +6,7 @@
   import AboutUsDialog from "@/components/dialogs/AboutUsDialog.vue";
   import SaveSchemaDialog from "@/components/dialogs/SaveSchemaDialog.vue";
   import AddEntityDialog from "@/components/dialogs/AddEntityDialog.vue";
+  import LayoutDialog from "@/components/dialogs/LayoutDialog.vue";
 
   import TieredMenu from 'primevue/tieredmenu';
 
@@ -68,10 +69,10 @@
   <div class="p-4">
     <Toolbar class="border-round-lg shadow-3">
       <template #start>
-        <Button type="button" icon="bi bi-pencil" label="Draw" @click="toggleDrawMenu" aria-haspopup="true" aria-controls="overlay_menu" severity="secondary" text/>
+        <Button type="button" icon="bi bi-pencil" label="Draw" @click="toggleDrawMenu" aria-haspopup="true" aria-controls="overlay_menu" severity="secondary" text v-tooltip.bottom="'Draw menu'"/>
         <TieredMenu ref="drawMenu" :model="drawMenuItems" popup />
-        <Button icon="bi bi-folder" severity="secondary" text />
-        <Button icon="bi bi-grid-1x2" severity="secondary" text />
+        <Button icon="bi bi-folder" severity="secondary" text v-tooltip.bottom="'Open file'" />
+        <LayoutDialog />
         <AccessibilityDialog />
         <HelpDialog />
         <AboutUsDialog />

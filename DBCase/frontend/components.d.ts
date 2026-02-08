@@ -26,6 +26,7 @@ declare module 'vue' {
     IconField: typeof import('primevue/iconfield')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
     InputText: typeof import('primevue/inputtext')['default']
+    LayoutDialog: typeof import('./src/components/dialogs/LayoutDialog.vue')['default']
     PanelDBScheme: typeof import('./src/components/panels/PanelDBScheme.vue')['default']
     PanelERScheme: typeof import('./src/components/panels/PanelERScheme.vue')['default']
     PanelLogicalScheme: typeof import('./src/components/panels/PanelLogicalScheme.vue')['default']
@@ -38,5 +39,8 @@ declare module 'vue' {
     SplitterPanel: typeof import('primevue/splitterpanel')['default']
     Toolbar: typeof import('primevue/toolbar')['default']
     ToolBar: typeof import('./src/components/ToolBar.vue')['default']
+  }
+  export interface GlobalDirectives {
+    Tooltip: typeof import('primevue/tooltip')['default']
   }
 }

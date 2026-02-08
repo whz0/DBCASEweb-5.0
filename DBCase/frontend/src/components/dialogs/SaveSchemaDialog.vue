@@ -13,7 +13,7 @@ defineExpose({
 </script>
 
 <template>
-  <Button severity="secondary" class="bi bi-box-arrow-down" @click="visible = true" text />
+  <Button severity="secondary" class="bi bi-box-arrow-down" @click="visible = true" text v-tooltip.bottom="'Save schema'" />
 
   <Dialog
     :dismissable-mask="true"

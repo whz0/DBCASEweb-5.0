@@ -10,9 +10,18 @@ const items = ref([
     icon: 'bi bi-square',
     command: addEntityDialog.open
   },
-  {label: 'Insertar una nueva relación', icon: 'bi bi-diagram-3'},
-  {label: 'Insertar una nueva relación IsA', icon: 'bi bi-diagram-2'},
-  {label: 'Crear dominio', icon: 'bi bi-collection'},
+  {
+    label: 'Insertar una nueva relación',
+    icon: 'bi bi-diagram-3'
+  },
+  {
+    label: 'Insertar una nueva relación IsA',
+    icon: 'bi bi-diagram-2'
+  },
+  {
+    label: 'Crear dominio',
+    icon: 'bi bi-collection'
+  },
 ]);
 
 const onRightClick = (e: Event) => {

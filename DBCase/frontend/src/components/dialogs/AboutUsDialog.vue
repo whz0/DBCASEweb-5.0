@@ -5,7 +5,7 @@
 </script>
 
 <template>
-  <Button severity="secondary" class="bi bi-info-circle" @click="visible = true" text/>
+  <Button severity="secondary" class="bi bi-info-circle" @click="visible = true" text v-tooltip.bottom="'About Us'"/>
 
   <Dialog v-model:visible="visible"  modal header="Header" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <p class="m-0">
