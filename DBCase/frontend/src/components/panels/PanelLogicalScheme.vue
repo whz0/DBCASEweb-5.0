@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 </script>
 
 <template>
@@ -9,11 +11,11 @@
       <Button severity="secondary" class="bi bi-arrow-90deg-right" text />
     </div>
     <div class="text-3xl">
-      <h1>Esquema Lógico</h1>
+      <h1>{{ t('panels.logical') }}</h1>
     </div>
     <div>
       <Button severity="secondary" class="bi bi-download" text />
-      <Button severity="secondary" class="bi bi-x-lg" @click="$emit('close')"></Button>
+      <Button severity="secondary" class="bi bi-x-lg" @click="$emit('close')" v-tooltip.bottom="t('panels.close')" />
     </div>
   </div>
 </template>

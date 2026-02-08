@@ -2,6 +2,9 @@
 import { useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import Message from 'primevue/message';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps<{
   code: string;
@@ -24,8 +27,8 @@ const router = useRouter();
     </Message>
     <p class="text-lg">{{ message }}</p>
     <div class="flex gap-3">
-      <Button label="Go Home" icon="bi bi-house" @click="router.push('/')" />
-      <Button label="Go Back" icon="bi bi-arrow-left" severity="secondary" @click="router.back()" />
+      <Button :label="t('common.goHome')" icon="bi bi-house" @click="router.push('/')" />
+      <Button :label="t('common.goBack')" icon="bi bi-arrow-left" severity="secondary" @click="router.back()" />
     </div>
   </div>
 </template>

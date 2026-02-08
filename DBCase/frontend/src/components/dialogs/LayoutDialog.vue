@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useLayout } from '@/composables/useLayout';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
-import { useLayout } from '@/composables/useLayout';
 
+const { t } = useI18n();
 const visible = ref(false);
 const { setLayout } = useLayout();
 
 const layouts = [
-  { label: 'Horizontal', value: 'horizontal', icon: 'bi bi-layout-split' },
-  { label: 'Vertical', value: 'vertical', icon: 'bi bi-layout-three-columns' }
+  { label: t('layout.horizontal'), value: 'horizontal', icon: 'bi bi-layout-split' },
+  { label: t('layout.vertical'), value: 'vertical', icon: 'bi bi-layout-three-columns' }
 ];
 
 const selectLayout = (layout: 'horizontal' | 'vertical') => {
@@ -23,9 +25,9 @@ defineExpose({
 </script>
 
 <template>
-  <Button severity="secondary" class="bi bi-grid-1x2" @click="visible = true" text v-tooltip.bottom="'Layout'" />
+  <Button severity="secondary" class="bi bi-grid-1x2" @click="visible = true" text v-tooltip.bottom="t('toolbar.layout')" />
 
-  <Dialog v-model:visible="visible" modal header="Choose Layout" :style="{ width: '30rem' }">
+  <Dialog v-model:visible="visible" modal :header="t('layout.chooseLayout')" :style="{ width: '30rem' }">
     <div class="flex flex-col gap-4">
       <div class="flex gap-4 justify-center">
         <Button 

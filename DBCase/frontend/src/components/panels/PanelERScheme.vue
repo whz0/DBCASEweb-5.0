@@ -1,25 +1,27 @@
 <script setup lang="ts">
-import {ref} from 'vue';
+import {ref, computed} from 'vue';
 import { useDialog } from '@/composables/useDialogs';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const menu = ref();
 const addEntityDialog = useDialog('addEntity');
-const items = ref([
+const items = computed(() => [
   {
-    label: 'Insertar una nueva entidad',
+    label: t('entity.addEntity'),
     icon: 'bi bi-square',
     command: addEntityDialog.open
   },
   {
-    label: 'Insertar una nueva relación',
+    label: t('panels.insertRelationship'),
     icon: 'bi bi-diagram-3'
   },
   {
-    label: 'Insertar una nueva relación IsA',
+    label: t('panels.insertIsARelationship'),
     icon: 'bi bi-diagram-2'
   },
   {
-    label: 'Crear dominio',
+    label: t('panels.createDomain'),
     icon: 'bi bi-collection'
   },
 ]);
@@ -36,11 +38,11 @@ const onRightClick = (e: Event) => {
       <Button severity="secondary" class="bi bi-arrow-90deg-right" text />
     </div>
     <div class="text-3xl">
-      <h1>Esquema Conceptual</h1>
+      <h1>{{ t('panels.conceptual') }}</h1>
     </div>
     <div>
       <Button severity="secondary" class="bi bi-download" text />
-      <Button severity="secondary" class="bi bi-x-lg" @click="$emit('close')"></Button>
+      <Button severity="secondary" class="bi bi-x-lg" @click="$emit('close')" v-tooltip.bottom="t('panels.close')"></Button>
     </div>
     <ContextMenu ref="menu" :model="items" />
   </div>

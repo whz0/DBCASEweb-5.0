@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 
+const { t } = useI18n()
 const visible = ref(false)
 const filename = ref('')
 
@@ -13,11 +15,11 @@ defineExpose({
 </script>
 
 <template>
-  <Button severity="secondary" class="bi bi-box-arrow-down" @click="visible = true" text v-tooltip.bottom="'Save schema'" />
+  <Button severity="secondary" class="bi bi-box-arrow-down" @click="visible = true" text v-tooltip.bottom="t('toolbar.saveSchema')" />
 
   <Dialog
     :dismissable-mask="true"
-    header="Save schema"
+    :header="t('toolbar.saveSchema')"
     :draggable="false"
     v-model:visible="visible"
     modal
@@ -25,13 +27,13 @@ defineExpose({
   >
     <form @submit.prevent="filename.trim() && (console.log(filename), visible = false, filename = '')">
       <div class="flex flex-col gap-3">
-        <label for="filename">Schema Name</label>
-        <InputText id="filename" v-model="filename" placeholder="Enter schema name" autofocus />
+        <label for="filename">{{ t('schema.schemaName') }}</label>
+        <InputText id="filename" v-model="filename" :placeholder="t('schema.enterSchemaName')" autofocus />
       </div>
     </form>
     <template #footer>
       <Button
-        label="Cancel"
+        :label="t('common.cancel')"
         icon="bi bi-x-lg"
         severity="secondary"
         @click="
@@ -40,7 +42,7 @@ defineExpose({
         "
       />
       <Button
-        label="Save (.dbw)"
+        :label="t('schema.save')"
         :disabled="!filename.trim()"
         icon="bi bi-check-lg"
         @click="
@@ -52,5 +54,3 @@ defineExpose({
     </template>
   </Dialog>
 </template>
-
-<style scoped></style>

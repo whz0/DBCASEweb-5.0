@@ -1,6 +1,7 @@
 <script setup lang="ts">
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
   import { useDialog } from '@/composables/useDialogs';
+  import { useI18n } from 'vue-i18n';
   import HelpDialog from "@/components/dialogs/HelpDialog.vue";
   import AccessibilityDialog from "@/components/dialogs/AccessibilityDialog.vue";
   import AboutUsDialog from "@/components/dialogs/AboutUsDialog.vue";
@@ -10,36 +11,38 @@
 
   import TieredMenu from 'primevue/tieredmenu';
 
-  const items = ref([
-    {icon: 'bi bi-person', label: 'Nombre'},
-    {icon: 'bi bi-box-arrow-right', label: 'Logout'}
-  ])
+  const { t } = useI18n();
+
+  const items = computed(() => [
+    {icon: 'bi bi-person', label: t('common.name')},
+    {icon: 'bi bi-box-arrow-right', label: t('common.logout')}
+  ]);
 
   const drawMenu = ref();
   const addEntityDialog = useDialog('addEntity');
-  const drawMenuItems = ref([
+  const drawMenuItems = computed(() => [
     {
-      label: 'Entidad',
+      label: t('toolbar.drawMenuItems.entity'),
       icon: 'bi bi-square',
       items: [
         {
-          label: 'Add Entity',
+          label: t('entity.addEntity'),
           command: addEntityDialog.open
         }
       ]
     },
     {
-      label: 'Relación',
+      label: t('toolbar.drawMenuItems.relationship'),
       icon: 'bi bi-diamond',
       items: [
         {
-          label: 'Simple',
+          label: t('toolbar.drawMenuItems.simple'),
           command: () => {
             console.log('Add Simple Relación');
           }
         },
         {
-          label: 'IsA',
+          label: t('toolbar.drawMenuItems.isA'),
           command: () => {
             console.log('Add IsA Relación');
           }
@@ -47,11 +50,11 @@
       ]
     },
     {
-      label: 'Dominio',
+      label: t('toolbar.drawMenuItems.domain'),
       icon: 'bi bi-collection',
       items: [
         {
-          label: 'Compuesto',
+          label: t('toolbar.drawMenuItems.composite'),
           command: () => {
             console.log('Add Compuesto Dominio');
           }
@@ -69,9 +72,9 @@
   <div class="p-4">
     <Toolbar class="border-round-lg shadow-3">
       <template #start>
-        <Button type="button" icon="bi bi-pencil" label="Draw" @click="toggleDrawMenu" aria-haspopup="true" aria-controls="overlay_menu" severity="secondary" text v-tooltip.bottom="'Draw menu'"/>
+        <Button type="button" icon="bi bi-pencil" :label="t('toolbar.draw')" @click="toggleDrawMenu" aria-haspopup="true" aria-controls="overlay_menu" severity="secondary" text v-tooltip.bottom="t('toolbar.draw')"/>
         <TieredMenu ref="drawMenu" :model="drawMenuItems" popup />
-        <Button icon="bi bi-folder" severity="secondary" text v-tooltip.bottom="'Open file'" />
+        <Button icon="bi bi-folder" severity="secondary" text v-tooltip.bottom="t('toolbar.openFile')" />
         <LayoutDialog />
         <AccessibilityDialog />
         <HelpDialog />
@@ -88,7 +91,7 @@
         <SplitButton  :model="items">
           <span class="flex items-center font-bold">
             <img src="@/assets/logo.png" alt="Imagen Usuario" style="height: 1rem; margin-right: 0.5rem">
-            <span>Hola Santi</span>
+            <span>{{ t('toolbar.greeting', { name: 'Santi' }) }}</span>
           </span>
         </SplitButton>
       </template>
