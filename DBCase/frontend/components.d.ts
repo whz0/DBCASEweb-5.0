@@ -19,6 +19,7 @@ declare module 'vue' {
     CommandTable: typeof import('./src/components/CommandTable.vue')['default']
     ContextMenu: typeof import('primevue/contextmenu')['default']
     Dialog: typeof import('primevue/dialog')['default']
+    ErrorTemplate: typeof import('./src/components/ErrorTemplate.vue')['default']
     FileUpload: typeof import('primevue/fileupload')['default']
     GenerateSchemeDialog: typeof import('./src/components/dialogs/GenerateSchemeDialog.vue')['default']
     HelpDialog: typeof import('./src/components/dialogs/HelpDialog.vue')['default']

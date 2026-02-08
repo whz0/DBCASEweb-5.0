@@ -4,9 +4,8 @@
 
 <template>
   <header>
-
+    <ToolBar />
   </header>
-  <ToolBar />
   <main class="flex-1 overflow-auto">
     <RouterView />
   </main>
