@@ -6,6 +6,7 @@
   import AccessibilityDialog from "@/components/dialogs/AccessibilityDialog.vue";
   import AboutUsDialog from "@/components/dialogs/AboutUsDialog.vue";
   import SaveSchemaDialog from "@/components/dialogs/SaveSchemaDialog.vue";
+  import OpenSchemaDialog from "@/components/dialogs/OpenSchemaDialog.vue";
   import AddEntityDialog from "@/components/dialogs/AddEntityDialog.vue";
   import LayoutDialog from "@/components/dialogs/LayoutDialog.vue";
 
@@ -66,6 +67,8 @@
   const toggleDrawMenu = (event: Event) => {
     drawMenu.value.toggle(event);
   };
+
+  const openSchemaDialogRef = ref();
 </script>
 
 <template>
@@ -74,12 +77,13 @@
       <template #start>
         <Button type="button" icon="bi bi-pencil" :label="t('toolbar.draw')" @click="toggleDrawMenu" aria-haspopup="true" aria-controls="overlay_menu" severity="secondary" text v-tooltip.bottom="t('toolbar.draw')"/>
         <TieredMenu ref="drawMenu" :model="drawMenuItems" popup />
-        <Button icon="bi bi-folder" severity="secondary" text v-tooltip.bottom="t('toolbar.openFile')" />
+        <Button icon="bi bi-folder" severity="secondary" text v-tooltip.bottom="t('toolbar.openFile')" @click="openSchemaDialogRef.visible = true" />
         <LayoutDialog />
         <AccessibilityDialog />
         <HelpDialog />
         <AboutUsDialog />
         <SaveSchemaDialog />
+        <OpenSchemaDialog ref="openSchemaDialogRef" />
         <AddEntityDialog v-model:visible="addEntityDialog.visible.value" />
       </template>
 

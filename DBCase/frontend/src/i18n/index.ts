@@ -10,6 +10,7 @@ const messages = {
       help: 'Help',
       aboutUs: 'About Us',
       saveSchema: 'Save schema',
+      openSchema: 'Open schema',
       greeting: 'Hello {name}',
       drawMenuItems: {
         entity: 'Entity',
@@ -63,7 +64,10 @@ const messages = {
       generate: 'Generate Schemes',
       generateER: 'Generate ER Scheme',
       generateLogical: 'Generate Logical Scheme',
-      generatePhysical: 'Generate Physical Scheme'
+      generatePhysical: 'Generate Physical Scheme',
+      selectFile: 'Select File (.dbw)',
+      open: 'Open',
+      selectedFile: 'Selected File'
     },
     errors: {
       404: '404',
@@ -75,6 +79,7 @@ const messages = {
       reloadPage: 'Reload Page'
     },
     common: {
+      chooseFile: 'Choose a file',
       cancel: 'Cancel',
       save: 'Save',
       goHome: 'Go Home',
@@ -105,6 +110,7 @@ const messages = {
       help: 'Ayuda',
       aboutUs: 'Acerca de',
       saveSchema: 'Guardar esquema',
+      openSchema: 'Abrir esquema',
       greeting: 'Hola {name}',
       drawMenuItems: {
         entity: 'Entidad',
@@ -158,7 +164,10 @@ const messages = {
       generate: 'Generar Esquemas',
       generateER: 'Generar Esquema ER',
       generateLogical: 'Generar Esquema Lógico',
-      generatePhysical: 'Generar Esquema Físico'
+      generatePhysical: 'Generar Esquema Físico',
+      selectFile: 'Seleccionar Archivo (.dbw)',
+      open: 'Abrir',
+      selectedFile: 'Archivo Seleccionado'
     },
     errors: {
       404: '404',
@@ -170,6 +179,7 @@ const messages = {
       reloadPage: 'Recargar Página'
     },
     common: {
+      chooseFile: 'Elige un archivo',
       cancel: 'Cancelar',
       save: 'Guardar',
       goHome: 'Ir al inicio',

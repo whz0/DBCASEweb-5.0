@@ -27,6 +27,7 @@ declare module 'vue' {
     InputIcon: typeof import('primevue/inputicon')['default']
     InputText: typeof import('primevue/inputtext')['default']
     LayoutDialog: typeof import('./src/components/dialogs/LayoutDialog.vue')['default']
+    OpenSchemaDialog: typeof import('./src/components/dialogs/OpenSchemaDialog.vue')['default']
     PanelDBScheme: typeof import('./src/components/panels/PanelDBScheme.vue')['default']
     PanelERScheme: typeof import('./src/components/panels/PanelERScheme.vue')['default']
     PanelLogicalScheme: typeof import('./src/components/panels/PanelLogicalScheme.vue')['default']
