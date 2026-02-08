@@ -2,6 +2,7 @@
 import {ref, computed} from 'vue';
 import { useDialog } from '@/composables/useDialogs';
 import { useI18n } from 'vue-i18n';
+import GenerateSchemeDialog from "@/components/dialogs/GenerateSchemeDialog.vue";
 
 const { t } = useI18n();
 const menu = ref();
@@ -29,6 +30,8 @@ const items = computed(() => [
 const onRightClick = (e: Event) => {
   menu.value.show(e);
 }
+
+const emits = defineEmits(['generatePanel', 'close'])
 </script>
 
 <template>
@@ -41,8 +44,9 @@ const onRightClick = (e: Event) => {
       <h1>{{ t('panels.conceptual') }}</h1>
     </div>
     <div>
+      <GenerateSchemeDialog :i-am="'er'" @generate="(value: string) => $emit('generatePanel', value)"/>
       <Button severity="secondary" class="bi bi-download" text />
-      <Button severity="secondary" class="bi bi-x-lg" @click="$emit('close')" v-tooltip.bottom="t('panels.close')"></Button>
+      <Button severity="secondary" class="bi bi-x-lg" @click="$emit('close')" v-tooltip.bottom="t('panels.close')" text></Button>
     </div>
     <ContextMenu ref="menu" :model="items" />
   </div>

@@ -3,30 +3,38 @@
 import PanelLogicalScheme from "@/components/panels/PanelLogicalScheme.vue";
 import PanelDBScheme from "@/components/panels/PanelDBScheme.vue";
 import PanelERScheme from "@/components/panels/PanelERScheme.vue";
-import GenerateSchemeDialog from "@/components/dialogs/GenerateSchemeDialog.vue";
 
-import {ref} from "vue";
+import {ref, toRef} from "vue";
 import { useLayout } from '@/composables/useLayout';
 
 const erVisible = ref(true);
 const lVisible = ref(false);
-const pVisible = ref(false);
+const dbVisible = ref(false);
+
+function generate(data: string) {
+  switch(data) {
+    case 'er': erVisible.value = true;
+    break;
+    case 'logical': lVisible.value = true;
+    break;
+    case 'db': dbVisible.value = true;
+    break;
+  }
+}
+
 const { layout } = useLayout();
 </script>
 
 <template>
-  <GenerateSchemeDialog @generate-er="(value: boolean) =>  erVisible = value"
-                        @generate-logical="(value: boolean) => lVisible = value"
-                        @generate-db="(value: boolean) => pVisible = value" />
   <Splitter class="h-full" :layout="layout">
     <SplitterPanel v-show='erVisible' :minSize="25">
-      <PanelERScheme @close="erVisible = false"/>
+      <PanelERScheme @close="erVisible = false" @generate-panel="generate"/>
     </SplitterPanel>
     <SplitterPanel v-show="lVisible" :minSize="25">
-      <PanelLogicalScheme @close="lVisible = false"/>
+      <PanelLogicalScheme @close="lVisible = false" @generate-panel="generate"/>
     </SplitterPanel>
-    <SplitterPanel v-show="pVisible" :minSize="25">
-      <PanelDBScheme @close="pVisible = false"/>
+    <SplitterPanel v-show="dbVisible" :minSize="25">
+      <PanelDBScheme @close="dbVisible = false" @generate-panel="generate"/>
     </SplitterPanel>
   </Splitter>
 </template>
