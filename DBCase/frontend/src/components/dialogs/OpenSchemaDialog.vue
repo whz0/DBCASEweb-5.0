@@ -1,13 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import FileUpload, { type FileUploadSelectEvent } from 'primevue/fileupload'
 
 const { t } = useI18n()
-const visible = ref(false)
+const dialogStore = useDialogStore()
+
 const selectedFile = ref<File | null>(null)
+
+const visible = computed(() => dialogStore.isOpen(DialogId.OpenSchema))
+const closeModal = () => {
+  dialogStore.close(DialogId.OpenSchema)
+  selectedFile.value = null
+}
 
 const onFileSelect = (event: FileUploadSelectEvent) => {
   if (event.files && event.files.length > 0) {
@@ -20,22 +28,18 @@ const onFileSelect = (event: FileUploadSelectEvent) => {
 const openSchema = () => {
   if (selectedFile.value) {
     console.log('Opening file:', selectedFile.value.name)
-    visible.value = false
-    selectedFile.value = null
+    closeModal()
   }
 }
-
-defineExpose({
-  visible,
-})
 </script>
 
 <template>
   <Dialog
-    :dismissable-mask="true"
     :header="t('toolbar.openSchema')"
+    :visible="visible"
+    @update:visible="closeModal"
+    :dismissable-mask="true"
     :draggable="false"
-    v-model:visible="visible"
     modal
     :style="{ width: '30rem' }"
   >
@@ -50,19 +54,14 @@ defineExpose({
         :chooseLabel="t('common.chooseFile')"
         :cancelLabel="t('common.cancel')"
       />
-      <div v-if="selectedFile">
-        {{ t('schema.selectedFile') }}: {{ selectedFile.name }}
-      </div>
+      <div v-if="selectedFile">{{ t('schema.selectedFile') }}: {{ selectedFile.name }}</div>
     </div>
     <template #footer>
       <Button
         :label="t('common.cancel')"
         icon="bi bi-x-lg"
         severity="secondary"
-        @click="
-          visible = false;
-          selectedFile = null;
-        "
+        @click="closeModal"
       />
       <Button
         :label="t('schema.open')"

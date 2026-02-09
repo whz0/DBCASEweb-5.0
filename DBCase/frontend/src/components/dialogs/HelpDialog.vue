@@ -1,21 +1,30 @@
 <script setup lang="ts">
-  import {ref} from 'vue';
-  import { useI18n } from 'vue-i18n';
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import Dialog from 'primevue/dialog'
 
-  const visible = ref(false);
-  const { t } = useI18n();
+const { t } = useI18n()
+const dialogStore = useDialogStore()
+
+const visible = computed(() => dialogStore.isOpen(DialogId.Help))
+const closeModal = () => dialogStore.close(DialogId.Help)
 </script>
 
 <template>
-  <Button severity="secondary" class="bi bi-question-circle" @click="visible = true" text v-tooltip.bottom="t('help.title')" />
-
-  <Dialog v-model:visible="visible" maximizable modal :header="t('help.header')" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+  <Dialog
+    :visible="visible"
+    @update:visible="closeModal"
+    maximizable
+    modal
+    :header="t('help.header')"
+    :style="{ width: '50rem' }"
+    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+  >
     <p class="m-0">
       {{ t('help.content') }}
     </p>
   </Dialog>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -1,34 +1,34 @@
 <script setup lang="ts">
-import {ref, computed} from 'vue';
-import { useDialog } from '@/composables/useDialogs';
-import { useI18n } from 'vue-i18n';
-import GenerateSchemeDialog from "@/components/dialogs/GenerateSchemeDialog.vue";
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import GenerateSchemeDialog from '@/components/dialogs/GenerateSchemeDialog.vue'
 
-const { t } = useI18n();
-const menu = ref();
-const addEntityDialog = useDialog('addEntity');
+const { t } = useI18n()
+const dialogStore = useDialogStore()
+const menu = ref()
 const items = computed(() => [
   {
     label: t('entity.addEntity'),
     icon: 'bi bi-square',
-    command: addEntityDialog.open
+    command: () => dialogStore.open(DialogId.AddEntity),
   },
   {
     label: t('panels.insertRelationship'),
-    icon: 'bi bi-diagram-3'
+    icon: 'bi bi-diagram-3',
   },
   {
     label: t('panels.insertIsARelationship'),
-    icon: 'bi bi-diagram-2'
+    icon: 'bi bi-diagram-2',
   },
   {
     label: t('panels.createDomain'),
-    icon: 'bi bi-collection'
+    icon: 'bi bi-collection',
   },
-]);
+])
 
 const onRightClick = (e: Event) => {
-  menu.value.show(e);
+  menu.value.show(e)
 }
 
 const emits = defineEmits(['generatePanel', 'close'])
@@ -44,18 +44,23 @@ const emits = defineEmits(['generatePanel', 'close'])
       <h1>{{ t('panels.conceptual') }}</h1>
     </div>
     <div>
-      <GenerateSchemeDialog :i-am="'er'" @generate="(value: string) => $emit('generatePanel', value)"/>
+      <GenerateSchemeDialog
+        :i-am="'er'"
+        @generate="(value: string) => $emit('generatePanel', value)"
+      />
       <Button severity="secondary" class="bi bi-download" text />
-      <Button severity="secondary" class="bi bi-x-lg" @click="$emit('close')" v-tooltip.bottom="t('panels.close')" text></Button>
+      <Button
+        severity="secondary"
+        class="bi bi-x-lg"
+        @click="$emit('close')"
+        v-tooltip.bottom="t('panels.close')"
+        text
+      ></Button>
     </div>
     <ContextMenu ref="menu" :model="items" />
   </div>
 </template>
 
-<script lang="ts">
+<script lang="ts"></script>
 
-</script>
-
-<style scoped>
-
-</style>
+<style scoped></style>

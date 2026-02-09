@@ -1,34 +1,48 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 
 const { t } = useI18n()
-const visible = ref(false)
+const dialogStore = useDialogStore()
 const filename = ref('')
 
-defineExpose({
-  visible,
-})
+const visible = computed(() => dialogStore.isOpen(DialogId.SaveSchema))
+const closeModal = () => {
+  dialogStore.close(DialogId.SaveSchema)
+  filename.value = ''
+}
+
+const saveSchema = () => {
+  if (filename.value.trim()) {
+    console.log(filename.value)
+    closeModal()
+  }
+}
 </script>
 
 <template>
-  <Button severity="secondary" class="bi bi-box-arrow-down" @click="visible = true" text v-tooltip.bottom="t('toolbar.saveSchema')" />
-
   <Dialog
-    :dismissable-mask="true"
     :header="t('toolbar.saveSchema')"
+    :visible="visible"
+    @update:visible="closeModal"
+    :dismissable-mask="true"
     :draggable="false"
-    v-model:visible="visible"
     modal
     :style="{ width: '30rem' }"
   >
-    <form @submit.prevent="filename.trim() && (console.log(filename), visible = false, filename = '')">
+    <form @submit.prevent="saveSchema">
       <div class="flex flex-col gap-3">
         <label for="filename">{{ t('schema.schemaName') }}</label>
-        <InputText id="filename" v-model="filename" :placeholder="t('schema.enterSchemaName')" autofocus />
+        <InputText
+          id="filename"
+          v-model="filename"
+          :placeholder="t('schema.enterSchemaName')"
+          autofocus
+        />
       </div>
     </form>
     <template #footer>
@@ -36,20 +50,13 @@ defineExpose({
         :label="t('common.cancel')"
         icon="bi bi-x-lg"
         severity="secondary"
-        @click="
-          visible = false;
-          filename = '';
-        "
+        @click="closeModal"
       />
       <Button
         :label="t('schema.save')"
         :disabled="!filename.trim()"
         icon="bi bi-check-lg"
-        @click="
-          console.log(filename);
-          visible = false;
-          filename = '';
-        "
+        @click="saveSchema"
       />
     </template>
   </Dialog>
