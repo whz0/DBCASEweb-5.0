@@ -28,7 +28,7 @@ const drawMenuItems = computed(() => [
     items: [
       {
         label: t('entity.addEntity'),
-        command: () => dialogStore.open('addEntity'),
+        command: () => dialogStore.open(DialogId.AddEntity),
       },
     ],
   },
