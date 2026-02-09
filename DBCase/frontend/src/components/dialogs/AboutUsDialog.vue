@@ -15,7 +15,12 @@
   <Dialog
     :visible="visible"
     @update:visible="closeModal"
-    modal :header="t('aboutUs.header')" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    modal
+    :dismissable-mask="true"
+    :draggable="false"
+    :header="t('aboutUs.header')"
+    :style="{ width: '50rem' }"
+    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <p class="m-0">
       {{ t('aboutUs.content') }}
     </p>
