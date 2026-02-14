@@ -6,7 +6,7 @@ import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
@@ -60,7 +60,7 @@ const closeModal = () => dialogStore.close(DialogId.AddEntity)
         />
 
         <label for="strongEntity" class="font-semibold mt-2">{{ t('entity.strongEntity') }}</label>
-        <Dropdown
+        <Select
           id="strongEntity"
           v-model="selectedStrongEntity"
           :options="strongEntities"

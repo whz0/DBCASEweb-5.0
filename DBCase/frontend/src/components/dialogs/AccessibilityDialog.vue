@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { useI18n } from 'vue-i18n'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import Dialog from 'primevue/dialog'
 
 const dialogStore = useDialogStore()
@@ -43,7 +43,7 @@ const closeModal = () => dialogStore.close(DialogId.Accessibility)
     <div class="flex flex-col gap-4">
       <div class="flex items-center justify-between">
         <label>{{ t('settings.language') }}</label>
-        <Dropdown
+        <Select
           :modelValue="locale"
           @update:modelValue="changeLanguage"
           :options="languageOptions"
@@ -53,7 +53,7 @@ const closeModal = () => dialogStore.close(DialogId.Accessibility)
       </div>
       <div class="flex items-center justify-between">
         <label>{{ t('settings.theme') }}</label>
-        <Dropdown
+        <Select
           :modelValue="theme"
           @update:modelValue="setTheme"
           :options="themeOptions"
@@ -68,7 +68,7 @@ const closeModal = () => dialogStore.close(DialogId.Accessibility)
             <i :class="option.icon"></i>
             <span class="ml-2">{{ option.label }}</span>
           </template>
-        </Dropdown>
+        </Select>
       </div>
     </div>
   </Dialog>
