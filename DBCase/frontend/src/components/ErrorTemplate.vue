@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import Button from 'primevue/button';
-import Message from 'primevue/message';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();

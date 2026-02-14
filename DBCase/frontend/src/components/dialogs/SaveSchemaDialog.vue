@@ -2,9 +2,6 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import Dialog from 'primevue/dialog'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()

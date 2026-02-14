@@ -3,8 +3,6 @@ import { computed } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { useI18n } from 'vue-i18n'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import Select from 'primevue/select'
-import Dialog from 'primevue/dialog'
 
 const dialogStore = useDialogStore()
 const { theme, setTheme } = useTheme()

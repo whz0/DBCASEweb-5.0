@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 import { useI18n } from 'vue-i18n';
-import Dialog from 'primevue/dialog'
 
 const visible = ref(false);
 const { t } = useI18n();
