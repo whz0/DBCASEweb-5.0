@@ -9,8 +9,8 @@ const { t } = useI18n();
 const dialogStore = useDialogStore()
 const panelStore = useGeneratePanelStore()
 
-const visible = computed(() => dialogStore.isOpen(DialogId.Help))
-const closeModal = () => dialogStore.close(DialogId.Help)
+const visible = computed(() => dialogStore.isOpen(DialogId.GenerateScheme))
+const closeModal = () => dialogStore.close(DialogId.GenerateScheme)
 
 </script>
 

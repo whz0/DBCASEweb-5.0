@@ -135,38 +135,14 @@ const toggleDrawMenu = (event: Event) => {
           text
           v-tooltip.bottom="t('schema.generate')"
         />
-        <LayoutDialog
-          :visible="dialogStore.isOpen(DialogId.Layout)"
-          @update:visible="dialogStore.close(DialogId.Layout)"
-        />
-        <AccessibilityDialog
-          :visible="dialogStore.isOpen(DialogId.Accessibility)"
-          @update:visible="dialogStore.close(DialogId.Accessibility)"
-        />
-        <HelpDialog
-          :visible="dialogStore.isOpen(DialogId.Help)"
-          @update:visible="dialogStore.close(DialogId.Help)"
-        />
-        <AboutUsDialog
-          :visible="dialogStore.isOpen(DialogId.About)"
-          @update:visible="dialogStore.close(DialogId.About)"
-        />
-        <SaveSchemaDialog
-          :visible="dialogStore.isOpen(DialogId.SaveSchema)"
-          @update:visible="dialogStore.close(DialogId.SaveSchema)"
-        />
-        <OpenSchemaDialog
-          :visible="dialogStore.isOpen(DialogId.OpenSchema)"
-          @update:visible="dialogStore.close(DialogId.OpenSchema)"
-        />
-        <AddEntityDialog
-          :visible="dialogStore.isOpen(DialogId.AddEntity)"
-          @update:visible="dialogStore.close(DialogId.AddEntity)"
-        />
-        <GenerateSchemeDialog
-          :visible="dialogStore.isOpen(DialogId.GenerateScheme)"
-          @update:visible="dialogStore.close(DialogId.GenerateScheme)"
-        />
+        <LayoutDialog />
+        <AccessibilityDialog />
+        <HelpDialog />
+        <AboutUsDialog />
+        <SaveSchemaDialog />
+        <OpenSchemaDialog />
+        <AddEntityDialog />
+        <GenerateSchemeDialog />
       </template>
 
       <template #end>
