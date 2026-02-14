@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import GenerateSchemeDialog from '@/components/dialogs/GenerateSchemeDialog.vue'
+import {computed, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {DialogId, useDialogStore} from '@/stores/dialogStore'
+import {panelId, useGeneratePanelStore} from "@/stores/generatePanelStore.ts";
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
+const panelStore = useGeneratePanelStore()
 const menu = ref()
 const items = computed(() => [
   {
@@ -30,8 +31,6 @@ const items = computed(() => [
 const onRightClick = (e: Event) => {
   menu.value.show(e)
 }
-
-const emits = defineEmits(['generatePanel', 'close'])
 </script>
 
 <template>
@@ -44,15 +43,11 @@ const emits = defineEmits(['generatePanel', 'close'])
       <h1>{{ t('panels.conceptual') }}</h1>
     </div>
     <div>
-      <GenerateSchemeDialog
-        :i-am="'er'"
-        @generate="(value: string) => $emit('generatePanel', value)"
-      />
       <Button severity="secondary" class="bi bi-download" text />
       <Button
         severity="secondary"
         class="bi bi-x-lg"
-        @click="$emit('close')"
+        @click="panelStore.close(panelId.ERScheme)"
         v-tooltip.bottom="t('panels.close')"
         text
       ></Button>

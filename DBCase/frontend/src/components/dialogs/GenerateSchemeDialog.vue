@@ -1,27 +1,23 @@
 <script setup lang="ts">
-import {ref} from 'vue';
-import { useI18n } from 'vue-i18n';
+import {computed} from 'vue'
+import {useI18n} from 'vue-i18n';
+import {DialogId, useDialogStore} from '@/stores/dialogStore'
+import {panelId, useGeneratePanelStore} from "@/stores/generatePanelStore.ts";
 
-const visible = ref(false);
 const { t } = useI18n();
 
-const emit = defineEmits(['generate'])
+const dialogStore = useDialogStore()
+const panelStore = useGeneratePanelStore()
 
-const props = defineProps({
-  iAm: String,
-});
-
-const iAmER = ref(props.iAm == 'er')
-const iAmLogical = ref(props.iAm == 'logical')
-const iAmDB = ref(props.iAm == 'db')
+const visible = computed(() => dialogStore.isOpen(DialogId.Help))
+const closeModal = () => dialogStore.close(DialogId.Help)
 
 </script>
 
 <template>
-  <Button severity="secondary" class="bi bi-magic" @click="visible = true" text v-tooltip.bottom="t('schema.generate')" />
-
   <Dialog
     v-model:visible="visible"
+    @update:visible="closeModal"
     modal
     :dismissable-mask="true"
     :draggable="false"
@@ -30,9 +26,15 @@ const iAmDB = ref(props.iAm == 'db')
     :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
   >
     <div class="grid gap-2 grid-rows-2" >
-      <Button v-show="!iAmER" @click="emit('generate', 'er')">{{ t('schema.generateER') }}</Button>
-      <Button v-show="!iAmLogical" @click="emit('generate', 'logical')">{{ t('schema.generateLogical') }}</Button>
-      <Button v-show="!iAmDB" @click="emit('generate', 'db')">{{ t('schema.generatePhysical') }}</Button>
+      <Button
+        @click="panelStore.open((panelId.ERScheme))"
+      >{{ t('schema.generateER') }}</Button>
+      <Button
+        @click="panelStore.open((panelId.LogicalScheme))"
+      >{{ t('schema.generateLogical') }}</Button>
+      <Button
+        @click="panelStore.open((panelId.BDScheme))"
+      >{{ t('schema.generatePhysical') }}</Button>
     </div>
   </Dialog>
 </template>

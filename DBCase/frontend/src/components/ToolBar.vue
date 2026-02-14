@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import {computed, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {DialogId, useDialogStore} from '@/stores/dialogStore'
 import HelpDialog from '@/components/dialogs/HelpDialog.vue'
 import AccessibilityDialog from '@/components/dialogs/AccessibilityDialog.vue'
 import AboutUsDialog from '@/components/dialogs/AboutUsDialog.vue'
@@ -11,6 +11,7 @@ import AddEntityDialog from '@/components/dialogs/AddEntityDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 
 import TieredMenu from 'primevue/tieredmenu'
+import GenerateSchemeDialog from "@/components/dialogs/GenerateSchemeDialog.vue";
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
@@ -127,6 +128,13 @@ const toggleDrawMenu = (event: Event) => {
           text
           v-tooltip.bottom="t('aboutUs.title')"
         />
+        <Button
+          severity="secondary"
+          class="bi bi-window"
+          @click="dialogStore.open(DialogId.GenerateScheme)"
+          text
+          v-tooltip.bottom="t('schema.generate')"
+        />
         <LayoutDialog
           :visible="dialogStore.isOpen(DialogId.Layout)"
           @update:visible="dialogStore.close(DialogId.Layout)"
@@ -155,9 +163,11 @@ const toggleDrawMenu = (event: Event) => {
           :visible="dialogStore.isOpen(DialogId.AddEntity)"
           @update:visible="dialogStore.close(DialogId.AddEntity)"
         />
+        <GenerateSchemeDialog
+          :visible="dialogStore.isOpen(DialogId.GenerateScheme)"
+          @update:visible="dialogStore.close(DialogId.GenerateScheme)"
+        />
       </template>
-
-      <template #center> </template>
 
       <template #end>
         <SplitButton :model="items">

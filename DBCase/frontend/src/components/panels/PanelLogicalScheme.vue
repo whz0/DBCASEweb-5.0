@@ -1,24 +1,26 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-
-import { useI18n } from 'vue-i18n';
-import GenerateSchemeDialog from "@/components/dialogs/GenerateSchemeDialog.vue";
+import {useI18n} from 'vue-i18n';
+import {panelId, useGeneratePanelStore} from "@/stores/generatePanelStore.ts";
 
 const { t } = useI18n();
+const panelStore = useGeneratePanelStore()
 
-const emits = defineEmits(['generatePanel', 'close'])
+const value = ref('')
 </script>
 
 <template>
-  <div class="h-full grid grid-cols-3">
+  <div class="grid grid-cols-3">
     <div class="text-3xl col-start-2">
       <h1>{{ t('panels.logical') }}</h1>
     </div>
     <div>
-      <GenerateSchemeDialog :i-am="'logical'" @generate="(value: string) => $emit('generatePanel', value)" />
       <Button severity="secondary" class="bi bi-download" text />
-      <Button severity="secondary" class="bi bi-x-lg" @click="$emit('close')" v-tooltip.bottom="t('panels.close')" text/>
+      <Button severity="secondary" class="bi bi-x-lg" @click="panelStore.close(panelId.LogicalScheme)" text/>
     </div>
+  </div>
+  <div class="bg-danger-500 p-6 w-1em h-full">
+    <Textarea v-model="value" variant="filled" rows="3" fluid :invalid="!value" style="resize: none" class="h-9/12"/>
   </div>
 </template>
 
