@@ -18,6 +18,7 @@ const items = computed(() => [
   {
     label: t('panels.insertRelationship'),
     icon: 'bi bi-diagram-3',
+    command: () => dialogStore.open(DialogId.AddRelationship),
   },
   {
     label: t('panels.insertIsARelationship'),

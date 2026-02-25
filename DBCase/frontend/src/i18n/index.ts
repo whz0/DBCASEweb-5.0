@@ -57,6 +57,14 @@ const messages = {
       strongEntityA: 'Strong Entity A',
       strongEntityB: 'Strong Entity B'
     },
+    relationship: {
+      addRelationship: 'Add Relationship',
+      relationshipName: 'Relationship Name',
+      enterRelationshipName: 'Enter relationship name',
+      cardinality: 'Cardinality',
+      selectEntity: 'Select entity',
+      entity: 'Entity'
+    },
     schema: {
       save: 'Save (.dbw)',
       schemaName: 'Schema Name',
@@ -156,6 +164,14 @@ const messages = {
       selectStrongEntity: 'Selecciona una Entidad Fuerte',
       strongEntityA: 'Entidad Fuerte A',
       strongEntityB: 'Entidad Fuerte B'
+    },
+    relationship: {
+      addRelationship: 'Añadir Relación',
+      relationshipName: 'Nombre de la Relación',
+      enterRelationshipName: 'Introduce el nombre de la relación',
+      cardinality: 'Cardinalidad',
+      selectEntity: 'Seleccionar entidad',
+      entity: 'Entidad'
     },
     schema: {
       save: 'Guardar (.dbw)',
