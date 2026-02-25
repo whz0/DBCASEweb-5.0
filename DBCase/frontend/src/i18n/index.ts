@@ -14,6 +14,7 @@ const messages = {
       greeting: 'Hello {name}',
       drawMenuItems: {
         entity: 'Entity',
+        attribute: 'Attribute', // Added
         relationship: 'Relationship',
         simple: 'Simple',
         isA: 'IsA',
@@ -57,6 +58,13 @@ const messages = {
       strongEntityA: 'Strong Entity A',
       strongEntityB: 'Strong Entity B'
     },
+    attribute: {
+      addAttribute: 'Add Attribute',
+      attributeName: 'Attribute Name',
+      enterAttributeName: 'Enter attribute name',
+      parentEntity: 'Parent Entity',
+      selectParentEntity: 'Select Parent Entity'
+    },
     relationship: {
       addRelationship: 'Add Relationship',
       relationshipName: 'Relationship Name',
@@ -90,6 +98,7 @@ const messages = {
       chooseFile: 'Choose a file',
       cancel: 'Cancel',
       save: 'Save',
+      add: 'Add', // Added
       goHome: 'Go Home',
       goBack: 'Go Back',
       name: 'Name',
@@ -122,6 +131,7 @@ const messages = {
       greeting: 'Hola {name}',
       drawMenuItems: {
         entity: 'Entidad',
+        attribute: 'Atributo', // Added
         relationship: 'Relación',
         simple: 'Simple',
         isA: 'IsA',
@@ -165,6 +175,13 @@ const messages = {
       strongEntityA: 'Entidad Fuerte A',
       strongEntityB: 'Entidad Fuerte B'
     },
+    attribute: {
+      addAttribute: 'Añadir Atributo',
+      attributeName: 'Nombre de Atributo',
+      enterAttributeName: 'Introduce el nombre del atributo',
+      parentEntity: 'Entidad Padre',
+      selectParentEntity: 'Selecciona la Entidad Padre'
+    },
     relationship: {
       addRelationship: 'Añadir Relación',
       relationshipName: 'Nombre de la Relación',
@@ -198,6 +215,7 @@ const messages = {
       chooseFile: 'Elige un archivo',
       cancel: 'Cancelar',
       save: 'Guardar',
+      add: 'Añadir', // Added
       goHome: 'Ir al inicio',
       goBack: 'Volver',
       name: 'Nombre',

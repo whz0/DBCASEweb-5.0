@@ -8,6 +8,7 @@ import AboutUsDialog from '@/components/dialogs/AboutUsDialog.vue'
 import SaveSchemaDialog from '@/components/dialogs/SaveSchemaDialog.vue'
 import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
 import AddEntityDialog from '@/components/dialogs/AddEntityDialog.vue'
+import AddAttributeDialog from '@/components/dialogs/AddAttributeDialog.vue'
 import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 
@@ -33,6 +34,11 @@ const drawMenuItems = computed(() => [
         command: () => dialogStore.open(DialogId.AddEntity),
       },
     ],
+  },
+  {
+    label: t('toolbar.drawMenuItems.attribute'),
+    icon: 'bi bi-circle',
+    command: () => dialogStore.open(DialogId.AddAttribute),
   },
   {
     label: t('toolbar.drawMenuItems.relationship'),
@@ -141,6 +147,7 @@ const toggleDrawMenu = (event: Event) => {
         <SaveSchemaDialog />
         <OpenSchemaDialog />
         <AddEntityDialog />
+        <AddAttributeDialog />
         <GenerateSchemeDialog />
         <AddRelationshipDialog />
       </template>
