@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import {panelId, useGeneratePanelStore} from "@/stores/generatePanelStore.ts";
+import { useDiagramStore } from '@/stores/diagramStore'
+import { panelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
 import PanelLogicalScheme from "@/components/panels/PanelLogicalScheme.vue";
 import PanelDBScheme from "@/components/panels/PanelDBScheme.vue";
 import PanelERScheme from "@/components/panels/PanelERScheme.vue";
@@ -8,6 +9,32 @@ import {useLayout} from '@/composables/useLayout';
 const panelStore = useGeneratePanelStore()
 
 const { layout } = useLayout();
+
+const store = useDiagramStore()
+
+store.addEntity({
+  id: '1',
+  name: 'Person',
+  position: { x: 50, y: 100 },
+  attributes: ['a1'],
+  primaryKeys: ['a1']
+})
+store.addEntity({
+  id: '2',
+  name: 'Car',
+  position: { x: 300, y: 100 },
+  attributes: [],
+  primaryKeys: []
+})
+store.addRelationship({
+  id: '3',
+  name: 'Owns',
+  position: { x: 175, y: 100 },
+  type: 'Normal',
+  participants: [],
+  attributes: []
+})
+
 </script>
 
 <template>
@@ -23,10 +50,6 @@ const { layout } = useLayout();
     </SplitterPanel>
   </Splitter>
 </template>
-
-<script lang="ts">
-
-</script>
 
 <style scoped>
 

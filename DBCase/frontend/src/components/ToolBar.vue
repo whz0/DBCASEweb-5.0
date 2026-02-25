@@ -8,6 +8,7 @@ import AboutUsDialog from '@/components/dialogs/AboutUsDialog.vue'
 import SaveSchemaDialog from '@/components/dialogs/SaveSchemaDialog.vue'
 import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
 import AddEntityDialog from '@/components/dialogs/AddEntityDialog.vue'
+import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 
 import TieredMenu from 'primevue/tieredmenu'
@@ -39,9 +40,7 @@ const drawMenuItems = computed(() => [
     items: [
       {
         label: t('toolbar.drawMenuItems.simple'),
-        command: () => {
-          console.log('Add Simple Relación')
-        },
+        command: () => dialogStore.open(DialogId.AddRelationship),
       },
       {
         label: t('toolbar.drawMenuItems.isA'),
@@ -143,6 +142,7 @@ const toggleDrawMenu = (event: Event) => {
         <OpenSchemaDialog />
         <AddEntityDialog />
         <GenerateSchemeDialog />
+        <AddRelationshipDialog />
       </template>
 
       <template #end>

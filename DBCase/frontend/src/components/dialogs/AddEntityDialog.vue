@@ -2,9 +2,11 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import { useDiagramStore } from '@/stores/diagramStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
+const diagramStore = useDiagramStore()
 
 const entityName = ref('')
 const isWeakEntity = ref(false)
@@ -18,6 +20,22 @@ const strongEntities = computed(() => [
 
 const visible = computed(() => dialogStore.isOpen(DialogId.AddEntity))
 const closeModal = () => dialogStore.close(DialogId.AddEntity)
+
+const addEntity = () => {
+  diagramStore.addEntity({
+    id: crypto.randomUUID(),
+    name: entityName.value,
+    position: { x: 100, y: 100 },
+    isWeak: isWeakEntity.value,
+    attributes: [],
+    primaryKeys: []
+  })
+  entityName.value = ''
+  isWeakEntity.value = false
+  relationName.value = ''
+  selectedStrongEntity.value = null
+  closeModal()
+}
 </script>
 
 <template>
@@ -72,7 +90,7 @@ const closeModal = () => dialogStore.close(DialogId.AddEntity)
         severity="secondary"
         @click="closeModal"
       />
-      <Button :label="t('entity.addEntity')" icon="bi bi-check-lg" />
+      <Button :label="t('entity.addEntity')" icon="bi bi-check-lg" @click="addEntity" />
     </template>
   </Dialog>
 </template>

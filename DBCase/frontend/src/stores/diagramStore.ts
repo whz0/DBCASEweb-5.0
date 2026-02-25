@@ -21,6 +21,18 @@ export const useDiagramStore = defineStore('diagram', () => {
     }
   }
 
+  function addRelationship(relationship: Relationship) {
+    relationships.value.push(relationship)
+  }
+
+  function addAttribute(attribute: Attribute) {
+    attributes.value.push(attribute)
+  }
+
+  function addDomain(domain: Domain) {
+    domains.value.push(domain)
+  }
+
   // ... other actions for relationships, attributes, domains, selection, etc.
 
   return {
@@ -31,6 +43,9 @@ export const useDiagramStore = defineStore('diagram', () => {
     selectedElementId,
     addEntity,
     updateEntity,
+    addRelationship,
+    addAttribute,
+    addDomain,
     // ... expose other actions and state
   }
 })
