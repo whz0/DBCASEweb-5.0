@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "http://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+    <!-- Ignore all Javadoc related checks -->
+    <suppress checks="JavadocPackage" files=".*"/>
+    <suppress checks="JavadocType" files=".*"/>
+    <suppress checks="JavadocMethod" files=".*"/>
+    <suppress checks="JavadocVariable" files=".*"/>
+    <suppress checks="JavadocStyle" files=".*"/>
+    <suppress checks="MissingJavadocMethod" files=".*"/>
+    <suppress checks="MissingJavadocType" files=".*"/>
+    <suppress checks="SummaryJavadoc" files=".*"/>
+    <suppress checks="JavadocParagraph" files=".*"/>
+    <suppress checks="InvalidJavadocPosition" files=".*"/>
+    <suppress checks="JavadocTagContinuationIndentation" files=".*"/>
+    <suppress checks="AtclauseOrder" files=".*"/>
+</suppressions>

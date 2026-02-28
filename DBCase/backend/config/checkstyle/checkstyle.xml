@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+          "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+          "http://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="warning"/>
+    <property name="fileExtensions" value="java, properties, xml"/>
+
+    <!-- Line length 120 -->
+    <module name="LineLength">
+        <property name="max" value="160"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+
+    <module name="TreeWalker">
+        <!-- Indentation set to 4 spaces -->
+        <module name="Indentation">
+            <property name="basicOffset" value="4"/>
+            <property name="braceAdjustment" value="0"/>
+            <property name="caseIndent" value="4"/>
+            <property name="throwsIndent" value="4"/>
+            <property name="lineWrappingIndentation" value="8"/>
+            <property name="arrayInitIndent" value="4"/>
+        </module>
+
+        <!-- Naming conventions -->
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+        </module>
+        <module name="TypeName"/>
+        <module name="MemberName"/>
+        <module name="ParameterName"/>
+        <module name="LocalVariableName"/>
+        <module name="MethodName"/>
+
+        <!-- Import rules -->
+        <module name="AvoidStarImport"/>
+        <module name="UnusedImports"/>
+        <module name="RedundantImport"/>
+
+        <!-- Variables -->
+        <module name="UnusedLocalVariable"/>
+
+        <!-- Common bugs/styles -->
+        <module name="NeedBraces"/>
+        <module name="LeftCurly"/>
+        <module name="RightCurly"/>
+        <module name="WhitespaceAround">
+            <property name="allowEmptyMethods" value="true"/>
+            <property name="allowEmptyConstructors" value="true"/>
+            <property name="allowEmptyLambdas" value="true"/>
+            <property name="allowEmptyTypes" value="true"/>
+            <property name="allowEmptyLoops" value="true"/>
+        </module>
+        <module name="WhitespaceAfter"/>
+        
+        <!-- Suppressions for Javadoc (handled via filter) -->
+    </module>
+
+    <!-- Filter out Javadoc related warnings -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${checkstyle.suppressions.file}" default="checkstyle-suppressions.xml"/>
+    </module>
+</module>
