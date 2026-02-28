@@ -2,22 +2,57 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import { useDiagramStore } from '@/stores/diagramStore'
+import type { Entity } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
+const diagramStore = useDiagramStore()
 
 const entityName = ref('')
 const isWeakEntity = ref(false)
 const relationName = ref('')
-const selectedStrongEntity = ref(null)
+const selectedStrongEntity = ref<Entity | null>(null)
 
-const strongEntities = computed(() => [
-  { label: t('entity.strongEntityA'), value: 'entityA' },
-  { label: t('entity.strongEntityB'), value: 'entityB' },
-])
+const strongEntities = computed(() => diagramStore.entities)
 
 const visible = computed(() => dialogStore.isOpen(DialogId.AddEntity))
-const closeModal = () => dialogStore.close(DialogId.AddEntity)
+const closeModal = () => {
+  dialogStore.close(DialogId.AddEntity)
+  // Reset form
+  entityName.value = ''
+  isWeakEntity.value = false
+  relationName.value = ''
+  selectedStrongEntity.value = null
+}
+
+const addEntity = () => {
+  const newEntity: Entity = {
+    id: crypto.randomUUID(),
+    name: entityName.value,
+    position: { x: Math.random() * 400, y: Math.random() * 400 }, // Random position for now
+    isWeak: isWeakEntity.value,
+    attributes: [],
+    primaryKeys: []
+  }
+  diagramStore.addEntity(newEntity)
+
+  if (isWeakEntity.value && selectedStrongEntity.value) {
+    const newRelationship = {
+      id: crypto.randomUUID(),
+      name: relationName.value,
+      position: { x: newEntity.position.x + 150, y: newEntity.position.y },
+      isWeak: true, // Identifying relationships are often considered 'weak'
+      entities: [
+        { entityId: newEntity.id, cardinality: '1,1' },
+        { entityId: selectedStrongEntity.value.id, cardinality: '1,N' }
+      ]
+    }
+    diagramStore.addRelationship(newRelationship)
+  }
+
+  closeModal()
+}
 </script>
 
 <template>
@@ -59,7 +94,7 @@ const closeModal = () => dialogStore.close(DialogId.AddEntity)
           id="strongEntity"
           v-model="selectedStrongEntity"
           :options="strongEntities"
-          optionLabel="label"
+          optionLabel="name"
           :placeholder="t('entity.selectStrongEntity')"
         />
       </template>
@@ -72,7 +107,7 @@ const closeModal = () => dialogStore.close(DialogId.AddEntity)
         severity="secondary"
         @click="closeModal"
       />
-      <Button :label="t('entity.addEntity')" icon="bi bi-check-lg" />
+      <Button :label="t('entity.addEntity')" icon="bi bi-check-lg" @click="addEntity" />
     </template>
   </Dialog>
 </template>

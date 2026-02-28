@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Entity, Relationship, Attribute, Domain } from '@/types/er-diagram-elements'
+import type { Entity, Relationship, Attribute, Domain, Position } from '@/types/er-diagram-elements'
 
 export const useDiagramStore = defineStore('diagram', () => {
   const entities = ref<Entity[]>([])
@@ -21,6 +21,39 @@ export const useDiagramStore = defineStore('diagram', () => {
     }
   }
 
+  function updateEntityPosition(id: string, position: Position) {
+    const entity = entities.value.find(e => e.id === id)
+    if (entity) {
+      entity.position = position
+    }
+  }
+
+  function addRelationship(relationship: Relationship) {
+    relationships.value.push(relationship)
+  }
+
+  function updateRelationshipPosition(id: string, position: Position) {
+    const relationship = relationships.value.find(r => r.id === id)
+    if (relationship) {
+      relationship.position = position
+    }
+  }
+
+  function addAttribute(attribute: Attribute) {
+    attributes.value.push(attribute)
+  }
+
+  function updateAttributePosition(id: string, position: Position) {
+    const attribute = attributes.value.find(a => a.id === id)
+    if (attribute) {
+      attribute.position = position
+    }
+  }
+
+  function addDomain(domain: Domain) {
+    domains.value.push(domain)
+  }
+
   // ... other actions for relationships, attributes, domains, selection, etc.
 
   return {
@@ -31,6 +64,12 @@ export const useDiagramStore = defineStore('diagram', () => {
     selectedElementId,
     addEntity,
     updateEntity,
+    updateEntityPosition,
+    addRelationship,
+    updateRelationshipPosition,
+    addAttribute,
+    updateAttributePosition,
+    addDomain,
     // ... expose other actions and state
   }
 })

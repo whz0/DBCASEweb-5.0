@@ -5,6 +5,7 @@ import {ToastService} from "primevue";
 import router from './router'
 import { i18n } from './i18n'
 import { createPinia } from 'pinia'
+import VueKonva from 'vue-konva'
 
 import 'bootstrap-icons/font/bootstrap-icons.min.css'
 
@@ -26,5 +27,6 @@ app.use(PrimeVue, {
 app.use(router)
 app.use(i18n)
 app.use(pinia)
+app.use(VueKonva)
 
 app.mount('#app')

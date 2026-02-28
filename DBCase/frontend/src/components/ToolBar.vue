@@ -8,6 +8,8 @@ import AboutUsDialog from '@/components/dialogs/AboutUsDialog.vue'
 import SaveSchemaDialog from '@/components/dialogs/SaveSchemaDialog.vue'
 import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
 import AddEntityDialog from '@/components/dialogs/AddEntityDialog.vue'
+import AddAttributeDialog from '@/components/dialogs/AddAttributeDialog.vue'
+import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 
 import TieredMenu from 'primevue/tieredmenu'
@@ -35,14 +37,17 @@ const drawMenuItems = computed(() => [
     ],
   },
   {
+    label: t('toolbar.drawMenuItems.attribute'),
+    icon: 'bi bi-circle',
+    command: () => dialogStore.open(DialogId.AddAttribute),
+  },
+  {
     label: t('toolbar.drawMenuItems.relationship'),
     icon: 'bi bi-diamond',
     items: [
       {
         label: t('toolbar.drawMenuItems.simple'),
-        command: () => {
-          console.log('Add Simple Relación')
-        },
+        command: () => dialogStore.open(DialogId.AddRelationship),
       },
       {
         label: t('toolbar.drawMenuItems.isA'),
@@ -143,7 +148,9 @@ const toggleDrawMenu = (event: Event) => {
         <SaveSchemaDialog />
         <OpenSchemaDialog />
         <AddEntityDialog />
+        <AddAttributeDialog />
         <GenerateSchemeDialog />
+        <AddRelationshipDialog />
       </template>
 
       <template #end>

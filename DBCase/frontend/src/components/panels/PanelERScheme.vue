@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import {useI18n} from 'vue-i18n'
-import {DialogId, useDialogStore} from '@/stores/dialogStore'
-import {panelId, useGeneratePanelStore} from "@/stores/generatePanelStore.ts";
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import { panelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
+import DiagramCanvas from '@/components/canvas/DiagramCanvas.vue'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
@@ -17,6 +18,7 @@ const items = computed(() => [
   {
     label: t('panels.insertRelationship'),
     icon: 'bi bi-diagram-3',
+    command: () => dialogStore.open(DialogId.AddRelationship),
   },
   {
     label: t('panels.insertIsARelationship'),
@@ -34,25 +36,30 @@ const onRightClick = (e: Event) => {
 </script>
 
 <template>
-  <div @contextmenu="onRightClick" aria-haspopup="true" class="h-full grid grid-cols-3">
-    <div>
-      <Button severity="secondary" class="bi bi-arrow-90deg-left" text />
-      <Button severity="secondary" class="bi bi-arrow-90deg-right" text />
+  <div class="h-full flex flex-col">
+    <div class="flex justify-between items-center p-2">
+      <div>
+        <Button severity="secondary" class="bi bi-arrow-90deg-left" text />
+        <Button severity="secondary" class="bi bi-arrow-90deg-right" text />
+      </div>
+      <div class="text-3xl">
+        <h1>{{ t('panels.conceptual') }}</h1>
+      </div>
+      <div>
+        <Button severity="secondary" class="bi bi-download" text />
+        <Button
+          severity="secondary"
+          class="bi bi-x-lg"
+          @click="panelStore.close(panelId.ERScheme)"
+          v-tooltip.bottom="t('panels.close')"
+          text
+        ></Button>
+      </div>
     </div>
-    <div class="text-3xl">
-      <h1>{{ t('panels.conceptual') }}</h1>
+    <div class="flex-1" @contextmenu="onRightClick" aria-haspopup="true">
+      <ContextMenu ref="menu" :model="items" />
+      <DiagramCanvas />
     </div>
-    <div>
-      <Button severity="secondary" class="bi bi-download" text />
-      <Button
-        severity="secondary"
-        class="bi bi-x-lg"
-        @click="panelStore.close(panelId.ERScheme)"
-        v-tooltip.bottom="t('panels.close')"
-        text
-      ></Button>
-    </div>
-    <ContextMenu ref="menu" :model="items" />
   </div>
 </template>
 
