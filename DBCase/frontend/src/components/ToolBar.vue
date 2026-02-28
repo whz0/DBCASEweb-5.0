@@ -17,6 +17,7 @@ const { t } = useI18n()
 const dialogStore = useDialogStore()
 
 const items = computed(() => [
+  { icon: 'bi bi-door-open', label: 'Login', command: () => window.location.replace('/login')},
   { icon: 'bi bi-person', label: t('common.name') },
   { icon: 'bi bi-box-arrow-right', label: t('common.logout') },
 ])

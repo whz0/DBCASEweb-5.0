@@ -4,6 +4,7 @@ import PanelLogicalScheme from "@/components/panels/PanelLogicalScheme.vue";
 import PanelDBScheme from "@/components/panels/PanelDBScheme.vue";
 import PanelERScheme from "@/components/panels/PanelERScheme.vue";
 import {useLayout} from '@/composables/useLayout';
+import ToolBar from "@/components/ToolBar.vue";
 
 const panelStore = useGeneratePanelStore()
 
@@ -11,6 +12,9 @@ const { layout } = useLayout();
 </script>
 
 <template>
+  <header>
+    <ToolBar />
+  </header>
   <Splitter class="h-full" :layout="layout">
     <SplitterPanel v-show="panelStore.isOpen(panelId.ERScheme)" :minSize="25">
       <PanelERScheme />

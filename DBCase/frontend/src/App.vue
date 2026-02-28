@@ -1,12 +1,9 @@
 <script setup lang="ts">
-  import ToolBar from '@/components/ToolBar.vue'
 </script>
 
 <template>
-  <header>
-    <ToolBar />
-  </header>
-  <main class="flex-1 overflow-auto">
+  <Toast />
+  <main class="flex-1 justify-center overflow-auto">
     <RouterView />
   </main>
 </template>

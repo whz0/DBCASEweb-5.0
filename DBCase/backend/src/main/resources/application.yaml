@@ -1,3 +1,20 @@
+server:
+  port: 8080
+
 spring:
   application:
-    name: DBCase
+    name: DBCaseWeb
+  datasource:
+    url: jdbc:postgresql://db:5432/dbcase
+    username: ${DB_USER}
+    password: ${DB_USER}
+  jpa:
+    hibernate:
+      ddl-auto: update
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23li1GOkthP6f4MbE7
+            client-secret: f5ed67dec807d3ffcb73501dca68b94d4ec1eae2
