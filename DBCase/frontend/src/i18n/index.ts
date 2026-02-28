@@ -116,6 +116,18 @@ const messages = {
     },
     profile: {
       clickMe: 'You clicked me {count} times'
+    },
+    login: {
+      title: 'Sign In',
+      subtitle: 'Please sign in to continue',
+      username: 'Username',
+      password: 'Password',
+      login: 'Login',
+      or: 'OR',
+      google: 'Sign in with Google',
+      github: 'Sign in with GitHub',
+      noAccount: "Don't have an account?",
+      createAccount: 'Create one now'
     }
   },
   es: {
@@ -233,6 +245,18 @@ const messages = {
     },
     profile: {
       clickMe: 'Me has pulsado {count} veces'
+    },
+    login: {
+      title: 'Iniciar Sesión',
+      subtitle: 'Por favor, inicia sesión para continuar',
+      username: 'Usuario',
+      password: 'Contraseña',
+      login: 'Entrar',
+      or: 'O',
+      google: 'Iniciar sesión con Google',
+      github: 'Iniciar sesión con GitHub',
+      noAccount: '¿No tienes una cuenta?',
+      createAccount: 'Crea una ahora'
     }
   }
 };

@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import { panelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
+import { PanelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
 import DiagramCanvas from '@/components/canvas/DiagramCanvas.vue'
 
 const { t } = useI18n()
@@ -50,7 +50,7 @@ const onRightClick = (e: Event) => {
         <Button
           severity="secondary"
           class="bi bi-x-lg"
-          @click="panelStore.close(panelId.ERScheme)"
+          @click="panelStore.close(PanelId.ERScheme)"
           v-tooltip.bottom="t('panels.close')"
           text
         ></Button>

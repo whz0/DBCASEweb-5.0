@@ -6,7 +6,7 @@
         <EntityNode v-for="entity in store.entities" :key="entity.id" :entity="entity" @dragmove="handleEntityDragMove" />
         <RelationshipNode v-for="relationship in store.relationships" :key="relationship.id" :relationship="relationship" @dragmove="handleRelationshipDragMove" />
         <AttributeNode v-for="attribute in store.attributes" :key="attribute.id" :attribute="attribute" @dragmove="handleAttributeDragMove" />
-        
+
         <!-- Then render connections on top -->
         <template v-for="connection in attributeConnections" :key="connection.attributeId + '-' + connection.parentId">
           <v-line :config="{
@@ -16,7 +16,7 @@
             lineCap: 'round',
             lineJoin: 'round',
             tension: 0,
-            zIndex: 1 // Ensure lines are on top
+            zIndex: -1
           }" />
         </template>
       </v-layer>
@@ -160,7 +160,7 @@ const getLineEllipseIntersection = (p1: Position, p2: Position, ellipse: Ellipse
   if (t_values.length === 0) {
     return null;
   }
-  
+
   // Find the intersection point on the line segment that is closest to p1 (start of the segment)
   let closest_t = t_values[0];
   if (t_values.length > 1 && t_values[1] < t_values[0]) { // Take the smaller t value to get the first intersection point
@@ -253,7 +253,7 @@ onMounted(() => {
     onUnmounted(() => {
       resizeObserver.disconnect()
     })
-    
+
     updateStageSize()
   }
 })

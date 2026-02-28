@@ -10,7 +10,8 @@
       radiusY: effectiveRadiusY,
       fill: '#22bdb1',
       stroke: '#078980',
-      strokeWidth: 2
+      strokeWidth: 2,
+      zIndex: 1
     }" />
     <v-text :config="{
       text: attribute.name,

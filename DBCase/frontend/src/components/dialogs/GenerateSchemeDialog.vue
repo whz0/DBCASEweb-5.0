@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {computed} from 'vue'
-import {useI18n} from 'vue-i18n';
-import {DialogId, useDialogStore} from '@/stores/dialogStore'
-import {panelId, useGeneratePanelStore} from "@/stores/generatePanelStore.ts";
+import { useI18n } from 'vue-i18n';
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import { PanelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
 
 const { t } = useI18n();
 
@@ -27,13 +27,13 @@ const closeModal = () => dialogStore.close(DialogId.GenerateScheme)
   >
     <div class="grid gap-2 grid-rows-2" >
       <Button
-        @click="panelStore.open((panelId.ERScheme))"
+        @click="panelStore.open((PanelId.ERScheme))"
       >{{ t('schema.generateER') }}</Button>
       <Button
-        @click="panelStore.open((panelId.LogicalScheme))"
+        @click="panelStore.open((PanelId.LogicalScheme))"
       >{{ t('schema.generateLogical') }}</Button>
       <Button
-        @click="panelStore.open((panelId.BDScheme))"
+        @click="panelStore.open((PanelId.BDScheme))"
       >{{ t('schema.generatePhysical') }}</Button>
     </div>
   </Dialog>

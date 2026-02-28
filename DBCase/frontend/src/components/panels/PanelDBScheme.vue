@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {useI18n} from 'vue-i18n';
-import {panelId, useGeneratePanelStore} from "@/stores/generatePanelStore.ts";
+import { useI18n } from 'vue-i18n';
+import { PanelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
 
 const { t } = useI18n();
 const panelStore = useGeneratePanelStore()
@@ -13,7 +13,7 @@ const panelStore = useGeneratePanelStore()
     </div>
     <div>
       <Button severity="secondary" class="bi bi-download" text />
-      <Button severity="secondary" class="bi bi-x-lg" @click="panelStore.close(panelId.BDScheme)" v-tooltip.bottom="t('panels.close')" text/>
+      <Button severity="secondary" class="bi bi-x-lg" @click="panelStore.close(PanelId.BDScheme)" v-tooltip.bottom="t('panels.close')" text/>
     </div>
   </div>
 </template>

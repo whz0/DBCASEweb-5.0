@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useDiagramStore } from '@/stores/diagramStore'
-import { panelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
+import { PanelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
 import PanelLogicalScheme from "@/components/panels/PanelLogicalScheme.vue";
 import PanelDBScheme from "@/components/panels/PanelDBScheme.vue";
 import PanelERScheme from "@/components/panels/PanelERScheme.vue";
@@ -43,13 +43,13 @@ store.addRelationship({
     <ToolBar />
   </header>
   <Splitter class="h-full" :layout="layout">
-    <SplitterPanel v-show="panelStore.isOpen(panelId.ERScheme)" :minSize="25">
+    <SplitterPanel v-show="panelStore.isOpen(PanelId.ERScheme)" :minSize="25">
       <PanelERScheme />
     </SplitterPanel>
-    <SplitterPanel v-show="panelStore.isOpen(panelId.LogicalScheme)" :minSize="25">
+    <SplitterPanel v-show="panelStore.isOpen(PanelId.LogicalScheme)" :minSize="25">
       <PanelLogicalScheme />
     </SplitterPanel>
-    <SplitterPanel v-show="panelStore.isOpen(panelId.BDScheme)" :minSize="25">
+    <SplitterPanel v-show="panelStore.isOpen(PanelId.BDScheme)" :minSize="25">
       <PanelDBScheme />
     </SplitterPanel>
   </Splitter>

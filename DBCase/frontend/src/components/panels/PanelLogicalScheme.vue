@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import {useI18n} from 'vue-i18n';
-import {panelId, useGeneratePanelStore} from "@/stores/generatePanelStore.ts";
+import {PanelId, useGeneratePanelStore} from "@/stores/generatePanelStore.ts";
 
 const { t } = useI18n();
 const panelStore = useGeneratePanelStore()
@@ -16,7 +16,7 @@ const value = ref('')
     </div>
     <div>
       <Button severity="secondary" class="bi bi-download" text />
-      <Button severity="secondary" class="bi bi-x-lg" @click="panelStore.close(panelId.LogicalScheme)" text/>
+      <Button severity="secondary" class="bi bi-x-lg" @click="panelStore.close(PanelId.LogicalScheme)" text/>
     </div>
   </div>
   <div class="bg-danger-500 p-6 w-1em h-full">

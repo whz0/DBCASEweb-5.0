@@ -115,7 +115,7 @@ const toggleDrawMenu = (event: Event) => {
         />
         <Button
           severity="secondary"
-          class="bi bi-universal-access-circle"
+          class="bi bi-gear"
           @click="dialogStore.open(DialogId.Accessibility)"
           text
           v-tooltip.bottom="t('toolbar.settings')"
