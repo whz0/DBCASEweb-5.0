@@ -23,7 +23,7 @@ const toast = useToast()
 
 <template>
   <div class="flex items-center justify-center min-h-screen p-4">
-    <Card class="w-full max-w-sm">
+    <Card class="w-full max-w-sm border-2 border-gray-200 shadow-xl">
       <template #title>
         <div class="flex flex-col items-center gap-2 pt-4">
           <img src="@/assets/logo.png" alt="Logo" class="w-16" />
@@ -32,7 +32,7 @@ const toast = useToast()
         </div>
       </template>
       <template #content>
-        <form @submit.prevent="login(formData, (error) => toast.add({ severity: 'warn', detail: error, life: 3000 }))" class="flex flex-col gap-4">
+        <form @submit.prevent="login(formData, (message, severity) => toast.add({ severity: severity, detail: message, life: 3000 }))" class="flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <label for="username" class="text-sm font-semibold">{{ t('login.username') }}</label>
             <InputGroup>
