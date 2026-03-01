@@ -2,6 +2,7 @@ package com.tfg.ucm.dbcase.controller;
 
 import com.tfg.ucm.dbcase.dto.LoginRequest;
 import com.tfg.ucm.dbcase.model.User;
+import com.tfg.ucm.dbcase.service.AuthService;
 import com.tfg.ucm.dbcase.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,10 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService service;
+    private final AuthService authService;
 
     @PostMapping("/login")
     public String login(@RequestBody LoginRequest loginRequest) {
-        return service.verify(loginRequest);
+        return authService.verify(loginRequest);
     }
 
     @GetMapping("/me")
