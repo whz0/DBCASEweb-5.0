@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -27,8 +26,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
-
     private final MyUserDetailsService userDetailsService;
+    private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
 
@@ -45,7 +44,7 @@ public class SecurityConfig {
                 .sessionManagement(
                         (session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
-                .oauth2Login(Customizer.withDefaults())
+                .oauth2Login(oauth -> oauth.successHandler(oauth2LoginSuccessHandler))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

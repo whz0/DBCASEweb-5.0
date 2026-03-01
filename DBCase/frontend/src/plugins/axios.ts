@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const http = axios.create({
-  baseURL: 'http://127.0.0.1:8080/api'
+  baseURL: 'http://localhost:8080/api'
 });
 
 export async function login(
@@ -29,4 +29,12 @@ export async function login(
 
       onError(message, severity);
     })
+}
+
+export async function validateToken(token: string) {
+  return http.get('/user/me', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
 }

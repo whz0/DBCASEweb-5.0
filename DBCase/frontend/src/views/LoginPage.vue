@@ -5,6 +5,7 @@ import { login } from "@/plugins/axios.ts";
 import { useToast } from "primevue";
 
 const { t } = useI18n();
+const toast = useToast();
 
 interface User {
   username: string,
@@ -17,8 +18,6 @@ const formData = ref<User>({
   password: '',
   diagrama: ''
 })
-
-const toast = useToast()
 </script>
 
 <template>
@@ -60,7 +59,7 @@ const toast = useToast()
           </Divider>
 
           <Button :label="t('login.google')" icon="bi bi-google" severity="danger" outlined fluid />
-          <Button :label="t('login.github')" icon="bi bi-github" severity="contrast" fluid />
+          <Button as="a" href="http://localhost:8080/oauth2/authorization/github" :label="t('login.github')" icon="bi bi-github" severity="contrast" fluid />
         </form>
       </template>
       <template #footer>
