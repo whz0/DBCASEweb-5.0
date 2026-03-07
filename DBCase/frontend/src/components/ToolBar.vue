@@ -12,6 +12,9 @@ import AddAttributeDialog from '@/components/dialogs/AddAttributeDialog.vue'
 import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 
+import { useAuthStore } from "@/stores/authStore.ts"
+const { logout } = useAuthStore()
+
 import TieredMenu from 'primevue/tieredmenu'
 import GenerateSchemeDialog from "@/components/dialogs/GenerateSchemeDialog.vue";
 
@@ -19,9 +22,9 @@ const { t } = useI18n()
 const dialogStore = useDialogStore()
 
 const items = computed(() => [
-  { icon: 'bi bi-door-open', label: 'Login', command: () => window.location.replace('/login')},
-  { icon: 'bi bi-person', label: t('common.name') },
-  { icon: 'bi bi-box-arrow-right', label: t('common.logout') },
+  { icon: 'bi bi-door-open', label: 'Login', command: () => window.location.replace('/login') },
+  { icon: 'bi bi-person', label: t('common.name'), command: () => window.location.replace('/profile') },
+  { icon: 'bi bi-box-arrow-right', label: t('common.logout'), command: () => logout() },
 ])
 
 const drawMenu = ref()

@@ -2,6 +2,7 @@ package com.tfg.ucm.dbcase.service;
 
 import com.tfg.ucm.dbcase.model.User;
 import com.tfg.ucm.dbcase.repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ public class UserService {
 
     private final JWTService jwtService;
     private final UserRepository userRepository;
+    private final CookieService cookieService;
 
     public String processOAuthPostLogin(String username) {
         User user = userRepository.findByUsername(username);
@@ -26,5 +28,7 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
-    public void logout() {}
+    public void logout(HttpServletResponse response) {
+        cookieService.deleteCookie("auth_token", response);
+    }
 }

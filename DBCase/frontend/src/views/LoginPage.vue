@@ -1,22 +1,24 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { login } from "@/plugins/axios.ts";
 import { useToast } from "primevue";
+import { useAuthStore } from "@/stores/authStore.ts";
 
 const { t } = useI18n();
 const toast = useToast();
 
+const { login, oauth2Login } = useAuthStore()
+
 interface User {
   username: string,
   password: string,
-  diagrama: string
+  chart: string
 }
 
 const formData = ref<User>({
   username: '',
   password: '',
-  diagrama: ''
+  chart: ''
 })
 </script>
 
@@ -31,7 +33,8 @@ const formData = ref<User>({
         </div>
       </template>
       <template #content>
-        <form @submit.prevent="login(formData, (message, severity) => toast.add({ severity: severity, detail: message, life: 3000 }))" class="flex flex-col gap-4">
+        <form @submit.prevent="login(formData, (message, severity) =>
+        toast.add({ severity: severity, detail: message, life: 3000 }))" class="flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <label for="username" class="text-sm font-semibold">{{ t('login.username') }}</label>
             <InputGroup>
@@ -58,8 +61,18 @@ const formData = ref<User>({
             <span class="text-xs text-muted-color">{{ t('login.or') }}</span>
           </Divider>
 
-          <Button :label="t('login.google')" icon="bi bi-google" severity="danger" outlined fluid />
-          <Button as="a" href="http://localhost:8080/oauth2/authorization/github" :label="t('login.github')" icon="bi bi-github" severity="contrast" fluid />
+          <Button
+            :label="t('login.google')"
+            icon="bi bi-google"
+            severity="danger"
+            outlined fluid />
+          <Button
+            as="a"
+            @click="oauth2Login"
+            :label="t('login.github')"
+            icon="bi bi-github"
+            severity="contrast"
+            fluid />
         </form>
       </template>
       <template #footer>

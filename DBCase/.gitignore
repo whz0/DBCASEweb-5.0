@@ -41,3 +41,5 @@ build/
 ./backend/src/main/resources/public/static/
 
 .env
+
+/node_modules/

@@ -4,6 +4,7 @@ import com.tfg.ucm.dbcase.service.JWTService;
 import com.tfg.ucm.dbcase.service.MyUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 @Component
 @RequiredArgsConstructor
@@ -28,12 +30,11 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        String token = null;
+
         String username = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.split("\\s")[1];
+        String token = getJWT(request);
+        if (token != null) {
             username = jwtService.extractUsername(token);
         }
 
@@ -51,5 +52,10 @@ public class JWTFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    private String getJWT(HttpServletRequest request) {
+        Cookie cookie = WebUtils.getCookie(request, "auth_token");
+        return cookie != null ? cookie.getValue() : null;
     }
 }

@@ -10,7 +10,7 @@ services:
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/dbcase
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
@@ -18,7 +18,7 @@ services:
     image: 'postgres:17.9-alpine3.23'
     container_name: DBCaseDB
     ports:
-      - "5432:5432"
+      - "5431:5432"
     volumes:
       - dbcaseDB:/var/lib/postgresql/data
       - ./db/script.sql:/docker-entrypoint-initdb.d/script.sql

@@ -4,7 +4,9 @@ import com.tfg.ucm.dbcase.dto.LoginRequest;
 import com.tfg.ucm.dbcase.model.User;
 import com.tfg.ucm.dbcase.service.AuthService;
 import com.tfg.ucm.dbcase.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,17 +24,20 @@ public class UserController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest loginRequest) {
-        return authService.verify(loginRequest);
+    public ResponseEntity<String> login(
+            @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        authService.verify(loginRequest, response);
+        return ResponseEntity.ok("");
     }
 
     @GetMapping("/me")
-    public User getMe(@AuthenticationPrincipal UserDetails userDetails) {
-        return service.getCurrentUser(userDetails.getUsername());
+    public ResponseEntity<User> getMe(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(service.getCurrentUser(userDetails.getUsername()));
     }
 
     @PostMapping("/logout")
-    public void logout() {
-        service.logout();
+    public ResponseEntity<String> logout(HttpServletResponse response) {
+        service.logout(response);
+        return ResponseEntity.ok("Sesión cerrada");
     }
 }
