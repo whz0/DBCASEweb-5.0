@@ -85,6 +85,13 @@
 			<artifactId>gson</artifactId>
 		</dependency>
 
+		<!-- Base de datos para test -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- JJWT para gestión propio de token jwt, mantener actualizado en la misma versión -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
@@ -104,6 +111,11 @@
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
 			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 	</dependencies>

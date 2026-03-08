@@ -101,7 +101,7 @@ const messages = {
       add: 'Add', // Added
       goHome: 'Go Home',
       goBack: 'Go Back',
-      name: 'Name',
+      profile: 'Profile',
       logout: 'Logout'
     },
     aboutUs: {
@@ -230,7 +230,7 @@ const messages = {
       add: 'Añadir', // Added
       goHome: 'Ir al inicio',
       goBack: 'Volver',
-      name: 'Nombre',
+      profile: 'Perfil',
       logout: 'Cerrar sesión'
     },
     aboutUs: {

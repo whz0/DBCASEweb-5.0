@@ -1,23 +1,31 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import {ref, type UnwrapRef} from "vue";
+import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { login } from "@/plugins/axios.ts";
 import { useToast } from "primevue";
+import { useAuthStore } from "@/stores/authStore.ts";
 
+const router = useRouter()
 const { t } = useI18n();
 const toast = useToast();
 
-interface User {
+const { login, oauth2Login } = useAuthStore()
+
+interface Credential {
   username: string,
   password: string,
-  diagrama: string
 }
 
-const formData = ref<User>({
+const formData = ref<Credential>({
   username: '',
   password: '',
-  diagrama: ''
 })
+
+const handleLogin = async (formData: UnwrapRef<Credential>) => {
+  await login(formData, (message, severity) =>
+    toast.add({ severity: severity, detail: message, life: 3000 }))
+  await router.replace('/')
+}
 </script>
 
 <template>
@@ -31,7 +39,7 @@ const formData = ref<User>({
         </div>
       </template>
       <template #content>
-        <form @submit.prevent="login(formData, (message, severity) => toast.add({ severity: severity, detail: message, life: 3000 }))" class="flex flex-col gap-4">
+        <form @submit.prevent="handleLogin(formData)" class="flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <label for="username" class="text-sm font-semibold">{{ t('login.username') }}</label>
             <InputGroup>
@@ -48,7 +56,8 @@ const formData = ref<User>({
               <InputGroupAddon>
                 <i class="bi bi-lock" />
               </InputGroupAddon>
-              <Password id="password" v-model="formData.password" :feedback="false" toggleMask :placeholder="t('login.password')" fluid />
+              <Password id="password" v-model="formData.password" :feedback="false" toggleMask
+                        :placeholder="t('login.password')" fluid />
             </InputGroup>
           </div>
 
@@ -58,8 +67,18 @@ const formData = ref<User>({
             <span class="text-xs text-muted-color">{{ t('login.or') }}</span>
           </Divider>
 
-          <Button :label="t('login.google')" icon="bi bi-google" severity="danger" outlined fluid />
-          <Button as="a" href="http://localhost:8080/oauth2/authorization/github" :label="t('login.github')" icon="bi bi-github" severity="contrast" fluid />
+          <Button
+            :label="t('login.google')"
+            icon="bi bi-google"
+            severity="danger"
+            outlined fluid />
+          <Button
+            as="a"
+            @click="oauth2Login"
+            :label="t('login.github')"
+            icon="bi bi-github"
+            severity="contrast"
+            fluid />
         </form>
       </template>
       <template #footer>

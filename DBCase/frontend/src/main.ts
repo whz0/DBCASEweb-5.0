@@ -6,6 +6,8 @@ import router from './router'
 import { i18n } from './i18n'
 import { createPinia } from 'pinia'
 import VueKonva from 'vue-konva'
+import {useAuthStore} from "@/stores/authStore.ts";
+
 
 import 'bootstrap-icons/font/bootstrap-icons.min.css'
 
@@ -28,5 +30,8 @@ app.use(router)
 app.use(i18n)
 app.use(pinia)
 app.use(VueKonva)
+
+const {init} = useAuthStore()
+init()
 
 app.mount('#app')

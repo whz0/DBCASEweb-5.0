@@ -1,5 +1,6 @@
 package com.tfg.ucm.dbcase.config;
 
+import com.tfg.ucm.dbcase.service.CookieService;
 import com.tfg.ucm.dbcase.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final UserService userService;
+    private final CookieService cookieService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -24,10 +26,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         final String username = oAuth2User.getAttribute("login");
         final String token = userService.processOAuthPostLogin(username);
 
-        // TODO Cambiar por guardar en cookie
-        System.out.println(token);
+        cookieService.addHttpOnlyCookie("auth_token", token, 60 * 60 * 15, response);
 
-        final String targetUrl = "http://localhost:5173/";
+        final String targetUrl = "http://localhost:5173/oauth2/success";
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

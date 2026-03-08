@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: test
+    password: test
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+jwt:
+  secret: "8565ec44f89b5f670469d62926fb6be56065031c74aadf75df9b232fc1454519"

@@ -3,8 +3,12 @@ package com.tfg.ucm.dbcase.controller;
 import com.tfg.ucm.dbcase.dto.LoginRequest;
 import com.tfg.ucm.dbcase.model.User;
 import com.tfg.ucm.dbcase.service.AuthService;
+import com.tfg.ucm.dbcase.service.CookieService;
+import com.tfg.ucm.dbcase.service.JWTService;
 import com.tfg.ucm.dbcase.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,21 +22,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService service;
+    private final UserService userService;
     private final AuthService authService;
+    private final JWTService jwtService;
+    private final CookieService cookieService;
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest loginRequest) {
-        return authService.verify(loginRequest);
+    public ResponseEntity<User> login(
+            @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        String token = authService.verify(loginRequest);
+        cookieService.addHttpOnlyCookie("auth_token", token, 60 * 60 * 24, response);
+
+        String username = jwtService.extractUsername(token);
+        User user = userService.getCurrentUser(username);
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/me")
-    public User getMe(@AuthenticationPrincipal UserDetails userDetails) {
-        return service.getCurrentUser(userDetails.getUsername());
+    public ResponseEntity<User> getMe(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(userService.getCurrentUser(userDetails.getUsername()));
     }
 
     @PostMapping("/logout")
-    public void logout() {
-        service.logout();
+    public ResponseEntity<String> logout(HttpServletResponse response) {
+        cookieService.deleteCookie("auth_token", response);
+        return ResponseEntity.ok("Sesión cerrada");
     }
 }

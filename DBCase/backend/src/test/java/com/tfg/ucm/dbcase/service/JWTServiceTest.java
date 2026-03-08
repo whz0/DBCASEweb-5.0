@@ -2,38 +2,38 @@ package com.tfg.ucm.dbcase.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.stream.Stream;
-import javax.crypto.KeyGenerator;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.context.ActiveProfiles;
 
+@SpringBootTest
+@ActiveProfiles("test")
 class JWTServiceTest {
 
-    @Test
-    void testExceptionIsCaughtInConstructor() {
-        try (MockedStatic<KeyGenerator> generatorMockedStatic =
-                Mockito.mockStatic(KeyGenerator.class)) {
-            generatorMockedStatic
-                    .when(() -> KeyGenerator.getInstance(any(String.class)))
-                    .thenThrow(NoSuchAlgorithmException.class);
-            assertThrows(
-                    RuntimeException.class,
-                    () -> {
-                        final JWTService ignored = new JWTService();
-                    });
-        }
-    }
+    @Autowired private JWTService jwtService;
+
+    //    @Test
+    //    void testExceptionIsCaughtInConstructor() {
+    //        try (MockedStatic<KeyGenerator> generatorMockedStatic =
+    //                Mockito.mockStatic(KeyGenerator.class)) {
+    //            generatorMockedStatic
+    //                    .when(() -> KeyGenerator.getInstance(any(String.class)))
+    //                    .thenThrow(NoSuchAlgorithmException.class);
+    //            assertThrows(
+    //                    RuntimeException.class,
+    //                    () -> {
+    //                        final JWTService ignored = new JWTService();
+    //                    });
+    //        }
+    //    }
 
     private static Stream<String> usernamesProvider() {
         return Stream.of("user1", "admin", "test_user", "user-with-hyphen", "user.with.dots");
@@ -42,7 +42,6 @@ class JWTServiceTest {
     @ParameterizedTest
     @MethodSource("usernamesProvider")
     void testGenerateAndExtractUsername(String username) {
-        final JWTService jwtService = new JWTService();
         final String token = jwtService.generateToken(username);
         assertNotNull(token);
 
@@ -62,7 +61,6 @@ class JWTServiceTest {
     @ParameterizedTest(name = "Token for {0} validated against {1}, expected: {2}")
     @MethodSource("tokenValidationProvider")
     void testValidateToken(String tokenUsername, String detailsUsername, boolean expected) {
-        final JWTService jwtService = new JWTService();
         final String token = jwtService.generateToken(tokenUsername);
         final UserDetails userDetails =
                 new User(detailsUsername, "password", Collections.emptyList());

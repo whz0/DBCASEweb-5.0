@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
+import { useRouter } from "vue-router";
 import {useI18n} from 'vue-i18n'
 import {DialogId, useDialogStore} from '@/stores/dialogStore'
 import HelpDialog from '@/components/dialogs/HelpDialog.vue'
@@ -12,6 +13,11 @@ import AddAttributeDialog from '@/components/dialogs/AddAttributeDialog.vue'
 import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 
+const router = useRouter()
+
+import { useAuthStore } from "@/stores/authStore.ts"
+const { user, logout }  = useAuthStore()
+
 import TieredMenu from 'primevue/tieredmenu'
 import GenerateSchemeDialog from "@/components/dialogs/GenerateSchemeDialog.vue";
 
@@ -19,9 +25,17 @@ const { t } = useI18n()
 const dialogStore = useDialogStore()
 
 const items = computed(() => [
-  { icon: 'bi bi-door-open', label: 'Login', command: () => window.location.replace('/login')},
-  { icon: 'bi bi-person', label: t('common.name') },
-  { icon: 'bi bi-box-arrow-right', label: t('common.logout') },
+  { icon: 'bi bi-person',
+    label: t('common.profile'),
+    command: () => router.replace('/profile')
+  },
+  { icon: 'bi bi-box-arrow-right',
+    label: t('common.logout'),
+    command: () => {
+      logout()
+      router.replace('/login')
+    },
+  },
 ])
 
 const drawMenu = ref()
@@ -161,7 +175,7 @@ const toggleDrawMenu = (event: Event) => {
               alt="Imagen Usuario"
               style="height: 1rem; margin-right: 0.5rem"
             />
-            <span>{{ t('toolbar.greeting', { name: 'Santi' }) }}</span>
+            <span>{{ t('toolbar.greeting', { name: user.username }) }}</span>
           </span>
         </SplitButton>
       </template>

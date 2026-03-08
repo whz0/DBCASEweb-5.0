@@ -47,6 +47,8 @@ class MyUserDetailsServiceTest {
         when(userRepository.findByUsername(username)).thenReturn(null);
 
         // Act & Assert
-        assertThrows(UsernameNotFoundException.class, () -> myUserDetailsService.loadUserByUsername(username));
+        assertThrows(
+                UsernameNotFoundException.class,
+                () -> myUserDetailsService.loadUserByUsername(username));
     }
 }

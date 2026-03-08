@@ -18,7 +18,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id; // Debe usarse Long ya que si no existe devuelve null,
 
     private String username;
     private String password;
