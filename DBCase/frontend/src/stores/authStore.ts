@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import {ref} from "vue";
 import http from "@/plugins/axios.ts"
+import { i18n } from '@/i18n'
 
 interface User {
   username: string
@@ -27,27 +28,25 @@ export const useAuthStore = defineStore('auth', ()=> {
   ) {
     return http
       .post('/user/login', credential)
-      .then(() => {
-        return http.get('/user/me')
-          .then(({data}) => {
-            assignUser(data)
-            toast('Login exitoso', 'success')
-          })
+      .then(async () => {
+        const { data } = await http.get('/user/me')
+        assignUser(data)
+        toast('Login exitoso', 'success')
       })
       .catch((error) => {
-        let message;
-        let severity: 'error' | 'warn' | 'info' = 'error';
+        let message
+        let severity: 'error' | 'warn' | 'info' = 'error'
 
         if (error.response) {
-          message = error.response.data?.message || 'Error de autenticación';
-          severity = error.response.status >= 500 ? 'error' : 'warn';
+          message = error.response.data?.message || 'Error de autenticación'
+          severity = error.response.status >= 500 ? 'error' : 'warn'
         } else if (error.request) {
-          message = 'No se pudo contactar con el servidor';
-          severity = 'error';
+          message = 'No se pudo contactar con el servidor'
+          severity = 'error'
         } else {
-          message = error.message;
+          message = error.message
         }
-        toast(message, severity);
+        toast(message, severity)
       })
   }
 
@@ -61,8 +60,29 @@ export const useAuthStore = defineStore('auth', ()=> {
       })
   }
 
-  async function oauth2Login() {
-    window.location.href = 'http://localhost:8080/oauth2/authorization/github';
+  async function oauth2Login(provider: string) {
+    window.location.href = `http://localhost:8080/oauth2/authorization/${provider}`
+  }
+
+  async function register(
+    credential: Object,
+    toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void
+  ) {
+    return http
+      .post('/user/register', credential)
+      .then(({data}) => {
+        assignUser(data)
+        toast(i18n.global.t('register.success'), 'success')
+      })
+      .catch((error) => {
+        let message = i18n.global.t('register.error');
+        if (error.response?.data?.message?.includes('ya existe') || 
+            error.response?.data?.message?.includes('already exists')) {
+          message = i18n.global.t('register.userExists');
+        }
+        toast(message, 'error');
+        throw error;
+      })
   }
 
   async function logout() {
@@ -74,8 +94,8 @@ export const useAuthStore = defineStore('auth', ()=> {
 
   function assignUser(u: User | null = null) {
     if(u != null) {
-      let username: keyof typeof u = 'username'
-      let chart: keyof typeof u = 'chart'
+      const username: keyof typeof u = 'username'
+      const chart: keyof typeof u = 'chart'
       user.value.username = u[username]
       user.value.chart = u[chart]
     }
@@ -94,5 +114,6 @@ export const useAuthStore = defineStore('auth', ()=> {
     logout,
     validateToken,
     oauth2Login,
+    register,
   }
 })

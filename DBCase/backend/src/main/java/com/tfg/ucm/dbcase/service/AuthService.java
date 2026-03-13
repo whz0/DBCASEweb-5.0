@@ -14,8 +14,6 @@ public class AuthService {
 
     private final JWTService jwtService;
     private final AuthenticationManager authManager;
-    private final CookieService cookieService;
-    private final UserService userService;
 
     public String verify(final LoginRequest loginRequest) {
         final Authentication authentication =

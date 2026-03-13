@@ -17,15 +17,14 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        final User user =
+                repo.findByUsername(username)
+                        .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
-        User user = repo.findByUsername(username);
-
-        if (user == null) {
-            throw new UsernameNotFoundException("Usuario no encontrado");
-        }
         final String password = Optional.of(user).map(User::getPassword).orElse("N/A");
 
-        return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUsername())
                 .password(password)
                 .build();
     }

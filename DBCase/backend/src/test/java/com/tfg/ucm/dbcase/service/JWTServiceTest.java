@@ -20,21 +20,6 @@ class JWTServiceTest {
 
     @Autowired private JWTService jwtService;
 
-    //    @Test
-    //    void testExceptionIsCaughtInConstructor() {
-    //        try (MockedStatic<KeyGenerator> generatorMockedStatic =
-    //                Mockito.mockStatic(KeyGenerator.class)) {
-    //            generatorMockedStatic
-    //                    .when(() -> KeyGenerator.getInstance(any(String.class)))
-    //                    .thenThrow(NoSuchAlgorithmException.class);
-    //            assertThrows(
-    //                    RuntimeException.class,
-    //                    () -> {
-    //                        final JWTService ignored = new JWTService();
-    //                    });
-    //        }
-    //    }
-
     private static Stream<String> usernamesProvider() {
         return Stream.of("user1", "admin", "test_user", "user-with-hyphen", "user.with.dots");
     }
@@ -66,5 +51,22 @@ class JWTServiceTest {
                 new User(detailsUsername, "password", Collections.emptyList());
 
         assertEquals(expected, jwtService.validateToken(token, userDetails));
+    }
+
+    @ParameterizedTest
+    @MethodSource("usernamesProvider")
+    void testExtractUsernameSafe_InvalidToken(String username) {
+        final String invalidToken = "invalid.jwt.token";
+
+        assertEquals(java.util.Optional.empty(), jwtService.extractUsernameSafe(invalidToken));
+    }
+
+    @ParameterizedTest
+    @MethodSource("usernamesProvider")
+    void testValidateToken_InvalidToken(String username) {
+        final String invalidToken = "invalid.jwt.token";
+        final UserDetails userDetails = new User(username, "password", Collections.emptyList());
+
+        assertEquals(false, jwtService.validateToken(invalidToken, userDetails));
     }
 }

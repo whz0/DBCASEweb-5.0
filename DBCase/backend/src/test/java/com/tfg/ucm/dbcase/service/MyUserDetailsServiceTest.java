@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.tfg.ucm.dbcase.model.User;
 import com.tfg.ucm.dbcase.repository.UserRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,7 +30,7 @@ class MyUserDetailsServiceTest {
         User user = new User();
         user.setUsername(username);
         user.setPassword("encodedPassword");
-        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
         // Act
         UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
@@ -44,7 +45,7 @@ class MyUserDetailsServiceTest {
     void testLoadUserByUsername_UserNotFound() {
         // Arrange
         String username = "unknownUser";
-        when(userRepository.findByUsername(username)).thenReturn(null);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(

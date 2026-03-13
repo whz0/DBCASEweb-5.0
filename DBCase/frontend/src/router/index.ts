@@ -3,6 +3,7 @@ import MainPage from '@/views/MainPage.vue'
 import NotFoundPage from '@/views/NotFoundPage.vue'
 import ErrorPage from '@/views/ErrorPage.vue'
 import LoginPage from "@/views/LoginPage.vue";
+import RegisterPage from "@/views/RegisterPage.vue";
 import ProfilePage from "@/views/ProfilePage.vue";
 import OauthSuccess from "@/views/OauthSuccess.vue";
 import { useAuthStore } from "@/stores/authStore.ts";
@@ -13,6 +14,7 @@ const router = createRouter({
   routes: [
     { name: 'Home', path: '/', component: MainPage, meta: {requiresAuth: true}},
     { name: 'Login', path: '/login', component: LoginPage },
+    { name: 'Register', path: '/register', component: RegisterPage },
     { name: 'Oauth', path: '/oauth2/success', component: OauthSuccess},
     { name: 'Error', path: '/error', component: ErrorPage },
     { name: 'Profile', path: '/profile', component: ProfilePage, meta: {requiresAuth: true}},

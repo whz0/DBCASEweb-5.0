@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.tfg.ucm.dbcase.model.User;
 import com.tfg.ucm.dbcase.repository.UserRepository;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,7 +37,7 @@ class UserServiceTest {
     @MethodSource("oauthLoginProvider")
     void testProcessOAuthPostLogin(String username, User repoReturn, int expectedSaveCalls) {
         // Arrange
-        when(userRepository.findByUsername(username)).thenReturn(repoReturn);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.ofNullable(repoReturn));
         when(jwtService.generateToken(username)).thenReturn("mock-jwt-token");
 
         // Act
@@ -58,7 +59,7 @@ class UserServiceTest {
         // Arrange
         User mockUser = new User();
         mockUser.setUsername(username);
-        when(userRepository.findByUsername(username)).thenReturn(mockUser);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
 
         // Act
         User result = userService.getCurrentUser(username);
@@ -67,5 +68,41 @@ class UserServiceTest {
         assertNotNull(result);
         assertEquals(username, result.getUsername());
         verify(userRepository, times(1)).findByUsername(username);
+    }
+
+    @ParameterizedTest
+    @MethodSource("usernameProvider")
+    void testCreateUser_Success(String username) {
+        // Arrange
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+        User savedUser = new User();
+        savedUser.setUsername(username);
+        savedUser.setPassword("hashed-password");
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
+        // Act
+        User result = userService.createUser(username, "hashed-password");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(username, result.getUsername());
+        verify(userRepository, times(1)).findByUsername(username);
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @ParameterizedTest
+    @MethodSource("usernameProvider")
+    void testCreateUser_UserExists(String username) {
+        // Arrange
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(new User()));
+
+        // Act & Assert
+        try {
+            userService.createUser(username, "password");
+        } catch (IllegalArgumentException e) {
+            assertEquals("El usuario ya existe", e.getMessage());
+        }
+        verify(userRepository, times(1)).findByUsername(username);
+        verify(userRepository, times(0)).save(any(User.class));
     }
 }

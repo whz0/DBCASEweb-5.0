@@ -22,5 +22,8 @@ spring:
           github:
             client-id: Ov23li1GOkthP6f4MbE7
             client-secret: f5ed67dec807d3ffcb73501dca68b94d4ec1eae2
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
 jwt:
   secret: "SsXhO9cPI5berPvVYKr9ylOF1q0Z9snw/EzEhfwN0VY="

@@ -1,7 +1,6 @@
 package com.tfg.ucm.dbcase.config;
 
 import com.tfg.ucm.dbcase.service.MyUserDetailsService;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +28,7 @@ public class SecurityConfig {
     private final JWTFilter jwtFilter;
     private final MyUserDetailsService userDetailsService;
     private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
+    private final RateLimitingFilter rateLimitingFilter;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
 
@@ -37,25 +37,17 @@ public class SecurityConfig {
         http.cors((cors) -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        (request) ->
-                                request.requestMatchers("/api/user/login")
+                        request ->
+                                request.requestMatchers("/api/user/login", "/api/user/register")
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
                 .sessionManagement(
-                        (session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .oauth2Login(oauth -> oauth.successHandler(oauth2LoginSuccessHandler))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(
-                        e ->
-                                e.authenticationEntryPoint(
-                                        (request, response, ex) -> {
-                                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                                            response.setContentType("application/json");
-                                            response.getWriter().write("UNAUTHORIZED");
-                                        }));
-
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.Keys;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,21 +41,38 @@ public class JWTService {
     }
 
     public String extractUsername(String token) {
+        return extractClaimUnsafe(token, Claims::getSubject);
+    }
+
+    public Optional<String> extractUsernameSafe(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimResolver.apply(claims);
+    private <T> T extractClaimUnsafe(String token, Function<Claims, T> claimResolver) {
+        return claimResolver.apply(extractAllClaimsUnsafe(token));
     }
 
-    private Claims extractAllClaims(String token) {
+    private <T> Optional<T> extractClaim(String token, Function<Claims, T> claimResolver) {
+        return extractAllClaims(token).map(claimResolver);
+    }
+
+    private Claims extractAllClaimsUnsafe(String token) {
         return Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(token).getPayload();
     }
 
+    private Optional<Claims> extractAllClaims(String token) {
+        try {
+            return Optional.of(extractAllClaimsUnsafe(token));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
     public boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        return extractUsernameSafe(token)
+                .filter(username -> username.equals(userDetails.getUsername()))
+                .map(username -> !isTokenExpired(token))
+                .orElse(false);
     }
 
     private boolean isTokenExpired(String token) {
@@ -62,6 +80,6 @@ public class JWTService {
     }
 
     private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+        return extractClaim(token, Claims::getExpiration).orElse(new Date(0));
     }
 }

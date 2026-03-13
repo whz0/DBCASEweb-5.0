@@ -128,6 +128,20 @@ const messages = {
       github: 'Sign in with GitHub',
       noAccount: "Don't have an account?",
       createAccount: 'Create one now'
+    },
+    register: {
+      title: 'Create Account',
+      subtitle: 'Sign up to get started',
+      username: 'Username',
+      password: 'Password',
+      confirmPassword: 'Confirm Password',
+      register: 'Create Account',
+      hasAccount: 'Already have an account?',
+      signIn: 'Sign in',
+      passwordMismatch: 'Passwords do not match',
+      success: 'Account created successfully',
+      error: 'Error creating account',
+      userExists: 'Username already exists'
     }
   },
   es: {
@@ -257,6 +271,20 @@ const messages = {
       github: 'Iniciar sesión con GitHub',
       noAccount: '¿No tienes una cuenta?',
       createAccount: 'Crea una ahora'
+    },
+    register: {
+      title: 'Crear Cuenta',
+      subtitle: 'Regístrate para comenzar',
+      username: 'Usuario',
+      password: 'Contraseña',
+      confirmPassword: 'Confirmar Contraseña',
+      register: 'Crear Cuenta',
+      hasAccount: '¿Ya tienes una cuenta?',
+      signIn: 'Inicia sesión',
+      passwordMismatch: 'Las contraseñas no coinciden',
+      success: 'Cuenta creada exitosamente',
+      error: 'Error al crear la cuenta',
+      userExists: 'El usuario ya existe'
     }
   }
 };

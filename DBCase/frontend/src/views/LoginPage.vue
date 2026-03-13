@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import {ref, type UnwrapRef} from "vue";
-import { useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
-import { useToast } from "primevue";
-import { useAuthStore } from "@/stores/authStore.ts";
+import { ref, type UnwrapRef } from 'vue'
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useToast } from 'primevue'
+import { useAuthStore } from '@/stores/authStore.ts'
 
 const router = useRouter()
-const { t } = useI18n();
-const toast = useToast();
+const { t } = useI18n()
+const toast = useToast()
 
 const { login, oauth2Login } = useAuthStore()
 
 interface Credential {
-  username: string,
-  password: string,
+  username: string
+  password: string
 }
 
 const formData = ref<Credential>({
@@ -23,7 +23,8 @@ const formData = ref<Credential>({
 
 const handleLogin = async (formData: UnwrapRef<Credential>) => {
   await login(formData, (message, severity) =>
-    toast.add({ severity: severity, detail: message, life: 3000 }))
+    toast.add({ severity: severity, detail: message, life: 3000 })
+  )
   await router.replace('/')
 }
 </script>
@@ -46,7 +47,12 @@ const handleLogin = async (formData: UnwrapRef<Credential>) => {
               <InputGroupAddon>
                 <i class="bi bi-person" />
               </InputGroupAddon>
-              <InputText id="username" v-model="formData.username" :placeholder="t('login.username')" fluid />
+              <InputText
+                id="username"
+                v-model="formData.username"
+                :placeholder="t('login.username')"
+                fluid
+              />
             </InputGroup>
           </div>
 
@@ -56,8 +62,14 @@ const handleLogin = async (formData: UnwrapRef<Credential>) => {
               <InputGroupAddon>
                 <i class="bi bi-lock" />
               </InputGroupAddon>
-              <Password id="password" v-model="formData.password" :feedback="false" toggleMask
-                        :placeholder="t('login.password')" fluid />
+              <Password
+                id="password"
+                v-model="formData.password"
+                :feedback="false"
+                toggleMask
+                :placeholder="t('login.password')"
+                fluid
+              />
             </InputGroup>
           </div>
 
@@ -68,29 +80,34 @@ const handleLogin = async (formData: UnwrapRef<Credential>) => {
           </Divider>
 
           <Button
+            as="a"
+            @click="oauth2Login('google')"
             :label="t('login.google')"
             icon="bi bi-google"
             severity="danger"
-            outlined fluid />
+            outlined
+            fluid
+          />
           <Button
             as="a"
-            @click="oauth2Login"
+            @click="oauth2Login('github')"
             :label="t('login.github')"
             icon="bi bi-github"
             severity="contrast"
-            fluid />
+            fluid
+          />
         </form>
       </template>
       <template #footer>
         <div class="text-center text-sm text-muted-color pb-2">
           {{ t('login.noAccount') }}
-          <a href="#" class="text-primary hover:underline font-semibold">{{ t('login.createAccount') }}</a>
+          <a @click="$router.push('/register')" class="text-primary hover:underline font-semibold cursor-pointer">{{
+            t('login.createAccount')
+          }}</a>
         </div>
       </template>
     </Card>
   </div>
 </template>
 
-<style lang="ts" scoped>
-
-</style>
+<style lang="ts" scoped></style>
