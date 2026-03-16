@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -21,6 +22,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private static final String GOOGLE = "google";
     private static final String GITHUB = "github";
+    private static final String BASE_SUCCESS_URL = "http://localhost:5173/oauth2/success";
 
     private static final Map<String, String> PROVIDERS =
             Map.of(
@@ -37,27 +39,30 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         final OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
         final String provider = oauthToken.getAuthorizedClientRegistrationId();
-        final OAuth2User oAuth2User = oauthToken.getPrincipal();
+        final @NonNull OAuth2User oAuth2User = oauthToken.getPrincipal();
 
-        String username =
-                Optional.ofNullable(provider)
-                        .map(String::toLowerCase)
-                        .map(PROVIDERS::get)
-                        .map(oAuth2User::getAttribute)
-                        .filter(String.class::isInstance)
-                        .map(String.class::cast)
-                        .orElseGet(oAuth2User::getName);
+        final String username = getUsername(provider, oAuth2User);
 
         final String token = userService.processOAuthPostLogin(username);
 
         cookieService.addHttpOnlyCookie("auth_token", token, 60 * 60 * 15, response);
 
         final String targetUrl =
-                UriComponentsBuilder.fromUriString("http://localhost:5173/oauth2/success")
+                UriComponentsBuilder.fromUriString(BASE_SUCCESS_URL)
                         .queryParam("provider", provider)
                         .build()
                         .toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    }
+
+    private String getUsername(final String provider, final @NonNull OAuth2User oAuth2User) {
+        return Optional.ofNullable(provider)
+                .map(String::toLowerCase)
+                .map(PROVIDERS::get)
+                .map(oAuth2User::getAttribute)
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .orElseGet(oAuth2User::getName);
     }
 }
