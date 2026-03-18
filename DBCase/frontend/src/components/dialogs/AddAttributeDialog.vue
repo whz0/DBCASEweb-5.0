@@ -55,7 +55,6 @@ const closeModal = () => {
 
 const addAttribute = () => {
   if (selectedParentId.value) {
-    const parent = parentOptions.value.find(p => p.id === selectedParentId.value)
     const newAttribute = {
       id: crypto.randomUUID(),
       name: attributeName.value,

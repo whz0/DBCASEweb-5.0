@@ -44,6 +44,8 @@ import type { Attribute } from '@/types/er-diagram-elements'
 import { computed } from 'vue'
 import { useDiagramStore } from '@/stores/diagramStore'
 
+import type { KonvaEventObject } from 'konva/lib/Node'
+
 const props = defineProps<{
   attribute: Attribute
 }>()
@@ -54,11 +56,11 @@ const isSelected = computed(() => store.selectedElementId === props.attribute.id
 
 const emit = defineEmits(['dragmove'])
 
-const handleDragMove = (event: any) => {
+const handleDragMove = (event: KonvaEventObject<DragEvent>) => {
   emit('dragmove', { id: props.attribute.id, x: event.target.x(), y: event.target.y() })
 }
 
-const handleSelect = (e: any) => {
+const handleSelect = (e: KonvaEventObject<MouseEvent>) => {
   store.selectElement(props.attribute.id)
   e.cancelBubble = true;
 }

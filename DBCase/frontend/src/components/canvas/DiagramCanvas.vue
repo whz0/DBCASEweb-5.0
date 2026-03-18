@@ -69,16 +69,21 @@ import EntityNode from './nodes/EntityNode.vue'
 import RelationshipNode from './nodes/RelationshipNode.vue'
 import AttributeNode from './nodes/AttributeNode.vue'
 import { onMounted, onUnmounted, ref, reactive, computed, nextTick } from 'vue'
-import type { Attribute, Entity, Position, Relationship } from '@/types/er-diagram-elements'
+import type { Attribute, Entity, Position, Relationship, RelationshipParticipant } from '@/types/er-diagram-elements'
 import ContextMenu from 'primevue/contextmenu'
+import type { MenuItem } from 'primevue/menuitem'
 import { useI18n } from 'vue-i18n'
+import type { KonvaEventObject } from 'konva/lib/Node'
 
 const store = useDiagramStore()
 const dialogStore = useDialogStore()
 const { t } = useI18n()
 
 const container = ref<HTMLDivElement | null>(null)
-const stageRef = ref<any>(null)
+interface KonvaStageComponent {
+  getStage: () => unknown;
+}
+const stageRef = ref<KonvaStageComponent | null>(null)
 const stageConfig = reactive({
   width: 0,
   height: 0,
@@ -86,9 +91,9 @@ const stageConfig = reactive({
 })
 
 const cm = ref();
-const menuModel = ref<any[]>([]);
+const menuModel = ref<MenuItem[]>([]);
 
-const handleStageMouseDown = (e: any) => {
+const handleStageMouseDown = (e: KonvaEventObject<MouseEvent>) => {
   // Only clear selection on left click on the stage background
   if (e.evt.button === 0 && e.target === e.target.getStage()) {
     store.selectElement(null);
@@ -247,8 +252,6 @@ const getLineEllipseIntersection = (p1: Position, p2: Position, ellipse: Ellipse
   const { cx, cy, rx, ry } = ellipse;
   const p1t = { x: p1.x - cx, y: p1.y - cy };
   const p2t = { x: p2.x - cx, y: p2.y - cy };
-  const dx = p2t.x - p1t.x;
-  const dy = p2t.y - p1t.y;
   const scaleX = rx;
   const scaleY = ry;
   const p1n = { x: p1t.x / scaleX, y: p1t.y / scaleY };
@@ -351,7 +354,7 @@ const calculateParallelPoints = (x1: number, y1: number, x2: number, y2: number,
 const relationshipConnections = computed(() => {
   const connections: { relId: string; entityId: string; startX: number; startY: number; endX: number; endY: number; card: string; isTotal: boolean }[] = [];
   store.relationships.forEach((rel: Relationship) => {
-    rel.participants.forEach((participant: any) => {
+    rel.participants.forEach((participant: RelationshipParticipant) => {
       const entity = store.entities.find(e => e.id === participant.entityId);
       if (entity) {
         const relShape = calculateRelationshipRenderProps(rel);

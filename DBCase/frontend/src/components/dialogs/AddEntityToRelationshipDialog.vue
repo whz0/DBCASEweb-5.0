@@ -62,7 +62,13 @@ const addParticipant = () => {
   closeModal()
 }
 
-const cardinalityOptions = [
+interface CardinalityOption {
+  label: string;
+  min: string;
+  max: string;
+}
+
+const cardinalityOptions: CardinalityOption[] = [
   { label: '0,1', min: '0', max: '1' },
   { label: '1,1', min: '1', max: '1' },
   { label: '0,n', min: '0', max: 'n' },
@@ -72,7 +78,7 @@ const cardinalityOptions = [
 
 const selectedCardinalityOption = ref(cardinalityOptions[2])
 
-const onCardinalityChange = (e: any) => {
+const onCardinalityChange = (e: { value: CardinalityOption }) => {
   if (e.value.label !== 'Custom') {
     cardinalityMin.value = e.value.min
     cardinalityMax.value = e.value.max

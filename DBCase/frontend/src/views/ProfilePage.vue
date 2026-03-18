@@ -4,7 +4,7 @@
 
 <template>
   <h1>Hola</h1>
-  <Button @click="" />
+  <Button />
 </template>
 
 <style scoped>

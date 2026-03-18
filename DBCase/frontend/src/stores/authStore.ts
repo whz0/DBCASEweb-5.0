@@ -23,7 +23,7 @@ export const useAuthStore = defineStore('auth', ()=> {
   }
 
   async function login(
-    credential: Object,
+    credential: object,
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void
   ) {
     return http
@@ -65,7 +65,7 @@ export const useAuthStore = defineStore('auth', ()=> {
   }
 
   async function register(
-    credential: Object,
+    credential: object,
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void
   ) {
     return http

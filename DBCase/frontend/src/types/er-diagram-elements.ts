@@ -9,7 +9,7 @@ export interface DiagramElement {
   position: Position;
 }
 
-interface RelationshipParticipant {
+export interface RelationshipParticipant {
   entityId: string
   cardinalityMin: string
   cardinalityMax: string
