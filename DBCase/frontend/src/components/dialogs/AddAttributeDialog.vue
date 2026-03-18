@@ -59,10 +59,7 @@ const addAttribute = () => {
     const newAttribute = {
       id: crypto.randomUUID(),
       name: attributeName.value,
-      position: { 
-        x: (parent?.position.x ?? 0) - 100, 
-        y: (parent?.position.y ?? 0) - 50 
-      },
+      position: { ...diagramStore.lastClickPosition },
       isKey: isKey.value,
       isMultivalued: isMultivalued.value,
       isDerived: isDerived.value,

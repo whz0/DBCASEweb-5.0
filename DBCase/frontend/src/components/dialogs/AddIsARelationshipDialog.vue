@@ -38,10 +38,7 @@ const addIsA = () => {
     const newIsA = {
       id: crypto.randomUUID(),
       name: 'IsA',
-      position: {
-        x: selectedParent.value.position.x,
-        y: selectedParent.value.position.y + 100
-      },
+      position: { ...diagramStore.lastClickPosition },
       type: 'IsA' as const,
       participants: [
         { entityId: selectedParent.value.id, cardinalityMin: '', cardinalityMax: '', role: 'Parent' },

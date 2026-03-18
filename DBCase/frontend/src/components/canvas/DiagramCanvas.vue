@@ -148,6 +148,11 @@ const onContextMenu = (event: MouseEvent) => {
   const pointerPosition = stage.getPointerPosition();
   
   if (pointerPosition) {
+    // Convert pointer position to canvas coordinates (accounting for stage drag/zoom)
+    const transform = stage.getAbsoluteTransform().copy().invert();
+    const pos = transform.point(pointerPosition);
+    store.setLastClickPosition({ x: pos.x, y: pos.y });
+
     const intersectedShape = stage.getIntersection(pointerPosition);
     
     if (intersectedShape && intersectedShape !== stage) {

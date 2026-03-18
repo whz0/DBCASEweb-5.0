@@ -21,7 +21,7 @@ const addRelationship = () => {
   store.addRelationship({
     id: crypto.randomUUID(),
     name: name.value,
-    position: { x: 100, y: 100 },
+    position: { ...store.lastClickPosition },
     type: 'Normal',
     participants: [],
     attributes: []

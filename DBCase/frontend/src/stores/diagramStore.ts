@@ -15,6 +15,11 @@ export const useDiagramStore = defineStore('diagram', () => {
   const attributes = ref<Attribute[]>([])
   const domains = ref<Domain[]>([])
   const selectedElementId = ref<string | null>(null)
+  const lastClickPosition = ref<Position>({ x: 100, y: 100 })
+
+  function setLastClickPosition(position: Position) {
+    lastClickPosition.value = position
+  }
 
   function find<T extends DiagramElement>(id: string, values: T[]) : T | undefined {
     return values.find(e => e.id === id);
@@ -142,5 +147,7 @@ export const useDiagramStore = defineStore('diagram', () => {
     addAttribute,
     updateAttributePosition,
     addDomain,
+    lastClickPosition,
+    setLastClickPosition,
   }
 })

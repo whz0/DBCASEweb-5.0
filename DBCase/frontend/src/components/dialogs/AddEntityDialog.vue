@@ -30,7 +30,7 @@ const addEntity = () => {
   const newEntity: Entity = {
     id: crypto.randomUUID(),
     name: entityName.value,
-    position: { x: Math.random() * 400, y: Math.random() * 400 }, // Random position for now
+    position: { ...diagramStore.lastClickPosition },
     isWeak: isWeakEntity.value,
     attributes: [],
     primaryKeys: []
