@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
-import { computed } from 'vue'
 import { useToast } from 'primevue'
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
 const route = useRoute()
@@ -21,7 +22,7 @@ const handleContinue = async () => {
     toast.add({
       severity: 'success',
       detail: `Login con éxito con ${provider.value}`,
-      life: 3000
+      life: 3000,
     })
     await router.push('/')
   }

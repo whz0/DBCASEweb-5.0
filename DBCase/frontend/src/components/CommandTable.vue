@@ -1,13 +1,11 @@
 <script setup lang="ts">
-  import {ref} from 'vue'
+import { ref } from 'vue'
 
-  const help = ref('NO')
+const help = ref('NO')
 </script>
 
 <template>
-  <button @click="help + '---'"> {{help}} lo necesito</button>
+  <button @click="help + '---'">{{ help }} lo necesito</button>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

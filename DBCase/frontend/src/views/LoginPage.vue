@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, type UnwrapRef } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue'
+import { ref, type UnwrapRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
 import { useAuthStore } from '@/stores/authStore.ts'
 
 const router = useRouter()
@@ -23,7 +24,7 @@ const formData = ref<Credential>({
 
 const handleLogin = async (formData: UnwrapRef<Credential>) => {
   await login(formData, (message, severity) =>
-    toast.add({ severity: severity, detail: message, life: 3000 })
+    toast.add({ severity: severity, detail: message, life: 3000 }),
   )
   await router.replace('/')
 }
@@ -101,9 +102,11 @@ const handleLogin = async (formData: UnwrapRef<Credential>) => {
       <template #footer>
         <div class="text-center text-sm text-muted-color pb-2">
           {{ t('login.noAccount') }}
-          <a @click="$router.push('/register')" class="text-primary hover:underline font-semibold cursor-pointer">{{
-            t('login.createAccount')
-          }}</a>
+          <a
+            @click="$router.push('/register')"
+            class="text-primary hover:underline font-semibold cursor-pointer"
+            >{{ t('login.createAccount') }}</a
+          >
         </div>
       </template>
     </Card>

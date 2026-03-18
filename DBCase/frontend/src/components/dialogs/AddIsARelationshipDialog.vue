@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+
 import { useDiagramStore } from '@/stores/diagramStore'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import type { Entity } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
@@ -19,7 +20,7 @@ watch(visible, (isNowVisible) => {
   if (isNowVisible) {
     const selectedId = diagramStore.selectedElementId
     if (selectedId) {
-      const entity = diagramStore.entities.find(e => e.id === selectedId)
+      const entity = diagramStore.entities.find((e) => e.id === selectedId)
       if (entity) {
         selectedParent.value = entity
       }
@@ -41,12 +42,20 @@ const addIsA = () => {
       position: { ...diagramStore.lastClickPosition },
       type: 'IsA' as const,
       participants: [
-        { entityId: selectedParent.value.id, cardinalityMin: '', cardinalityMax: '', role: 'Parent' },
-        ...selectedChildren.value.map(c => ({
-          entityId: c.id, cardinalityMin: '', cardinalityMax: '', role: 'Child'
-        }))
+        {
+          entityId: selectedParent.value.id,
+          cardinalityMin: '',
+          cardinalityMax: '',
+          role: 'Parent',
+        },
+        ...selectedChildren.value.map((c) => ({
+          entityId: c.id,
+          cardinalityMin: '',
+          cardinalityMax: '',
+          role: 'Child',
+        })),
       ],
-      attributes: []
+      attributes: [],
     }
     diagramStore.addRelationship(newIsA)
   }
@@ -78,7 +87,7 @@ const addIsA = () => {
       <MultiSelect
         id="children"
         v-model="selectedChildren"
-        :options="entities.filter(e => e.id !== selectedParent?.id)"
+        :options="entities.filter((e) => e.id !== selectedParent?.id)"
         optionLabel="name"
         :placeholder="t('isa.selectChildren')"
         display="chip"

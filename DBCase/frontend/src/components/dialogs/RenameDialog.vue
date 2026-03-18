@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+
 import { useDiagramStore } from '@/stores/diagramStore'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
@@ -15,9 +16,11 @@ const visible = computed(() => dialogStore.isOpen(DialogId.Rename))
 const currentElement = computed(() => {
   const id = diagramStore.selectedElementId
   if (!id) return null
-  return diagramStore.entities.find(e => e.id === id) ||
-         diagramStore.relationships.find(r => r.id === id) ||
-         diagramStore.attributes.find(a => a.id === id)
+  return (
+    diagramStore.entities.find((e) => e.id === id) ||
+    diagramStore.relationships.find((r) => r.id === id) ||
+    diagramStore.attributes.find((a) => a.id === id)
+  )
 })
 
 watch(visible, (isNowVisible) => {

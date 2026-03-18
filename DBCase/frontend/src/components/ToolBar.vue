@@ -1,39 +1,39 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import { useRouter } from "vue-router";
-import {useI18n} from 'vue-i18n'
-import {DialogId, useDialogStore} from '@/stores/dialogStore'
-import HelpDialog from '@/components/dialogs/HelpDialog.vue'
-import AccessibilityDialog from '@/components/dialogs/AccessibilityDialog.vue'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
 import AboutUsDialog from '@/components/dialogs/AboutUsDialog.vue'
-import SaveSchemaDialog from '@/components/dialogs/SaveSchemaDialog.vue'
-import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
-import AddEntityDialog from '@/components/dialogs/AddEntityDialog.vue'
+import AccessibilityDialog from '@/components/dialogs/AccessibilityDialog.vue'
 import AddAttributeDialog from '@/components/dialogs/AddAttributeDialog.vue'
-import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vue'
-import AddEntityToRelationshipDialog from '@/components/dialogs/AddEntityToRelationshipDialog.vue'
-import RenameDialog from '@/components/dialogs/RenameDialog.vue'
-import AddIsARelationshipDialog from '@/components/dialogs/AddIsARelationshipDialog.vue'
 import AddDomainDialog from '@/components/dialogs/AddDomainDialog.vue'
+import AddEntityDialog from '@/components/dialogs/AddEntityDialog.vue'
+import AddEntityToRelationshipDialog from '@/components/dialogs/AddEntityToRelationshipDialog.vue'
+import AddIsARelationshipDialog from '@/components/dialogs/AddIsARelationshipDialog.vue'
+import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vue'
+import HelpDialog from '@/components/dialogs/HelpDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
+import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
+import RenameDialog from '@/components/dialogs/RenameDialog.vue'
+import SaveSchemaDialog from '@/components/dialogs/SaveSchemaDialog.vue'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const router = useRouter()
 
-import { useAuthStore } from "@/stores/authStore.ts"
-const { user, logout }  = useAuthStore()
+import { useAuthStore } from '@/stores/authStore.ts'
+const { user, logout } = useAuthStore()
 
 import TieredMenu from 'primevue/tieredmenu'
-import GenerateSchemeDialog from "@/components/dialogs/GenerateSchemeDialog.vue";
+
+import GenerateSchemeDialog from '@/components/dialogs/GenerateSchemeDialog.vue'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
 
 const items = computed(() => [
-  { icon: 'bi bi-person',
-    label: t('common.profile'),
-    command: () => router.replace('/profile')
-  },
-  { icon: 'bi bi-box-arrow-right',
+  { icon: 'bi bi-person', label: t('common.profile'), command: () => router.replace('/profile') },
+  {
+    icon: 'bi bi-box-arrow-right',
     label: t('common.logout'),
     command: () => {
       logout()

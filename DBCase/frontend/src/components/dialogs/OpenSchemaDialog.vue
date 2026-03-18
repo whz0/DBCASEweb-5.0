@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import type { FileUploadSelectEvent } from 'primevue/fileupload'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import type { FileUploadSelectEvent } from 'primevue/fileupload';
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()

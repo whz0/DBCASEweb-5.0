@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+
 import type {
-  Entity,
-  Relationship,
   Attribute,
-  Domain,
-  Position,
   DiagramElement,
+  Domain,
+  Entity,
+  Position,
+  Relationship,
 } from '@/types/er-diagram-elements'
 
 export const useDiagramStore = defineStore('diagram', () => {
@@ -21,8 +22,8 @@ export const useDiagramStore = defineStore('diagram', () => {
     lastClickPosition.value = position
   }
 
-  function find<T extends DiagramElement>(id: string, values: T[]) : T | undefined {
-    return values.find(e => e.id === id);
+  function find<T extends DiagramElement>(id: string, values: T[]): T | undefined {
+    return values.find((e) => e.id === id)
   }
 
   function move(elementToMove: DiagramElement | undefined, position: Position) {
@@ -36,7 +37,7 @@ export const useDiagramStore = defineStore('diagram', () => {
   }
 
   function updateEntity(updatedEntity: Entity) {
-    const index = entities.value.findIndex(e => e.id === updatedEntity.id)
+    const index = entities.value.findIndex((e) => e.id === updatedEntity.id)
     if (index !== -1) {
       entities.value[index] = updatedEntity
     }
@@ -69,20 +70,28 @@ export const useDiagramStore = defineStore('diagram', () => {
     domains.value.push(domain)
   }
 
-  function addParticipantToRelationship(relationshipId: string, participant: { entityId: string, cardinalityMin: string, cardinalityMax: string, role?: string }) {
-    const relationship = relationships.value.find(r => r.id === relationshipId)
+  function addParticipantToRelationship(
+    relationshipId: string,
+    participant: {
+      entityId: string
+      cardinalityMin: string
+      cardinalityMax: string
+      role?: string
+    },
+  ) {
+    const relationship = relationships.value.find((r) => r.id === relationshipId)
     if (relationship) {
       // Check if entity already participates
-      if (!relationship.participants.some(p => p.entityId === participant.entityId)) {
+      if (!relationship.participants.some((p) => p.entityId === participant.entityId)) {
         relationship.participants.push(participant)
       }
     }
   }
 
   function removeParticipantFromRelationship(relationshipId: string, entityId: string) {
-    const relationship = relationships.value.find(r => r.id === relationshipId)
+    const relationship = relationships.value.find((r) => r.id === relationshipId)
     if (relationship) {
-      relationship.participants = relationship.participants.filter(p => p.entityId !== entityId)
+      relationship.participants = relationship.participants.filter((p) => p.entityId !== entityId)
     }
   }
 
@@ -92,17 +101,17 @@ export const useDiagramStore = defineStore('diagram', () => {
 
   function deleteElement(id: string) {
     // If it's an entity, also delete its attributes and remove it from relationships
-    const entityIndex = entities.value.findIndex(e => e.id === id)
+    const entityIndex = entities.value.findIndex((e) => e.id === id)
     if (entityIndex !== -1) {
-      attributes.value = attributes.value.filter(a => a.parentId !== id)
-      relationships.value.forEach(r => {
-        r.participants = r.participants.filter(p => p.entityId !== id)
+      attributes.value = attributes.value.filter((a) => a.parentId !== id)
+      relationships.value.forEach((r) => {
+        r.participants = r.participants.filter((p) => p.entityId !== id)
       })
       entities.value.splice(entityIndex, 1)
     } else {
-      relationships.value = relationships.value.filter(r => r.id !== id)
-      attributes.value = attributes.value.filter(a => a.id !== id)
-      domains.value = domains.value.filter(d => d.id !== id)
+      relationships.value = relationships.value.filter((r) => r.id !== id)
+      attributes.value = attributes.value.filter((a) => a.id !== id)
+      domains.value = domains.value.filter((d) => d.id !== id)
     }
 
     if (selectedElementId.value === id) {
@@ -111,17 +120,17 @@ export const useDiagramStore = defineStore('diagram', () => {
   }
 
   function renameElement(id: string, newName: string) {
-    const entity = entities.value.find(e => e.id === id)
+    const entity = entities.value.find((e) => e.id === id)
     if (entity) {
       entity.name = newName
       return
     }
-    const relationship = relationships.value.find(r => r.id === id)
+    const relationship = relationships.value.find((r) => r.id === id)
     if (relationship) {
       relationship.name = newName
       return
     }
-    const attribute = attributes.value.find(a => a.id === id)
+    const attribute = attributes.value.find((a) => a.id === id)
     if (attribute) {
       attribute.name = newName
       return

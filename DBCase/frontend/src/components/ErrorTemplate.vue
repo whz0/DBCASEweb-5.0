@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
-const { t } = useI18n();
+const { t } = useI18n()
 
 defineProps<{
-  code: string;
-  title: string;
-  message: string;
-  icon: string;
-  iconColor: string;
-  severity: 'warn' | 'error';
-}>();
+  code: string
+  title: string
+  message: string
+  icon: string
+  iconColor: string
+  severity: 'warn' | 'error'
+}>()
 
-const router = useRouter();
+const router = useRouter()
 </script>
 
 <template>
@@ -26,11 +26,14 @@ const router = useRouter();
     <p class="text-lg">{{ message }}</p>
     <div class="flex gap-3">
       <Button :label="t('common.goHome')" icon="bi bi-house" @click="router.push('/')" />
-      <Button :label="t('common.goBack')" icon="bi bi-arrow-left" severity="secondary" @click="router.back()" />
+      <Button
+        :label="t('common.goBack')"
+        icon="bi bi-arrow-left"
+        severity="secondary"
+        @click="router.back()"
+      />
     </div>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

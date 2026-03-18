@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+
 import { useDiagramStore } from '@/stores/diagramStore'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import type { Entity } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
@@ -33,7 +34,7 @@ const addEntity = () => {
     position: { ...diagramStore.lastClickPosition },
     isWeak: isWeakEntity.value,
     attributes: [],
-    primaryKeys: []
+    primaryKeys: [],
   }
   diagramStore.addEntity(newEntity)
 
@@ -42,12 +43,12 @@ const addEntity = () => {
       id: crypto.randomUUID(),
       name: relationName.value,
       position: { x: newEntity.position.x + 150, y: newEntity.position.y },
-      type: 'Weak' as const, 
+      type: 'Weak' as const,
       participants: [
         { entityId: newEntity.id, cardinalityMin: '1', cardinalityMax: '1' },
-        { entityId: selectedStrongEntity.value.id, cardinalityMin: '1', cardinalityMax: 'N' }
+        { entityId: selectedStrongEntity.value.id, cardinalityMin: '1', cardinalityMax: 'N' },
       ],
-      attributes: []
+      attributes: [],
     }
     diagramStore.addRelationship(newRelationship)
   }

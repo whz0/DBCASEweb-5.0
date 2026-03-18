@@ -1,12 +1,12 @@
-
 <script setup lang="ts">
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+
 import { useDiagramStore } from '@/stores/diagramStore'
-import Dialog from 'primevue/dialog'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
@@ -24,7 +24,7 @@ const addRelationship = () => {
     position: { ...store.lastClickPosition },
     type: 'Normal',
     participants: [],
-    attributes: []
+    attributes: [],
   })
   name.value = ''
   closeModal()
@@ -58,7 +58,11 @@ const addRelationship = () => {
         severity="secondary"
         @click="closeModal"
       />
-      <Button :label="t('relationship.addRelationship')" icon="bi bi-check-lg" @click="addRelationship" />
+      <Button
+        :label="t('relationship.addRelationship')"
+        icon="bi bi-check-lg"
+        @click="addRelationship"
+      />
     </template>
   </Dialog>
 </template>

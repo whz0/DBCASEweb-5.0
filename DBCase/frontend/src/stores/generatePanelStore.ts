@@ -1,10 +1,10 @@
-import {defineStore} from "pinia";
-import {ref} from 'vue';
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 export const enum PanelId {
   ERScheme,
   LogicalScheme,
-  BDScheme
+  BDScheme,
 }
 
 export const useGeneratePanelStore = defineStore('panel', () => {
@@ -14,7 +14,7 @@ export const useGeneratePanelStore = defineStore('panel', () => {
     visible.value.add(id)
   }
 
-  const close = (id: PanelId)=> {
+  const close = (id: PanelId) => {
     visible.value.delete(id)
   }
 

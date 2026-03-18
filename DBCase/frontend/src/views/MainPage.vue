@@ -1,15 +1,15 @@
 <script setup lang="ts">
+import PanelDBScheme from '@/components/panels/PanelDBScheme.vue'
+import PanelERScheme from '@/components/panels/PanelERScheme.vue'
+import PanelLogicalScheme from '@/components/panels/PanelLogicalScheme.vue'
+import ToolBar from '@/components/ToolBar.vue'
+import { useLayout } from '@/composables/useLayout'
 import { useDiagramStore } from '@/stores/diagramStore'
-import { PanelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
-import PanelLogicalScheme from "@/components/panels/PanelLogicalScheme.vue";
-import PanelDBScheme from "@/components/panels/PanelDBScheme.vue";
-import PanelERScheme from "@/components/panels/PanelERScheme.vue";
-import {useLayout} from '@/composables/useLayout';
-import ToolBar from "@/components/ToolBar.vue";
+import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
 
 const panelStore = useGeneratePanelStore()
 
-const { layout } = useLayout();
+const { layout } = useLayout()
 
 const store = useDiagramStore()
 
@@ -18,14 +18,14 @@ store.addEntity({
   name: 'Person',
   position: { x: 50, y: 100 },
   attributes: ['a1'],
-  primaryKeys: ['a1']
+  primaryKeys: ['a1'],
 })
 store.addEntity({
   id: '2',
   name: 'Car',
   position: { x: 300, y: 100 },
   attributes: [],
-  primaryKeys: []
+  primaryKeys: [],
 })
 store.addRelationship({
   id: '3',
@@ -33,9 +33,8 @@ store.addRelationship({
   position: { x: 175, y: 100 },
   type: 'Normal',
   participants: [],
-  attributes: []
+  attributes: [],
 })
-
 </script>
 
 <template>
@@ -55,6 +54,4 @@ store.addRelationship({
   </Splitter>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

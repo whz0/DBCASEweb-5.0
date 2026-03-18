@@ -1,4 +1,4 @@
-import { createI18n } from 'vue-i18n';
+import { createI18n } from 'vue-i18n'
 
 const messages = {
   en: {
@@ -19,13 +19,13 @@ const messages = {
         simple: 'Simple',
         isA: 'IsA',
         domain: 'Domain',
-        composite: 'Composite'
-      }
+        composite: 'Composite',
+      },
     },
     layout: {
       horizontal: 'Horizontal',
       vertical: 'Vertical',
-      chooseLayout: 'Choose Layout'
+      chooseLayout: 'Choose Layout',
     },
     settings: {
       title: 'Settings',
@@ -35,7 +35,7 @@ const messages = {
       dark: 'Dark',
       system: 'System',
       english: 'English',
-      spanish: 'Spanish'
+      spanish: 'Spanish',
     },
     panels: {
       conceptual: 'Conceptual Schema',
@@ -44,7 +44,7 @@ const messages = {
       close: 'Close',
       insertRelationship: 'Insert new relationship',
       insertIsARelationship: 'Insert new IsA relationship',
-      createDomain: 'Create domain'
+      createDomain: 'Create domain',
     },
     entity: {
       addEntity: 'Add Entity',
@@ -56,7 +56,7 @@ const messages = {
       strongEntity: 'Strong Entity',
       selectStrongEntity: 'Select a Strong Entity',
       strongEntityA: 'Strong Entity A',
-      strongEntityB: 'Strong Entity B'
+      strongEntityB: 'Strong Entity B',
     },
     attribute: {
       addAttribute: 'Add Attribute',
@@ -69,7 +69,7 @@ const messages = {
       primaryKey: 'Primary Key',
       multivalued: 'Multivalued',
       derived: 'Derived',
-      composite: 'Is Composite'
+      composite: 'Is Composite',
     },
     relationship: {
       addRelationship: 'Add Relationship',
@@ -80,20 +80,20 @@ const messages = {
       entity: 'Entity',
       role: 'Role (Optional)',
       enterRole: 'e.g. Manager, Employee',
-      currentParticipants: 'Current Participants'
+      currentParticipants: 'Current Participants',
     },
     isa: {
       childEntities: 'Child Entities',
       selectChildren: 'Select Child Entities',
       disjoint: 'Disjoint (d) / Overlapping (o)',
-      total: 'Total (t) / Partial (p)'
+      total: 'Total (t) / Partial (p)',
     },
     domain: {
       name: 'Domain Name',
       baseType: 'Base Type',
       allowedValues: 'Allowed Values (optional, comma-separated)',
       enterValues: 'e.g. Red, Green, Blue',
-      existingDomains: 'Existing Domains'
+      existingDomains: 'Existing Domains',
     },
     schema: {
       save: 'Save (.dbw)',
@@ -105,7 +105,7 @@ const messages = {
       generatePhysical: 'Generate Physical Scheme',
       selectFile: 'Select File (.dbw)',
       open: 'Open',
-      selectedFile: 'Selected File'
+      selectedFile: 'Selected File',
     },
     errors: {
       404: '404',
@@ -114,7 +114,7 @@ const messages = {
       pageNotFoundMessage: "The page you're looking for doesn't exist or has been moved.",
       internalServerError: 'Internal Server Error',
       internalServerErrorMessage: 'Something went wrong on our end. Please try again later.',
-      reloadPage: 'Reload Page'
+      reloadPage: 'Reload Page',
     },
     common: {
       chooseFile: 'Choose a file',
@@ -128,20 +128,22 @@ const messages = {
       profile: 'Profile',
       logout: 'Logout',
       confirm: 'Confirm',
-      edit: 'Edit'
+      edit: 'Edit',
     },
     aboutUs: {
       title: 'About Us',
       header: 'About Us',
-      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+      content:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     },
     help: {
       title: 'Help',
       header: 'Help',
-      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+      content:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     },
     profile: {
-      clickMe: 'You clicked me {count} times'
+      clickMe: 'You clicked me {count} times',
     },
     login: {
       title: 'Sign In',
@@ -153,7 +155,7 @@ const messages = {
       google: 'Sign in with Google',
       github: 'Sign in with GitHub',
       noAccount: "Don't have an account?",
-      createAccount: 'Create one now'
+      createAccount: 'Create one now',
     },
     register: {
       title: 'Create Account',
@@ -167,8 +169,8 @@ const messages = {
       passwordMismatch: 'Passwords do not match',
       success: 'Account created successfully',
       error: 'Error creating account',
-      userExists: 'Username already exists'
-    }
+      userExists: 'Username already exists',
+    },
   },
   es: {
     toolbar: {
@@ -188,13 +190,13 @@ const messages = {
         simple: 'Simple',
         isA: 'IsA',
         domain: 'Dominio',
-        composite: 'Compuesto'
-      }
+        composite: 'Compuesto',
+      },
     },
     layout: {
       horizontal: 'Horizontal',
       vertical: 'Vertical',
-      chooseLayout: 'Elegir diseño'
+      chooseLayout: 'Elegir diseño',
     },
     settings: {
       title: 'Configuración',
@@ -204,7 +206,7 @@ const messages = {
       dark: 'Oscuro',
       system: 'Sistema',
       english: 'Inglés',
-      spanish: 'Español'
+      spanish: 'Español',
     },
     panels: {
       conceptual: 'Esquema Conceptual',
@@ -213,7 +215,7 @@ const messages = {
       close: 'Cerrar',
       insertRelationship: 'Insertar una nueva relación',
       insertIsARelationship: 'Insertar una nueva relación IsA',
-      createDomain: 'Crear dominio'
+      createDomain: 'Crear dominio',
     },
     entity: {
       addEntity: 'Añadir Entidad',
@@ -225,7 +227,7 @@ const messages = {
       strongEntity: 'Entidad Fuerte',
       selectStrongEntity: 'Selecciona una Entidad Fuerte',
       strongEntityA: 'Entidad Fuerte A',
-      strongEntityB: 'Entidad Fuerte B'
+      strongEntityB: 'Entidad Fuerte B',
     },
     attribute: {
       addAttribute: 'Añadir Atributo',
@@ -238,7 +240,7 @@ const messages = {
       primaryKey: 'Clave Primaria',
       multivalued: 'Multivalente',
       derived: 'Derivado',
-      composite: 'Es Compuesto'
+      composite: 'Es Compuesto',
     },
     relationship: {
       addRelationship: 'Añadir Relación',
@@ -249,20 +251,20 @@ const messages = {
       entity: 'Entidad',
       role: 'Rol (Opcional)',
       enterRole: 'p.ej. Gerente, Empleado',
-      currentParticipants: 'Participantes Actuales'
+      currentParticipants: 'Participantes Actuales',
     },
     isa: {
       childEntities: 'Entidades Hijas',
       selectChildren: 'Selecciona Entidades Hijas',
       disjoint: 'Disjunta (d) / Solapada (o)',
-      total: 'Total (t) / Parcial (p)'
+      total: 'Total (t) / Parcial (p)',
     },
     domain: {
       name: 'Nombre del Dominio',
       baseType: 'Tipo Base',
       allowedValues: 'Valores Permitidos (opcional, separados por coma)',
       enterValues: 'p.ej. Rojo, Verde, Azul',
-      existingDomains: 'Dominios Existentes'
+      existingDomains: 'Dominios Existentes',
     },
     schema: {
       save: 'Guardar (.dbw)',
@@ -274,7 +276,7 @@ const messages = {
       generatePhysical: 'Generar Esquema Físico',
       selectFile: 'Seleccionar Archivo (.dbw)',
       open: 'Abrir',
-      selectedFile: 'Archivo Seleccionado'
+      selectedFile: 'Archivo Seleccionado',
     },
     errors: {
       404: '404',
@@ -283,7 +285,7 @@ const messages = {
       pageNotFoundMessage: 'La página que buscas no existe o ha sido movida.',
       internalServerError: 'Error Interno del Servidor',
       internalServerErrorMessage: 'Algo salió mal. Por favor, inténtalo de nuevo más tarde.',
-      reloadPage: 'Recargar Página'
+      reloadPage: 'Recargar Página',
     },
     common: {
       chooseFile: 'Elige un archivo',
@@ -297,20 +299,22 @@ const messages = {
       profile: 'Perfil',
       logout: 'Cerrar sesión',
       confirm: 'Confirmar',
-      edit: 'Editar'
+      edit: 'Editar',
     },
     aboutUs: {
       title: 'Acerca de',
       header: 'Acerca de',
-      content: 'Ellos nosotros de ellos a lo largo más el más ellos quién tu cómo cuál esto. A lo largo algunos aquellos decir entre otro porque o. El, venir dos decir dar casi gustaría, usar porque, voluntad, pensar arriba, estos ninguno uno tomar decir venir a lo largo no ver. Venir el más tiempo, con, aquí dos su cómo no pero y, algunos él mi hecho hombre porque alrededor, de. Entre sobre también, en tiene a qué, si, debe su el más muy, mi ellos. Y casi ellos ella uno, tenía debajo ellos solo es ambos podría cosa cada ser. El más uno debajo no ver contar bien dos.'
+      content:
+        'Ellos nosotros de ellos a lo largo más el más ellos quién tu cómo cuál esto. A lo largo algunos aquellos decir entre otro porque o. El, venir dos decir dar casi gustaría, usar porque, voluntad, pensar arriba, estos ninguno uno tomar decir venir a lo largo no ver. Venir el más tiempo, con, aquí dos su cómo no pero y, algunos él mi hecho hombre porque alrededor, de. Entre sobre también, en tiene a qué, si, debe su el más muy, mi ellos. Y casi ellos ella uno, tenía debajo ellos solo es ambos podría cosa cada ser. El más uno debajo no ver contar bien dos.',
     },
     help: {
       title: 'Ayuda',
       header: 'Ayuda',
-      content: 'Ellos nosotros de ellos a lo largo más el más ellos quién tu cómo cuál esto. A lo largo algunos aquellos decir entre otro porque o. El, venir dos decir dar casi gustaría, usar porque, voluntad, pensar arriba, estos ninguno uno tomar decir venir a lo largo no ver. Venir el más tiempo, con, aquí dos su cómo no pero y, algunos él mi hecho hombre porque alrededor, de. Entre sobre también, en tiene a qué, si, debe su el más muy, mi ellos. Y casi ellos ella uno, tenía debajo ellos solo es ambos podría cosa cada ser. El más uno debajo no ver contar bien dos.'
+      content:
+        'Ellos nosotros de ellos a lo largo más el más ellos quién tu cómo cuál esto. A lo largo algunos aquellos decir entre otro porque o. El, venir dos decir dar casi gustaría, usar porque, voluntad, pensar arriba, estos ninguno uno tomar decir venir a lo largo no ver. Venir el más tiempo, con, aquí dos su cómo no pero y, algunos él mi hecho hombre porque alrededor, de. Entre sobre también, en tiene a qué, si, debe su el más muy, mi ellos. Y casi ellos ella uno, tenía debajo ellos solo es ambos podría cosa cada ser. El más uno debajo no ver contar bien dos.',
     },
     profile: {
-      clickMe: 'Me has pulsado {count} veces'
+      clickMe: 'Me has pulsado {count} veces',
     },
     login: {
       title: 'Iniciar Sesión',
@@ -322,7 +326,7 @@ const messages = {
       google: 'Iniciar sesión con Google',
       github: 'Iniciar sesión con GitHub',
       noAccount: '¿No tienes una cuenta?',
-      createAccount: 'Crea una ahora'
+      createAccount: 'Crea una ahora',
     },
     register: {
       title: 'Crear Cuenta',
@@ -336,14 +340,14 @@ const messages = {
       passwordMismatch: 'Las contraseñas no coinciden',
       success: 'Cuenta creada exitosamente',
       error: 'Error al crear la cuenta',
-      userExists: 'El usuario ya existe'
-    }
-  }
-};
+      userExists: 'El usuario ya existe',
+    },
+  },
+}
 
 export const i18n = createI18n({
   locale: localStorage.getItem('locale') || 'en',
   fallbackLocale: 'en',
   globalInjection: true,
-  messages
-});
+  messages,
+})

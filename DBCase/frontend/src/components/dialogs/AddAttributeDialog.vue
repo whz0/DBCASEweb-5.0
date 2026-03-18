@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+
 import { useDiagramStore } from '@/stores/diagramStore'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
@@ -20,9 +21,21 @@ const domains = computed(() => diagramStore.domains)
 
 const parentOptions = computed(() => {
   return [
-    ...diagramStore.entities.map(e => ({ id: e.id, name: `${e.name} (Entity)`, position: e.position })),
-    ...diagramStore.relationships.map(r => ({ id: r.id, name: `${r.name} (Relationship)`, position: r.position })),
-    ...diagramStore.attributes.map(a => ({ id: a.id, name: `${a.name} (Attribute)`, position: a.position }))
+    ...diagramStore.entities.map((e) => ({
+      id: e.id,
+      name: `${e.name} (Entity)`,
+      position: e.position,
+    })),
+    ...diagramStore.relationships.map((r) => ({
+      id: r.id,
+      name: `${r.name} (Relationship)`,
+      position: r.position,
+    })),
+    ...diagramStore.attributes.map((a) => ({
+      id: a.id,
+      name: `${a.name} (Attribute)`,
+      position: a.position,
+    })),
   ]
 })
 
@@ -32,9 +45,9 @@ watch(visible, (isNowVisible) => {
   if (isNowVisible) {
     const selectedId = diagramStore.selectedElementId
     if (selectedId) {
-      const isEntity = diagramStore.entities.some(e => e.id === selectedId)
-      const isRel = diagramStore.relationships.some(r => r.id === selectedId)
-      const isAttr = diagramStore.attributes.some(a => a.id === selectedId)
+      const isEntity = diagramStore.entities.some((e) => e.id === selectedId)
+      const isRel = diagramStore.relationships.some((r) => r.id === selectedId)
+      const isAttr = diagramStore.attributes.some((a) => a.id === selectedId)
       if (isEntity || isRel || isAttr) {
         selectedParentId.value = selectedId
       }
@@ -64,7 +77,7 @@ const addAttribute = () => {
       isDerived: isDerived.value,
       isComposite: isComposite.value,
       domainId: selectedDomainId.value || undefined,
-      parentId: selectedParentId.value
+      parentId: selectedParentId.value,
     }
     diagramStore.addAttribute(newAttribute)
   }

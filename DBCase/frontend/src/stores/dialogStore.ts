@@ -15,7 +15,7 @@ export const enum DialogId {
   AddEntityToRelationship,
   Rename,
   AddIsARelationship,
-  AddDomain
+  AddDomain,
 }
 
 export const useDialogStore = defineStore('dialogs', () => {
@@ -37,6 +37,6 @@ export const useDialogStore = defineStore('dialogs', () => {
     openDialogs,
     open,
     close,
-    isOpen
+    isOpen,
   }
 })

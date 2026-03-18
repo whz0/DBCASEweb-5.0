@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+
 import { useDiagramStore } from '@/stores/diagramStore'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
@@ -36,7 +37,7 @@ const addDomain = () => {
       id: crypto.randomUUID(),
       name: domainName.value.trim(),
       baseType: baseType.value,
-      values: values.value.trim() ? values.value.split(',').map(v => v.trim()) : undefined
+      values: values.value.trim() ? values.value.split(',').map((v) => v.trim()) : undefined,
     })
     closeModal()
   }
@@ -72,9 +73,18 @@ const addDomain = () => {
       <div v-if="diagramStore.domains.length > 0" class="mt-4">
         <h3 class="font-bold mb-2">{{ t('domain.existingDomains') }}</h3>
         <ul class="max-h-40 overflow-y-auto border rounded p-2">
-          <li v-for="domain in diagramStore.domains" :key="domain.id" class="flex justify-between items-center py-1 border-b last:border-0">
+          <li
+            v-for="domain in diagramStore.domains"
+            :key="domain.id"
+            class="flex justify-between items-center py-1 border-b last:border-0"
+          >
             <span>{{ domain.name }} ({{ domain.baseType }})</span>
-            <Button icon="bi bi-trash" severity="danger" text @click="diagramStore.deleteElement(domain.id)" />
+            <Button
+              icon="bi bi-trash"
+              severity="danger"
+              text
+              @click="diagramStore.deleteElement(domain.id)"
+            />
           </li>
         </ul>
       </div>

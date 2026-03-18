@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, type UnwrapRef } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue'
+import { ref, type UnwrapRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
 import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
@@ -26,9 +27,9 @@ const handleRegister = async (formData: UnwrapRef<Credential>) => {
     toast.add({ severity: 'error', detail: t('register.passwordMismatch'), life: 3000 })
     return
   }
-  
+
   await register(formData, (message, severity) =>
-    toast.add({ severity, detail: message, life: 3000 })
+    toast.add({ severity, detail: message, life: 3000 }),
   )
   await router.replace('/')
 }
@@ -79,7 +80,9 @@ const handleRegister = async (formData: UnwrapRef<Credential>) => {
             </InputGroup>
           </div>
           <div class="flex flex-col gap-1">
-            <label for="confirmPassword" class="text-sm font-semibold">{{ t('register.confirmPassword') }}</label>
+            <label for="confirmPassword" class="text-sm font-semibold">{{
+              t('register.confirmPassword')
+            }}</label>
             <InputGroup>
               <InputGroupAddon>
                 <i class="bi bi-lock-fill" />
@@ -101,7 +104,10 @@ const handleRegister = async (formData: UnwrapRef<Credential>) => {
       <template #footer>
         <div class="text-center text-sm text-muted-color pb-2">
           {{ t('register.hasAccount') }}
-          <a @click="$router.push('/login')" class="text-primary hover:underline font-semibold cursor-pointer">
+          <a
+            @click="$router.push('/login')"
+            class="text-primary hover:underline font-semibold cursor-pointer"
+          >
             {{ t('register.signIn') }}
           </a>
         </div>

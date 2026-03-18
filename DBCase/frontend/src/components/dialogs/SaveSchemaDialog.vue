@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const { t } = useI18n()

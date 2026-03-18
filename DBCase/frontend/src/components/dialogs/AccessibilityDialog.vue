@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useTheme } from '@/composables/useTheme'
 import { useI18n } from 'vue-i18n'
+
+import { useTheme } from '@/composables/useTheme'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const dialogStore = useDialogStore()

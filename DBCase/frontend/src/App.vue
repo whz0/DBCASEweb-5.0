@@ -1,5 +1,4 @@
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <!-- CI Test Comment -->
@@ -11,7 +10,7 @@
 
 <script lang="ts">
 export default {
-  name: 'App'
+  name: 'App',
 }
 </script>
 

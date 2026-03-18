@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+
 import { useDiagramStore } from '@/stores/diagramStore'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import type { Entity } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
@@ -17,12 +18,12 @@ const role = ref('')
 const entities = computed(() => {
   const selectedRelationshipId = diagramStore.selectedElementId
   if (!selectedRelationshipId) return []
-  const relationship = diagramStore.relationships.find(r => r.id === selectedRelationshipId)
+  const relationship = diagramStore.relationships.find((r) => r.id === selectedRelationshipId)
   if (!relationship) return []
 
   // Filter out entities that already participate
-  return diagramStore.entities.filter(e => 
-    !relationship.participants.some(p => p.entityId === e.id)
+  return diagramStore.entities.filter(
+    (e) => !relationship.participants.some((p) => p.entityId === e.id),
   )
 })
 
@@ -30,14 +31,14 @@ const visible = computed(() => dialogStore.isOpen(DialogId.AddEntityToRelationsh
 
 const currentRelationship = computed(() => {
   const id = diagramStore.selectedElementId
-  return diagramStore.relationships.find(r => r.id === id) || null
+  return diagramStore.relationships.find((r) => r.id === id) || null
 })
 
 const participantsWithNames = computed(() => {
   if (!currentRelationship.value) return []
-  return currentRelationship.value.participants.map(p => ({
+  return currentRelationship.value.participants.map((p) => ({
     ...p,
-    name: diagramStore.entities.find(e => e.id === p.entityId)?.name || 'Unknown'
+    name: diagramStore.entities.find((e) => e.id === p.entityId)?.name || 'Unknown',
   }))
 })
 
@@ -56,16 +57,16 @@ const addParticipant = () => {
       entityId: selectedEntity.value.id,
       cardinalityMin: cardinalityMin.value,
       cardinalityMax: cardinalityMax.value,
-      role: role.value
+      role: role.value,
     })
   }
   closeModal()
 }
 
 interface CardinalityOption {
-  label: string;
-  min: string;
-  max: string;
+  label: string
+  min: string
+  max: string
 }
 
 const cardinalityOptions: CardinalityOption[] = [
@@ -98,7 +99,9 @@ const onCardinalityChange = (e: { value: CardinalityOption }) => {
   >
     <div class="flex flex-col gap-3">
       <div v-if="currentRelationship" class="mb-2">
-        <span class="font-bold text-lg">{{ t('relationship.addRelationship') }}: {{ currentRelationship.name }}</span>
+        <span class="font-bold text-lg"
+          >{{ t('relationship.addRelationship') }}: {{ currentRelationship.name }}</span
+        >
       </div>
 
       <label for="entity" class="font-semibold">{{ t('relationship.selectEntity') }}</label>
@@ -135,13 +138,24 @@ const onCardinalityChange = (e: { value: CardinalityOption }) => {
       <div v-if="participantsWithNames.length > 0" class="mt-4">
         <h3 class="font-bold mb-2">{{ t('relationship.currentParticipants') }}</h3>
         <ul class="max-h-40 overflow-y-auto border rounded p-2">
-          <li v-for="p in participantsWithNames" :key="p.entityId" class="flex justify-between items-center py-1 border-b last:border-0">
+          <li
+            v-for="p in participantsWithNames"
+            :key="p.entityId"
+            class="flex justify-between items-center py-1 border-b last:border-0"
+          >
             <span class="text-sm">
-              <span class="font-semibold">{{ p.name }}</span> 
-              ({{ p.cardinalityMin }},{{ p.cardinalityMax }}) 
+              <span class="font-semibold">{{ p.name }}</span>
+              ({{ p.cardinalityMin }},{{ p.cardinalityMax }})
               <span v-if="p.role" class="italic text-gray-500">- {{ p.role }}</span>
             </span>
-            <Button icon="bi bi-trash" severity="danger" text @click="diagramStore.removeParticipantFromRelationship(currentRelationship!.id, p.entityId)" />
+            <Button
+              icon="bi bi-trash"
+              severity="danger"
+              text
+              @click="
+                diagramStore.removeParticipantFromRelationship(currentRelationship!.id, p.entityId)
+              "
+            />
           </li>
         </ul>
       </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+
 import { useLayout } from '@/composables/useLayout'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { PanelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
+
 import DiagramCanvas from '@/components/canvas/DiagramCanvas.vue'
+import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
 
 const { t } = useI18n()
 const panelStore = useGeneratePanelStore()

@@ -1,12 +1,12 @@
 export interface Position {
-  x: number;
-  y: number;
+  x: number
+  y: number
 }
 
 export interface DiagramElement {
-  id: string;
-  name: string;
-  position: Position;
+  id: string
+  name: string
+  position: Position
 }
 
 export interface RelationshipParticipant {
@@ -17,32 +17,32 @@ export interface RelationshipParticipant {
 }
 
 export interface Entity extends DiagramElement {
-  isWeak?: boolean;
-  attributes: string[];
-  primaryKeys: string[];
+  isWeak?: boolean
+  attributes: string[]
+  primaryKeys: string[]
 }
 
 export interface Attribute extends DiagramElement {
-  parentId: string;
-  isKey?: boolean;
-  isDerived?: boolean;
-  isComposite?: boolean;
-  isMultivalued?: boolean;
-  isNotNull?: boolean;
-  isUnique?: boolean;
-  domainId?: string;
-  components?: string[];
+  parentId: string
+  isKey?: boolean
+  isDerived?: boolean
+  isComposite?: boolean
+  isMultivalued?: boolean
+  isNotNull?: boolean
+  isUnique?: boolean
+  domainId?: string
+  components?: string[]
 }
 
 export interface Relationship extends DiagramElement {
-  type: 'Normal' | 'IsA' | 'Weak';
-  participants: RelationshipParticipant[];
-  attributes: string[];
+  type: 'Normal' | 'IsA' | 'Weak'
+  participants: RelationshipParticipant[]
+  attributes: string[]
 }
 
 export interface Domain {
-  id: string;
-  name: string;
-  baseType: string;
-  values?: string[];
+  id: string
+  name: string
+  baseType: string
+  values?: string[]
 }
