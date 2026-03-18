@@ -11,7 +11,11 @@ export const enum DialogId {
   Help,
   About,
   Accessibility,
-  Layout
+  Layout,
+  AddEntityToRelationship,
+  Rename,
+  AddIsARelationship,
+  AddDomain
 }
 
 export const useDialogStore = defineStore('dialogs', () => {

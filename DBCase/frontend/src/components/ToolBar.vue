@@ -11,6 +11,10 @@ import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
 import AddEntityDialog from '@/components/dialogs/AddEntityDialog.vue'
 import AddAttributeDialog from '@/components/dialogs/AddAttributeDialog.vue'
 import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vue'
+import AddEntityToRelationshipDialog from '@/components/dialogs/AddEntityToRelationshipDialog.vue'
+import RenameDialog from '@/components/dialogs/RenameDialog.vue'
+import AddIsARelationshipDialog from '@/components/dialogs/AddIsARelationshipDialog.vue'
+import AddDomainDialog from '@/components/dialogs/AddDomainDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 
 const router = useRouter()
@@ -65,23 +69,14 @@ const drawMenuItems = computed(() => [
       },
       {
         label: t('toolbar.drawMenuItems.isA'),
-        command: () => {
-          console.log('Add IsA Relación')
-        },
+        command: () => dialogStore.open(DialogId.AddIsARelationship),
       },
     ],
   },
   {
     label: t('toolbar.drawMenuItems.domain'),
     icon: 'bi bi-collection',
-    items: [
-      {
-        label: t('toolbar.drawMenuItems.composite'),
-        command: () => {
-          console.log('Add Compuesto Dominio')
-        },
-      },
-    ],
+    command: () => dialogStore.open(DialogId.AddDomain),
   },
 ])
 
@@ -165,6 +160,10 @@ const toggleDrawMenu = (event: Event) => {
         <AddAttributeDialog />
         <GenerateSchemeDialog />
         <AddRelationshipDialog />
+        <AddEntityToRelationshipDialog />
+        <RenameDialog />
+        <AddIsARelationshipDialog />
+        <AddDomainDialog />
       </template>
 
       <template #end>

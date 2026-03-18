@@ -1,38 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import { PanelId, useGeneratePanelStore } from "@/stores/generatePanelStore.ts";
 import DiagramCanvas from '@/components/canvas/DiagramCanvas.vue'
 
 const { t } = useI18n()
-const dialogStore = useDialogStore()
 const panelStore = useGeneratePanelStore()
-const menu = ref()
-const items = computed(() => [
-  {
-    label: t('entity.addEntity'),
-    icon: 'bi bi-square',
-    command: () => dialogStore.open(DialogId.AddEntity),
-  },
-  {
-    label: t('panels.insertRelationship'),
-    icon: 'bi bi-diagram-3',
-    command: () => dialogStore.open(DialogId.AddRelationship),
-  },
-  {
-    label: t('panels.insertIsARelationship'),
-    icon: 'bi bi-diagram-2',
-  },
-  {
-    label: t('panels.createDomain'),
-    icon: 'bi bi-collection',
-  },
-])
-
-const onRightClick = (e: Event) => {
-  menu.value.show(e)
-}
 </script>
 
 <template>
@@ -56,13 +28,10 @@ const onRightClick = (e: Event) => {
         ></Button>
       </div>
     </div>
-    <div class="flex-1" @contextmenu="onRightClick" aria-haspopup="true">
-      <ContextMenu ref="menu" :model="items" />
+    <div class="flex-1">
       <DiagramCanvas />
     </div>
   </div>
 </template>
-
-<script lang="ts"></script>
 
 <style scoped></style>

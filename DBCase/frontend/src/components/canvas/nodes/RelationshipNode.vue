@@ -1,30 +1,40 @@
 
 <template>
   <v-group :config="{
+    id: relationship.id,
     x: relationship.position.x,
     y: relationship.position.y,
     draggable: true
-  }" @dragmove="handleDragMove">
-    <v-line :config="{
-      points: calculateDiamondPoints(relationship.name),
-      fill: '#FF3F20',
-      stroke: '#c9280e',
-      strokeWidth: 2,
-      closed: true,
-      offsetX: calculateDiamondOffsetX(relationship.name),
-      offsetY: 25
-    }" />
-    <v-line v-if="relationship.isWeak" :config="{
+  }" @dragmove="handleDragMove" @mousedown="handleSelect" @touchstart="handleSelect">
+    <v-line v-if="relationship.type === 'Weak'" :config="{
       points: calculateWeakDiamondPoints(relationship.name),
-      fill: '#FF3F20',
-      stroke: '#c9280e',
-      strokeWidth: 2,
+      fill: 'transparent',
+      stroke: isSelected ? 'blue' : '#c9280e',
+      strokeWidth: 1,
       closed: true,
       offsetX: calculateWeakDiamondOffsetX(relationship.name),
       offsetY: 25
     }" />
+    <v-line :config="{
+      points: calculateDiamondPoints(relationship.name),
+      fill: '#FF3F20',
+      stroke: isSelected ? 'blue' : '#c9280e',
+      strokeWidth: isSelected ? 4 : 2,
+      closed: true,
+      offsetX: calculateDiamondOffsetX(relationship.name),
+      offsetY: 25
+    }" />
+    <v-line v-if="relationship.type === 'IsA'" :config="{
+      points: calculateTrianglePoints(),
+      fill: '#FF3F20',
+      stroke: isSelected ? 'blue' : '#c9280e',
+      strokeWidth: isSelected ? 4 : 2,
+      closed: true,
+      offsetX: 25,
+      offsetY: 25
+    }" />
     <v-text :config="{
-      text: relationship.name,
+      text: relationship.type === 'IsA' ? '' : relationship.name,
       fontSize: 16,
       fontFamily: 'arial',
       fill: 'black',
@@ -39,16 +49,27 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useDiagramStore } from '@/stores/diagramStore'
 import type { Relationship } from '@/types/er-diagram-elements'
 
 const props = defineProps<{
   relationship: Relationship
 }>()
 
-const emit = defineEmits(['dragmove']) // Changed to dragmove
+const store = useDiagramStore()
 
-const handleDragMove = (event: any) => { // Changed to handleDragMove
+const isSelected = computed(() => store.selectedElementId === props.relationship.id)
+
+const emit = defineEmits(['dragmove']) 
+
+const handleDragMove = (event: any) => { 
   emit('dragmove', { id: props.relationship.id, x: event.target.x(), y: event.target.y() })
+}
+
+const handleSelect = (e: any) => {
+  store.selectElement(props.relationship.id)
+  e.cancelBubble = true;
 }
 
 const calculateTextWidth = (name: string) => {
@@ -79,5 +100,10 @@ const calculateWeakDiamondPoints = (name: string) => {
 
 const calculateWeakDiamondOffsetX = (name: string) => {
   return (calculateTextWidth(name) + 10) / 2;
+};
+
+const calculateTrianglePoints = () => {
+  const size = 50;
+  return [size / 2, 0, size, size, 0, size];
 };
 </script>

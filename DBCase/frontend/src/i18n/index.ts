@@ -62,8 +62,14 @@ const messages = {
       addAttribute: 'Add Attribute',
       attributeName: 'Attribute Name',
       enterAttributeName: 'Enter attribute name',
-      parentEntity: 'Parent Entity',
-      selectParentEntity: 'Select Parent Entity'
+      parent: 'Parent Element',
+      selectParent: 'Select Parent Entity, Relationship or Attribute',
+      domain: 'Domain (Optional)',
+      selectDomain: 'Select a domain',
+      primaryKey: 'Primary Key',
+      multivalued: 'Multivalued',
+      derived: 'Derived',
+      composite: 'Is Composite'
     },
     relationship: {
       addRelationship: 'Add Relationship',
@@ -71,7 +77,23 @@ const messages = {
       enterRelationshipName: 'Enter relationship name',
       cardinality: 'Cardinality',
       selectEntity: 'Select entity',
-      entity: 'Entity'
+      entity: 'Entity',
+      role: 'Role (Optional)',
+      enterRole: 'e.g. Manager, Employee',
+      currentParticipants: 'Current Participants'
+    },
+    isa: {
+      childEntities: 'Child Entities',
+      selectChildren: 'Select Child Entities',
+      disjoint: 'Disjoint (d) / Overlapping (o)',
+      total: 'Total (t) / Partial (p)'
+    },
+    domain: {
+      name: 'Domain Name',
+      baseType: 'Base Type',
+      allowedValues: 'Allowed Values (optional, comma-separated)',
+      enterValues: 'e.g. Red, Green, Blue',
+      existingDomains: 'Existing Domains'
     },
     schema: {
       save: 'Save (.dbw)',
@@ -99,10 +121,14 @@ const messages = {
       cancel: 'Cancel',
       save: 'Save',
       add: 'Add', // Added
+      delete: 'Delete',
+      rename: 'Rename',
       goHome: 'Go Home',
       goBack: 'Go Back',
       profile: 'Profile',
-      logout: 'Logout'
+      logout: 'Logout',
+      confirm: 'Confirm',
+      edit: 'Edit'
     },
     aboutUs: {
       title: 'About Us',
@@ -205,8 +231,14 @@ const messages = {
       addAttribute: 'Añadir Atributo',
       attributeName: 'Nombre de Atributo',
       enterAttributeName: 'Introduce el nombre del atributo',
-      parentEntity: 'Entidad Padre',
-      selectParentEntity: 'Selecciona la Entidad Padre'
+      parent: 'Elemento Padre',
+      selectParent: 'Selecciona Entidad, Relación o Atributo Padre',
+      domain: 'Dominio (Opcional)',
+      selectDomain: 'Selecciona un dominio',
+      primaryKey: 'Clave Primaria',
+      multivalued: 'Multivalente',
+      derived: 'Derivado',
+      composite: 'Es Compuesto'
     },
     relationship: {
       addRelationship: 'Añadir Relación',
@@ -214,7 +246,23 @@ const messages = {
       enterRelationshipName: 'Introduce el nombre de la relación',
       cardinality: 'Cardinalidad',
       selectEntity: 'Seleccionar entidad',
-      entity: 'Entidad'
+      entity: 'Entidad',
+      role: 'Rol (Opcional)',
+      enterRole: 'p.ej. Gerente, Empleado',
+      currentParticipants: 'Participantes Actuales'
+    },
+    isa: {
+      childEntities: 'Entidades Hijas',
+      selectChildren: 'Selecciona Entidades Hijas',
+      disjoint: 'Disjunta (d) / Solapada (o)',
+      total: 'Total (t) / Parcial (p)'
+    },
+    domain: {
+      name: 'Nombre del Dominio',
+      baseType: 'Tipo Base',
+      allowedValues: 'Valores Permitidos (opcional, separados por coma)',
+      enterValues: 'p.ej. Rojo, Verde, Azul',
+      existingDomains: 'Dominios Existentes'
     },
     schema: {
       save: 'Guardar (.dbw)',
@@ -242,10 +290,14 @@ const messages = {
       cancel: 'Cancelar',
       save: 'Guardar',
       add: 'Añadir', // Added
+      delete: 'Eliminar',
+      rename: 'Renombrar',
       goHome: 'Ir al inicio',
       goBack: 'Volver',
       profile: 'Perfil',
-      logout: 'Cerrar sesión'
+      logout: 'Cerrar sesión',
+      confirm: 'Confirmar',
+      edit: 'Editar'
     },
     aboutUs: {
       title: 'Acerca de',

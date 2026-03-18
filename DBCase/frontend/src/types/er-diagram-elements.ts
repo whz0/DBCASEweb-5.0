@@ -9,6 +9,13 @@ export interface DiagramElement {
   position: Position;
 }
 
+interface RelationshipParticipant {
+  entityId: string
+  cardinalityMin: string
+  cardinalityMax: string
+  role?: string
+}
+
 export interface Entity extends DiagramElement {
   isWeak?: boolean;
   attributes: string[];
@@ -17,6 +24,8 @@ export interface Entity extends DiagramElement {
 
 export interface Attribute extends DiagramElement {
   parentId: string;
+  isKey?: boolean;
+  isDerived?: boolean;
   isComposite?: boolean;
   isMultivalued?: boolean;
   isNotNull?: boolean;
@@ -27,7 +36,7 @@ export interface Attribute extends DiagramElement {
 
 export interface Relationship extends DiagramElement {
   type: 'Normal' | 'IsA' | 'Weak';
-  participants: { entityId: string; cardinalityMin: string; cardinalityMax: string; role?: string }[];
+  participants: RelationshipParticipant[];
   attributes: string[];
 }
 

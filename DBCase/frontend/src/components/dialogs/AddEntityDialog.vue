@@ -42,11 +42,12 @@ const addEntity = () => {
       id: crypto.randomUUID(),
       name: relationName.value,
       position: { x: newEntity.position.x + 150, y: newEntity.position.y },
-      isWeak: true, // Identifying relationships are often considered 'weak'
-      entities: [
-        { entityId: newEntity.id, cardinality: '1,1' },
-        { entityId: selectedStrongEntity.value.id, cardinality: '1,N' }
-      ]
+      type: 'Weak' as const, 
+      participants: [
+        { entityId: newEntity.id, cardinalityMin: '1', cardinalityMax: '1' },
+        { entityId: selectedStrongEntity.value.id, cardinalityMin: '1', cardinalityMax: 'N' }
+      ],
+      attributes: []
     }
     diagramStore.addRelationship(newRelationship)
   }

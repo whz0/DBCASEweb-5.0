@@ -1,15 +1,31 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Entity, Relationship, Attribute, Domain, Position } from '@/types/er-diagram-elements'
+import type {
+  Entity,
+  Relationship,
+  Attribute,
+  Domain,
+  Position,
+  DiagramElement,
+} from '@/types/er-diagram-elements'
 
 export const useDiagramStore = defineStore('diagram', () => {
   const entities = ref<Entity[]>([])
   const relationships = ref<Relationship[]>([])
-  const attributes = ref<Attribute[]>([]) // Attributes can be independent or attached
+  const attributes = ref<Attribute[]>([])
   const domains = ref<Domain[]>([])
-  const selectedElementId = ref<string | null>(null) // ID of the currently selected element
+  const selectedElementId = ref<string | null>(null)
 
-  // Actions
+  function find<T extends DiagramElement>(id: string, values: T[]) : T | undefined {
+    return values.find(e => e.id === id);
+  }
+
+  function move(elementToMove: DiagramElement | undefined, position: Position) {
+    if (elementToMove) {
+      elementToMove.position = position
+    }
+  }
+
   function addEntity(entity: Entity) {
     entities.value.push(entity)
   }
@@ -22,10 +38,8 @@ export const useDiagramStore = defineStore('diagram', () => {
   }
 
   function updateEntityPosition(id: string, position: Position) {
-    const entity = entities.value.find(e => e.id === id)
-    if (entity) {
-      entity.position = position
-    }
+    const entity = find(id, entities.value)
+    move(entity, position)
   }
 
   function addRelationship(relationship: Relationship) {
@@ -33,10 +47,8 @@ export const useDiagramStore = defineStore('diagram', () => {
   }
 
   function updateRelationshipPosition(id: string, position: Position) {
-    const relationship = relationships.value.find(r => r.id === id)
-    if (relationship) {
-      relationship.position = position
-    }
+    const relationship = find(id, relationships.value)
+    move(relationship, position)
   }
 
   function addAttribute(attribute: Attribute) {
@@ -44,17 +56,72 @@ export const useDiagramStore = defineStore('diagram', () => {
   }
 
   function updateAttributePosition(id: string, position: Position) {
-    const attribute = attributes.value.find(a => a.id === id)
-    if (attribute) {
-      attribute.position = position
-    }
+    const attribute = find(id, attributes.value)
+    move(attribute, position)
   }
 
   function addDomain(domain: Domain) {
     domains.value.push(domain)
   }
 
-  // ... other actions for relationships, attributes, domains, selection, etc.
+  function addParticipantToRelationship(relationshipId: string, participant: { entityId: string, cardinalityMin: string, cardinalityMax: string, role?: string }) {
+    const relationship = relationships.value.find(r => r.id === relationshipId)
+    if (relationship) {
+      // Check if entity already participates
+      if (!relationship.participants.some(p => p.entityId === participant.entityId)) {
+        relationship.participants.push(participant)
+      }
+    }
+  }
+
+  function removeParticipantFromRelationship(relationshipId: string, entityId: string) {
+    const relationship = relationships.value.find(r => r.id === relationshipId)
+    if (relationship) {
+      relationship.participants = relationship.participants.filter(p => p.entityId !== entityId)
+    }
+  }
+
+  function selectElement(id: string | null) {
+    selectedElementId.value = id
+  }
+
+  function deleteElement(id: string) {
+    // If it's an entity, also delete its attributes and remove it from relationships
+    const entityIndex = entities.value.findIndex(e => e.id === id)
+    if (entityIndex !== -1) {
+      attributes.value = attributes.value.filter(a => a.parentId !== id)
+      relationships.value.forEach(r => {
+        r.participants = r.participants.filter(p => p.entityId !== id)
+      })
+      entities.value.splice(entityIndex, 1)
+    } else {
+      relationships.value = relationships.value.filter(r => r.id !== id)
+      attributes.value = attributes.value.filter(a => a.id !== id)
+      domains.value = domains.value.filter(d => d.id !== id)
+    }
+
+    if (selectedElementId.value === id) {
+      selectedElementId.value = null
+    }
+  }
+
+  function renameElement(id: string, newName: string) {
+    const entity = entities.value.find(e => e.id === id)
+    if (entity) {
+      entity.name = newName
+      return
+    }
+    const relationship = relationships.value.find(r => r.id === id)
+    if (relationship) {
+      relationship.name = newName
+      return
+    }
+    const attribute = attributes.value.find(a => a.id === id)
+    if (attribute) {
+      attribute.name = newName
+      return
+    }
+  }
 
   return {
     entities,
@@ -62,14 +129,18 @@ export const useDiagramStore = defineStore('diagram', () => {
     attributes,
     domains,
     selectedElementId,
+    selectElement,
+    deleteElement,
+    renameElement,
     addEntity,
     updateEntity,
+    removeParticipantFromRelationship,
     updateEntityPosition,
     addRelationship,
     updateRelationshipPosition,
+    addParticipantToRelationship,
     addAttribute,
     updateAttributePosition,
     addDomain,
-    // ... expose other actions and state
   }
 })
