@@ -2,6 +2,7 @@
 </script>
 
 <template>
+  <!-- CI Test Comment -->
   <Toast />
   <main class="flex-1 justify-center overflow-auto">
     <RouterView />
