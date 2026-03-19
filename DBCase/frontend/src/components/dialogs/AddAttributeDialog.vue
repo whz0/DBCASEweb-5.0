@@ -13,8 +13,10 @@ const attributeName = ref('')
 const selectedParentId = ref<string | null>(null)
 const isKey = ref(false)
 const isMultivalued = ref(false)
-const isDerived = ref(false)
 const isComposite = ref(false)
+const isNotNull = ref(false)
+const isUnique = ref(false)
+const size = ref(20)
 const selectedDomainId = ref<string | null>(null)
 
 const domains = computed(() => diagramStore.domains)
@@ -61,8 +63,10 @@ const closeModal = () => {
   selectedParentId.value = null
   isKey.value = false
   isMultivalued.value = false
-  isDerived.value = false
   isComposite.value = false
+  isNotNull.value = false
+  isUnique.value = false
+  size.value = 20
   selectedDomainId.value = null
 }
 
@@ -74,8 +78,10 @@ const addAttribute = () => {
       position: { ...diagramStore.lastClickPosition },
       isKey: isKey.value,
       isMultivalued: isMultivalued.value,
-      isDerived: isDerived.value,
       isComposite: isComposite.value,
+      isNotNull: isNotNull.value,
+      isUnique: isUnique.value,
+      size: size.value,
       domainId: selectedDomainId.value || undefined,
       parentId: selectedParentId.value,
     }
@@ -125,7 +131,10 @@ const addAttribute = () => {
         show-clear
       />
 
-      <div class="flex flex-col gap-2 mt-2">
+      <label for="size" class="font-semibold mt-2">{{ t('attribute.size') }}</label>
+      <InputNumber id="size" v-model="size" />
+
+      <div class="grid grid-cols-2 gap-2 mt-2">
         <div class="flex items-center gap-2">
           <Checkbox v-model="isKey" :binary="true" inputId="isKey" />
           <label for="isKey">{{ t('attribute.primaryKey') }}</label>
@@ -135,12 +144,16 @@ const addAttribute = () => {
           <label for="isMultivalued">{{ t('attribute.multivalued') }}</label>
         </div>
         <div class="flex items-center gap-2">
-          <Checkbox v-model="isDerived" :binary="true" inputId="isDerived" />
-          <label for="isDerived">{{ t('attribute.derived') }}</label>
-        </div>
-        <div class="flex items-center gap-2">
           <Checkbox v-model="isComposite" :binary="true" inputId="isComposite" />
           <label for="isComposite">{{ t('attribute.composite') }}</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="isNotNull" :binary="true" inputId="isNotNull" />
+          <label for="isNotNull">{{ t('attribute.notNull') }}</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="isUnique" :binary="true" inputId="isUnique" />
+          <label for="isUnique">{{ t('attribute.unique') }}</label>
         </div>
       </div>
     </div>

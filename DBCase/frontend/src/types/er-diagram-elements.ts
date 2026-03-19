@@ -25,12 +25,12 @@ export interface Entity extends DiagramElement {
 export interface Attribute extends DiagramElement {
   parentId: string
   isKey?: boolean
-  isDerived?: boolean
   isComposite?: boolean
   isMultivalued?: boolean
   isNotNull?: boolean
   isUnique?: boolean
   domainId?: string
+  size?: number
   components?: string[]
 }
 

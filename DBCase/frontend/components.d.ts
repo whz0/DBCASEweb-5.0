@@ -38,6 +38,7 @@ declare module 'vue' {
     InputGroup: typeof import('primevue/inputgroup')['default']
     InputGroupAddon: typeof import('primevue/inputgroupaddon')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
+    InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
     LayoutDialog: typeof import('./src/components/dialogs/LayoutDialog.vue')['default']
     ManageDomainsDialog: typeof import('./src/components/dialogs/ManageDomainsDialog.vue')['default']

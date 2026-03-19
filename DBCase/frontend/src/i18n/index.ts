@@ -70,6 +70,9 @@ const messages = {
       multivalued: 'Multivalued',
       derived: 'Derived',
       composite: 'Is Composite',
+      notNull: 'Not Null',
+      unique: 'Unique',
+      size: 'Size',
     },
     relationship: {
       addRelationship: 'Add Relationship',
@@ -241,6 +244,9 @@ const messages = {
       multivalued: 'Multivalente',
       derived: 'Derivado',
       composite: 'Es Compuesto',
+      notNull: 'No Nulo',
+      unique: 'Único',
+      size: 'Tamaño',
     },
     relationship: {
       addRelationship: 'Añadir Relación',

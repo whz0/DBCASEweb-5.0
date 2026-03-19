@@ -17,7 +17,6 @@
         fill: '#22bdb1',
         stroke: isSelected ? 'blue' : '#078980',
         strokeWidth: isSelected ? 4 : 2,
-        dash: attribute.isDerived ? [5, 5] : [],
         zIndex: 1,
       }"
     />
