@@ -2,10 +2,12 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useDiagramStore } from '@/stores/diagramStore'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
+const diagramStore = useDiagramStore()
 const filename = ref('')
 
 const visible = computed(() => dialogStore.isOpen(DialogId.SaveSchema))
@@ -16,7 +18,21 @@ const closeModal = () => {
 
 const saveSchema = () => {
   if (filename.value.trim()) {
-    console.log(filename.value)
+    const schemaData = {
+      version: '1.0',
+      state: diagramStore.getCurrentSnapshot(),
+    }
+
+    const json = JSON.stringify(schemaData, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${filename.value.trim()}.dbw`
+    link.click()
+
+    URL.revokeObjectURL(url)
     closeModal()
   }
 }

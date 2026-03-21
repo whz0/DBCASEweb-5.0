@@ -35,7 +35,12 @@ const diagramStore = useDiagramStore()
         <h1>{{ t('panels.conceptual') }}</h1>
       </div>
       <div>
-        <Button severity="secondary" class="bi bi-download" text />
+        <Button
+          severity="secondary"
+          class="bi bi-download"
+          v-tooltip.bottom="t('panels.download')"
+          text
+        />
         <Button
           severity="secondary"
           class="bi bi-x-lg"

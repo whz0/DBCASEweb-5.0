@@ -74,7 +74,7 @@ const cardinalityOptions: CardinalityOption[] = [
   { label: '1,1', min: '1', max: '1' },
   { label: '0,n', min: '0', max: 'n' },
   { label: '1,n', min: '1', max: 'n' },
-  { label: 'Custom', min: '', max: '' },
+  { label: t('relationship.custom'), min: '', max: '' },
 ]
 
 const selectedCardinalityOption = ref(cardinalityOptions[2])
@@ -121,13 +121,13 @@ const onCardinalityChange = (e: { value: CardinalityOption }) => {
         @change="onCardinalityChange"
       />
 
-      <div v-if="selectedCardinalityOption?.label === 'Custom'" class="flex gap-2">
+      <div v-if="selectedCardinalityOption?.label === t('relationship.custom')" class="flex gap-2">
         <div class="flex flex-col flex-1">
-          <label for="min" class="text-sm">Min</label>
+          <label for="min" class="text-sm">{{ t('relationship.min') }}</label>
           <InputText id="min" v-model="cardinalityMin" />
         </div>
         <div class="flex flex-col flex-1">
-          <label for="max" class="text-sm">Max</label>
+          <label for="max" class="text-sm">{{ t('relationship.max') }}</label>
           <InputText id="max" v-model="cardinalityMax" />
         </div>
       </div>

@@ -46,3 +46,10 @@ export interface Domain {
   baseType: string
   values?: string[]
 }
+
+export interface Snapshot {
+  entities: Entity[]
+  relationships: Relationship[]
+  attributes: Attribute[]
+  domains: Domain[]
+}

@@ -1,57 +1,72 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { useDiagramStore } from '@/stores/diagramStore'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import { useDiagramDialog } from '@/composables/useDiagramDialog'
+import { DialogId } from '@/stores/dialogStore'
 import type { Entity } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
-const dialogStore = useDialogStore()
-const diagramStore = useDiagramStore()
+const { diagramStore, isEditMode, visible, closeModal } = useDiagramDialog(
+  DialogId.AddEntity,
+  DialogId.EditEntity,
+)
 
 const entityName = ref('')
 const isWeakEntity = ref(false)
 const relationName = ref('')
 const selectedStrongEntity = ref<Entity | null>(null)
 
-const strongEntities = computed(() => diagramStore.entities)
+const currentEntity = computed(() => {
+  if (!isEditMode.value) return null
+  const id = diagramStore.selectedElementId
+  return diagramStore.entities.find((e) => e.id === id) || null
+})
 
-const visible = computed(() => dialogStore.isOpen(DialogId.AddEntity))
-const closeModal = () => {
-  dialogStore.close(DialogId.AddEntity)
-  // Reset form
-  entityName.value = ''
-  isWeakEntity.value = false
-  relationName.value = ''
-  selectedStrongEntity.value = null
-}
+const strongEntities = computed(() =>
+  diagramStore.entities.filter((e) => e.id !== currentEntity.value?.id),
+)
 
-const addEntity = () => {
-  const newEntity: Entity = {
-    id: crypto.randomUUID(),
-    name: entityName.value,
-    position: { ...diagramStore.lastClickPosition },
-    isWeak: isWeakEntity.value,
-    attributes: [],
-    primaryKeys: [],
-  }
-  diagramStore.addEntity(newEntity)
+watch(visible, (isNowVisible) => {
+  if (isNowVisible) {
+    if (isEditMode.value && currentEntity.value) {
+      entityName.value = currentEntity.value.name
+      isWeakEntity.value = !!currentEntity.value.isWeak
 
-  if (isWeakEntity.value && selectedStrongEntity.value) {
-    const newRelationship = {
-      id: crypto.randomUUID(),
-      name: relationName.value,
-      position: { x: newEntity.position.x + 150, y: newEntity.position.y },
-      type: 'Weak' as const,
-      participants: [
-        { entityId: newEntity.id, cardinalityMin: '1', cardinalityMax: '1' },
-        { entityId: selectedStrongEntity.value.id, cardinalityMin: '1', cardinalityMax: 'N' },
-      ],
-      attributes: [],
+      if (isWeakEntity.value) {
+        const idRel = diagramStore.relationships.find(
+          (r) =>
+            r.type === 'Weak' && r.participants.some((p) => p.entityId === currentEntity.value?.id),
+        )
+        if (idRel) {
+          relationName.value = idRel.name
+          const strongParticipant = idRel.participants.find(
+            (p) => p.entityId !== currentEntity.value?.id,
+          )
+          if (strongParticipant) {
+            selectedStrongEntity.value =
+              diagramStore.entities.find((e) => e.id === strongParticipant.entityId) || null
+          }
+        }
+      }
+    } else {
+      entityName.value = ''
+      isWeakEntity.value = false
+      relationName.value = ''
+      selectedStrongEntity.value = null
     }
-    diagramStore.addRelationship(newRelationship)
   }
+})
+
+const saveEntity = () => {
+  if (!entityName.value.trim()) return
+
+  diagramStore.saveEntity(
+    { name: entityName.value.trim(), isWeak: isWeakEntity.value },
+    isEditMode.value,
+    selectedStrongEntity.value,
+    relationName.value,
+  )
 
   closeModal()
 }
@@ -65,7 +80,7 @@ const addEntity = () => {
     :dismissable-mask="true"
     :draggable="false"
     :style="{ width: '30rem' }"
-    :header="t('entity.addEntity')"
+    :header="isEditMode ? t('entity.editEntity') : t('entity.addEntity')"
   >
     <div class="flex flex-col gap-3">
       <label for="entityName" class="font-semibold">{{ t('entity.entityName') }}</label>
@@ -109,7 +124,11 @@ const addEntity = () => {
         severity="secondary"
         @click="closeModal"
       />
-      <Button :label="t('entity.addEntity')" icon="bi bi-check-lg" @click="addEntity" />
+      <Button
+        :label="isEditMode ? t('common.confirm') : t('entity.addEntity')"
+        icon="bi bi-check-lg"
+        @click="saveEntity"
+      />
     </template>
   </Dialog>
 </template>

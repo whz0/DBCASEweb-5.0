@@ -3,10 +3,12 @@ import type { FileUploadSelectEvent } from 'primevue/fileupload'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useDiagramStore } from '@/stores/diagramStore'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
+const diagramStore = useDiagramStore()
 
 const selectedFile = ref<File | null>(null)
 
@@ -26,8 +28,23 @@ const onFileSelect = (event: FileUploadSelectEvent) => {
 
 const openSchema = () => {
   if (selectedFile.value) {
-    console.log('Opening file:', selectedFile.value.name)
-    closeModal()
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string
+        const data = JSON.parse(content)
+
+        if (data.state) {
+          diagramStore.loadSnapshot(data.state)
+        } else {
+          diagramStore.loadSnapshot(data)
+        }
+        closeModal()
+      } catch (error) {
+        console.error('Error parsing schema file:', error)
+      }
+    }
+    reader.readAsText(selectedFile.value)
   }
 }
 </script>

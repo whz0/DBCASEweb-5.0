@@ -8,6 +8,7 @@ import type {
   Entity,
   Position,
   Relationship,
+  Snapshot,
 } from '@/types/er-diagram-elements'
 
 export const useDiagramStore = defineStore('diagram', () => {
@@ -18,17 +19,22 @@ export const useDiagramStore = defineStore('diagram', () => {
   const selectedElementId = ref<string | null>(null)
   const lastClickPosition = ref<Position>({ x: 100, y: 100 })
 
-  const past = ref<string[]>([])
-  const future = ref<string[]>([])
+  const past = ref<Snapshot[]>([])
+  const future = ref<Snapshot[]>([])
+
+  function getCurrentSnapshot(): Snapshot {
+    return JSON.parse(
+      JSON.stringify({
+        entities: entities.value,
+        relationships: relationships.value,
+        attributes: attributes.value,
+        domains: domains.value,
+      }),
+    )
+  }
 
   function saveHistory() {
-    const snapshot = JSON.stringify({
-      entities: entities.value,
-      relationships: relationships.value,
-      attributes: attributes.value,
-      domains: domains.value,
-    })
-    past.value.push(snapshot)
+    past.value.push(getCurrentSnapshot())
     future.value = []
 
     if (past.value.length > 50) {
@@ -36,42 +42,26 @@ export const useDiagramStore = defineStore('diagram', () => {
     }
   }
 
+  function applySnapshot(snapshot: Snapshot) {
+    entities.value = snapshot.entities || []
+    relationships.value = snapshot.relationships || []
+    attributes.value = snapshot.attributes || []
+    domains.value = snapshot.domains || []
+    selectedElementId.value = null
+  }
+
   function undo() {
     if (past.value.length === 0) return
 
-    const currentSnapshot = JSON.stringify({
-      entities: entities.value,
-      relationships: relationships.value,
-      attributes: attributes.value,
-      domains: domains.value,
-    })
-    future.value.push(currentSnapshot)
-
-    const previousSnapshot = JSON.parse(past.value.pop()!)
-    entities.value = previousSnapshot.entities
-    relationships.value = previousSnapshot.relationships
-    attributes.value = previousSnapshot.attributes
-    domains.value = previousSnapshot.domains
-    selectedElementId.value = null
+    future.value.push(getCurrentSnapshot())
+    applySnapshot(past.value.pop()!)
   }
 
   function redo() {
     if (future.value.length === 0) return
 
-    const currentSnapshot = JSON.stringify({
-      entities: entities.value,
-      relationships: relationships.value,
-      attributes: attributes.value,
-      domains: domains.value,
-    })
-    past.value.push(currentSnapshot)
-
-    const nextSnapshot = JSON.parse(future.value.pop()!)
-    entities.value = nextSnapshot.entities
-    relationships.value = nextSnapshot.relationships
-    attributes.value = nextSnapshot.attributes
-    domains.value = nextSnapshot.domains
-    selectedElementId.value = null
+    past.value.push(getCurrentSnapshot())
+    applySnapshot(future.value.pop()!)
   }
 
   function setLastClickPosition(position: Position) {
@@ -97,21 +87,9 @@ export const useDiagramStore = defineStore('diagram', () => {
     move(element, position)
   }
 
-  function addElement<T>(element: T, elements: T[]) {
-    saveHistory()
-    elements.push(element)
-  }
-
   function addEntity(entity: Entity) {
-    addElement(entity, entities.value)
-  }
-
-  function updateEntity(updatedEntity: Entity) {
     saveHistory()
-    const index = entities.value.findIndex((e) => e.id === updatedEntity.id)
-    if (index !== -1) {
-      entities.value[index] = updatedEntity
-    }
+    entities.value.push(entity)
   }
 
   function updateEntityPosition(id: string, position: Position) {
@@ -119,23 +97,16 @@ export const useDiagramStore = defineStore('diagram', () => {
   }
 
   function addRelationship(relationship: Relationship) {
-    addElement(relationship, relationships.value)
+    saveHistory()
+    relationships.value.push(relationship)
   }
 
   function updateRelationshipPosition(id: string, position: Position) {
     updateElementPosition(id, relationships.value, position)
   }
 
-  function addAttribute(attribute: Attribute) {
-    addElement(attribute, attributes.value)
-  }
-
   function updateAttributePosition(id: string, position: Position) {
     updateElementPosition(id, attributes.value, position)
-  }
-
-  function addDomain(domain: Domain) {
-    addElement(domain, domains.value)
   }
 
   function addParticipantToRelationship(
@@ -192,22 +163,185 @@ export const useDiagramStore = defineStore('diagram', () => {
     }
   }
 
-  function renameElement(id: string, newName: string) {
+  function loadSnapshot(newState: Snapshot) {
     saveHistory()
-    const entity = entities.value.find((e) => e.id === id)
-    if (entity) {
-      entity.name = newName
-      return
+    applySnapshot(newState)
+  }
+
+  function syncWeakEntityRelationship(
+    entity: Entity,
+    isWeak: boolean,
+    strongEntity: Entity | null,
+    relationName: string,
+  ) {
+    const existingIdRel = relationships.value.find(
+      (r) => r.type === 'Weak' && r.participants.some((p) => p.entityId === entity.id),
+    )
+
+    if (isWeak && strongEntity) {
+      if (existingIdRel) {
+        existingIdRel.name = relationName.trim() || 'Identifying'
+        existingIdRel.participants = [
+          { entityId: entity.id, cardinalityMin: '1', cardinalityMax: '1' },
+          { entityId: strongEntity.id, cardinalityMin: '1', cardinalityMax: 'N' },
+        ]
+      } else {
+        addRelationship({
+          id: crypto.randomUUID(),
+          name: relationName.trim() || 'Identifying',
+          position: { x: entity.position.x + 150, y: entity.position.y },
+          type: 'Weak' as const,
+          participants: [
+            { entityId: entity.id, cardinalityMin: '1', cardinalityMax: '1' },
+            { entityId: strongEntity.id, cardinalityMin: '1', cardinalityMax: 'N' },
+          ],
+          attributes: [],
+        })
+      }
+    } else if (!isWeak && existingIdRel) {
+      deleteElement(existingIdRel.id)
     }
-    const relationship = relationships.value.find((r) => r.id === id)
-    if (relationship) {
-      relationship.name = newName
-      return
+  }
+
+  function saveEntity(
+    data: { name: string; isWeak: boolean },
+    isEdit: boolean,
+    strongEntity: Entity | null,
+    relationName: string,
+  ) {
+    let entity: Entity
+    if (isEdit && selectedElementId.value) {
+      const existing = entities.value.find((e) => e.id === selectedElementId.value)
+      if (!existing) return
+      saveHistory()
+      entity = { ...existing, ...data }
+      const index = entities.value.findIndex((e) => e.id === entity.id)
+      entities.value[index] = entity
+    } else {
+      saveHistory()
+      entity = {
+        id: crypto.randomUUID(),
+        name: data.name,
+        position: { ...lastClickPosition.value },
+        isWeak: data.isWeak,
+        attributes: [],
+        primaryKeys: [],
+      }
+      entities.value.push(entity)
     }
-    const attribute = attributes.value.find((a) => a.id === id)
-    if (attribute) {
-      attribute.name = newName
-      return
+
+    syncWeakEntityRelationship(entity, data.isWeak, strongEntity, relationName)
+  }
+
+  function saveAttribute(
+    data: {
+      name: string
+      parentId: string
+      isKey: boolean
+      isMultivalued: boolean
+      isComposite: boolean
+      isNotNull: boolean
+      isUnique: boolean
+      size: number
+      domainId?: string
+    },
+    isEdit: boolean,
+  ) {
+    if (isEdit && selectedElementId.value) {
+      const existing = attributes.value.find((a) => a.id === selectedElementId.value)
+      if (!existing) return
+      saveHistory()
+      const index = attributes.value.findIndex((a) => a.id === existing.id)
+      attributes.value[index] = { ...existing, ...data }
+    } else {
+      saveHistory()
+      attributes.value.push({
+        id: crypto.randomUUID(),
+        position: { ...lastClickPosition.value },
+        ...data,
+      })
+    }
+  }
+
+  function saveRelationship(data: { name: string }, isEdit: boolean) {
+    if (isEdit && selectedElementId.value) {
+      const rel = relationships.value.find((r) => r.id === selectedElementId.value)
+      if (rel) {
+        saveHistory()
+        rel.name = data.name.trim()
+      }
+    } else {
+      saveHistory()
+      addRelationship({
+        id: crypto.randomUUID(),
+        name: data.name.trim(),
+        position: { ...lastClickPosition.value },
+        type: 'Normal',
+        participants: [],
+        attributes: [],
+      })
+    }
+  }
+
+  function saveIsARelationship(
+    data: {
+      parent: Entity
+      children: Entity[]
+    },
+    isEdit: boolean,
+  ) {
+    if (isEdit && selectedElementId.value) {
+      const rel = relationships.value.find((r) => r.id === selectedElementId.value)
+      if (rel && rel.type === 'IsA') {
+        saveHistory()
+        rel.participants = [
+          { entityId: data.parent.id, cardinalityMin: '', cardinalityMax: '', role: 'Parent' },
+          ...data.children.map((c) => ({
+            entityId: c.id,
+            cardinalityMin: '',
+            cardinalityMax: '',
+            role: 'Child',
+          })),
+        ]
+      }
+    } else {
+      addRelationship({
+        id: crypto.randomUUID(),
+        name: 'IsA',
+        position: { ...lastClickPosition.value },
+        type: 'IsA' as const,
+        participants: [
+          { entityId: data.parent.id, cardinalityMin: '', cardinalityMax: '', role: 'Parent' },
+          ...data.children.map((c) => ({
+            entityId: c.id,
+            cardinalityMin: '',
+            cardinalityMax: '',
+            role: 'Child',
+          })),
+        ],
+        attributes: [],
+      })
+    }
+  }
+
+  function saveDomain(
+    data: { name: string; baseType: string; values?: string[] },
+    isEdit: boolean,
+    domainId?: string,
+  ) {
+    const targetId = isEdit ? domainId || selectedElementId.value : null
+    if (isEdit && targetId) {
+      const index = domains.value.findIndex((d) => d.id === targetId)
+      if (index !== -1) {
+        saveHistory()
+        domains.value[index] = { ...domains.value[index], ...data } as Domain
+      }
+    } else {
+      saveHistory()
+      domains.value.push({
+        id: crypto.randomUUID(),
+        ...data,
+      })
     }
   }
 
@@ -223,19 +357,22 @@ export const useDiagramStore = defineStore('diagram', () => {
     undo,
     redo,
     saveHistory,
+    getCurrentSnapshot,
+    loadSnapshot,
+    saveEntity,
+    saveAttribute,
+    saveRelationship,
+    saveIsARelationship,
+    saveDomain,
+    addEntity,
+    addRelationship,
     selectElement,
     deleteElement,
-    renameElement,
-    addEntity,
-    updateEntity,
     removeParticipantFromRelationship,
     updateEntityPosition,
-    addRelationship,
     updateRelationshipPosition,
     addParticipantToRelationship,
-    addAttribute,
     updateAttributePosition,
-    addDomain,
     setLastClickPosition,
   }
 })

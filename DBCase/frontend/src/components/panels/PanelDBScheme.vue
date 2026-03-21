@@ -13,7 +13,12 @@ const panelStore = useGeneratePanelStore()
       <h1>{{ t('panels.physical') }}</h1>
     </div>
     <div>
-      <Button severity="secondary" class="bi bi-download" text />
+      <Button
+        severity="secondary"
+        class="bi bi-download"
+        v-tooltip.bottom="t('panels.download')"
+        text
+      />
       <Button
         severity="secondary"
         class="bi bi-x-lg"

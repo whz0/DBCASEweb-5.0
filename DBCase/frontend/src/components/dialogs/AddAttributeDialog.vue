@@ -2,12 +2,14 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { useDiagramStore } from '@/stores/diagramStore'
-import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import { useDiagramDialog } from '@/composables/useDiagramDialog'
+import { DialogId } from '@/stores/dialogStore'
 
 const { t } = useI18n()
-const dialogStore = useDialogStore()
-const diagramStore = useDiagramStore()
+const { diagramStore, isEditMode, visible, closeModal } = useDiagramDialog(
+  DialogId.AddAttribute,
+  DialogId.EditAttribute,
+)
 
 const attributeName = ref('')
 const selectedParentId = ref<string | null>(null)
@@ -20,6 +22,12 @@ const size = ref(20)
 const selectedDomainId = ref<string | null>(null)
 
 const domains = computed(() => diagramStore.domains)
+
+const currentAttribute = computed(() => {
+  if (!isEditMode.value) return null
+  const id = diagramStore.selectedElementId
+  return diagramStore.attributes.find((a) => a.id === id) || null
+})
 
 const parentOptions = computed(() => {
   return [
@@ -41,51 +49,59 @@ const parentOptions = computed(() => {
   ]
 })
 
-const visible = computed(() => dialogStore.isOpen(DialogId.AddAttribute))
-
 watch(visible, (isNowVisible) => {
   if (isNowVisible) {
-    const selectedId = diagramStore.selectedElementId
-    if (selectedId) {
-      const isEntity = diagramStore.entities.some((e) => e.id === selectedId)
-      const isRel = diagramStore.relationships.some((r) => r.id === selectedId)
-      const isAttr = diagramStore.attributes.some((a) => a.id === selectedId)
-      if (isEntity || isRel || isAttr) {
-        selectedParentId.value = selectedId
+    if (isEditMode.value && currentAttribute.value) {
+      const attr = currentAttribute.value
+      attributeName.value = attr.name
+      selectedParentId.value = attr.parentId
+      isKey.value = !!attr.isKey
+      isMultivalued.value = !!attr.isMultivalued
+      isComposite.value = !!attr.isComposite
+      isNotNull.value = !!attr.isNotNull
+      isUnique.value = !!attr.isUnique
+      size.value = attr.size ?? 20
+      selectedDomainId.value = attr.domainId || null
+    } else {
+      const selectedId = diagramStore.selectedElementId
+      if (selectedId) {
+        const isEntity = diagramStore.entities.some((e) => e.id === selectedId)
+        const isRel = diagramStore.relationships.some((r) => r.id === selectedId)
+        const isAttr = diagramStore.attributes.some((a) => a.id === selectedId)
+        if (isEntity || isRel || isAttr) {
+          selectedParentId.value = selectedId
+        }
+      } else {
+        selectedParentId.value = null
       }
+      attributeName.value = ''
+      isKey.value = false
+      isMultivalued.value = false
+      isComposite.value = false
+      isNotNull.value = false
+      isUnique.value = false
+      size.value = 20
+      selectedDomainId.value = null
     }
   }
 })
 
-const closeModal = () => {
-  dialogStore.close(DialogId.AddAttribute)
-  attributeName.value = ''
-  selectedParentId.value = null
-  isKey.value = false
-  isMultivalued.value = false
-  isComposite.value = false
-  isNotNull.value = false
-  isUnique.value = false
-  size.value = 20
-  selectedDomainId.value = null
-}
-
-const addAttribute = () => {
-  if (selectedParentId.value) {
-    const newAttribute = {
-      id: crypto.randomUUID(),
-      name: attributeName.value,
-      position: { ...diagramStore.lastClickPosition },
-      isKey: isKey.value,
-      isMultivalued: isMultivalued.value,
-      isComposite: isComposite.value,
-      isNotNull: isNotNull.value,
-      isUnique: isUnique.value,
-      size: size.value,
-      domainId: selectedDomainId.value || undefined,
-      parentId: selectedParentId.value,
-    }
-    diagramStore.addAttribute(newAttribute)
+const saveAttribute = () => {
+  if (selectedParentId.value && attributeName.value.trim()) {
+    diagramStore.saveAttribute(
+      {
+        name: attributeName.value.trim(),
+        parentId: selectedParentId.value,
+        isKey: isKey.value,
+        isMultivalued: isMultivalued.value,
+        isComposite: isComposite.value,
+        isNotNull: isNotNull.value,
+        isUnique: isUnique.value,
+        size: size.value,
+        domainId: selectedDomainId.value || undefined,
+      },
+      isEditMode.value,
+    )
   }
   closeModal()
 }
@@ -99,7 +115,7 @@ const addAttribute = () => {
     :dismissable-mask="true"
     :draggable="false"
     :style="{ width: '30rem' }"
-    :header="t('attribute.addAttribute')"
+    :header="isEditMode ? t('attribute.editAttribute') : t('attribute.addAttribute')"
   >
     <div class="flex flex-col gap-3">
       <label for="attributeName" class="font-semibold">{{ t('attribute.attributeName') }}</label>
@@ -165,7 +181,11 @@ const addAttribute = () => {
         severity="secondary"
         @click="closeModal"
       />
-      <Button :label="t('common.add')" icon="bi bi-check-lg" @click="addAttribute" />
+      <Button
+        :label="isEditMode ? t('common.confirm') : t('common.add')"
+        icon="bi bi-check-lg"
+        @click="saveAttribute"
+      />
     </template>
   </Dialog>
 </template>

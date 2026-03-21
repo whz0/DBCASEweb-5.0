@@ -16,11 +16,17 @@ const value = ref('')
       <h1>{{ t('panels.logical') }}</h1>
     </div>
     <div>
-      <Button severity="secondary" class="bi bi-download" text />
+      <Button
+        severity="secondary"
+        class="bi bi-download"
+        v-tooltip.bottom="t('panels.download')"
+        text
+      />
       <Button
         severity="secondary"
         class="bi bi-x-lg"
         @click="panelStore.close(PanelId.LogicalScheme)"
+        v-tooltip.bottom="t('panels.close')"
         text
       />
     </div>

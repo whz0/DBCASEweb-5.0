@@ -14,7 +14,6 @@ import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vu
 import HelpDialog from '@/components/dialogs/HelpDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
-import RenameDialog from '@/components/dialogs/RenameDialog.vue'
 import SaveSchemaDialog from '@/components/dialogs/SaveSchemaDialog.vue'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
@@ -161,7 +160,6 @@ const toggleDrawMenu = (event: Event) => {
         <GenerateSchemeDialog />
         <AddRelationshipDialog />
         <AddEntityToRelationshipDialog />
-        <RenameDialog />
         <AddIsARelationshipDialog />
         <AddDomainDialog />
       </template>
