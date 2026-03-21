@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import type {
   Attribute,
@@ -18,6 +18,62 @@ export const useDiagramStore = defineStore('diagram', () => {
   const selectedElementId = ref<string | null>(null)
   const lastClickPosition = ref<Position>({ x: 100, y: 100 })
 
+  const past = ref<string[]>([])
+  const future = ref<string[]>([])
+
+  function saveHistory() {
+    const snapshot = JSON.stringify({
+      entities: entities.value,
+      relationships: relationships.value,
+      attributes: attributes.value,
+      domains: domains.value,
+    })
+    past.value.push(snapshot)
+    future.value = []
+
+    if (past.value.length > 50) {
+      past.value.shift()
+    }
+  }
+
+  function undo() {
+    if (past.value.length === 0) return
+
+    const currentSnapshot = JSON.stringify({
+      entities: entities.value,
+      relationships: relationships.value,
+      attributes: attributes.value,
+      domains: domains.value,
+    })
+    future.value.push(currentSnapshot)
+
+    const previousSnapshot = JSON.parse(past.value.pop()!)
+    entities.value = previousSnapshot.entities
+    relationships.value = previousSnapshot.relationships
+    attributes.value = previousSnapshot.attributes
+    domains.value = previousSnapshot.domains
+    selectedElementId.value = null
+  }
+
+  function redo() {
+    if (future.value.length === 0) return
+
+    const currentSnapshot = JSON.stringify({
+      entities: entities.value,
+      relationships: relationships.value,
+      attributes: attributes.value,
+      domains: domains.value,
+    })
+    past.value.push(currentSnapshot)
+
+    const nextSnapshot = JSON.parse(future.value.pop()!)
+    entities.value = nextSnapshot.entities
+    relationships.value = nextSnapshot.relationships
+    attributes.value = nextSnapshot.attributes
+    domains.value = nextSnapshot.domains
+    selectedElementId.value = null
+  }
+
   function setLastClickPosition(position: Position) {
     lastClickPosition.value = position
   }
@@ -32,11 +88,26 @@ export const useDiagramStore = defineStore('diagram', () => {
     }
   }
 
+  function updateElementPosition<T extends DiagramElement>(
+    id: string,
+    elements: T[],
+    position: Position,
+  ) {
+    const element = find(id, elements)
+    move(element, position)
+  }
+
+  function addElement<T>(element: T, elements: T[]) {
+    saveHistory()
+    elements.push(element)
+  }
+
   function addEntity(entity: Entity) {
-    entities.value.push(entity)
+    addElement(entity, entities.value)
   }
 
   function updateEntity(updatedEntity: Entity) {
+    saveHistory()
     const index = entities.value.findIndex((e) => e.id === updatedEntity.id)
     if (index !== -1) {
       entities.value[index] = updatedEntity
@@ -44,30 +115,27 @@ export const useDiagramStore = defineStore('diagram', () => {
   }
 
   function updateEntityPosition(id: string, position: Position) {
-    const entity = find(id, entities.value)
-    move(entity, position)
+    updateElementPosition(id, entities.value, position)
   }
 
   function addRelationship(relationship: Relationship) {
-    relationships.value.push(relationship)
+    addElement(relationship, relationships.value)
   }
 
   function updateRelationshipPosition(id: string, position: Position) {
-    const relationship = find(id, relationships.value)
-    move(relationship, position)
+    updateElementPosition(id, relationships.value, position)
   }
 
   function addAttribute(attribute: Attribute) {
-    attributes.value.push(attribute)
+    addElement(attribute, attributes.value)
   }
 
   function updateAttributePosition(id: string, position: Position) {
-    const attribute = find(id, attributes.value)
-    move(attribute, position)
+    updateElementPosition(id, attributes.value, position)
   }
 
   function addDomain(domain: Domain) {
-    domains.value.push(domain)
+    addElement(domain, domains.value)
   }
 
   function addParticipantToRelationship(
@@ -79,9 +147,9 @@ export const useDiagramStore = defineStore('diagram', () => {
       role?: string
     },
   ) {
+    saveHistory()
     const relationship = relationships.value.find((r) => r.id === relationshipId)
     if (relationship) {
-      // Check if entity already participates
       if (!relationship.participants.some((p) => p.entityId === participant.entityId)) {
         relationship.participants.push(participant)
       }
@@ -89,6 +157,7 @@ export const useDiagramStore = defineStore('diagram', () => {
   }
 
   function removeParticipantFromRelationship(relationshipId: string, entityId: string) {
+    saveHistory()
     const relationship = relationships.value.find((r) => r.id === relationshipId)
     if (relationship) {
       relationship.participants = relationship.participants.filter((p) => p.entityId !== entityId)
@@ -99,15 +168,19 @@ export const useDiagramStore = defineStore('diagram', () => {
     selectedElementId.value = id
   }
 
+  function deleteEntity(entityIndex: number, entityId: string) {
+    attributes.value = attributes.value.filter((a) => a.parentId !== entityId)
+    relationships.value.forEach((r) => {
+      r.participants = r.participants.filter((p) => p.entityId !== entityId)
+    })
+    entities.value.splice(entityIndex, 1)
+  }
+
   function deleteElement(id: string) {
-    // If it's an entity, also delete its attributes and remove it from relationships
+    saveHistory()
     const entityIndex = entities.value.findIndex((e) => e.id === id)
     if (entityIndex !== -1) {
-      attributes.value = attributes.value.filter((a) => a.parentId !== id)
-      relationships.value.forEach((r) => {
-        r.participants = r.participants.filter((p) => p.entityId !== id)
-      })
-      entities.value.splice(entityIndex, 1)
+      deleteEntity(entityIndex, id)
     } else {
       relationships.value = relationships.value.filter((r) => r.id !== id)
       attributes.value = attributes.value.filter((a) => a.id !== id)
@@ -120,6 +193,7 @@ export const useDiagramStore = defineStore('diagram', () => {
   }
 
   function renameElement(id: string, newName: string) {
+    saveHistory()
     const entity = entities.value.find((e) => e.id === id)
     if (entity) {
       entity.name = newName
@@ -143,6 +217,12 @@ export const useDiagramStore = defineStore('diagram', () => {
     attributes,
     domains,
     selectedElementId,
+    lastClickPosition,
+    canUndo: computed(() => past.value.length > 0),
+    canRedo: computed(() => future.value.length > 0),
+    undo,
+    redo,
+    saveHistory,
     selectElement,
     deleteElement,
     renameElement,
@@ -156,7 +236,6 @@ export const useDiagramStore = defineStore('diagram', () => {
     addAttribute,
     updateAttributePosition,
     addDomain,
-    lastClickPosition,
     setLastClickPosition,
   }
 })

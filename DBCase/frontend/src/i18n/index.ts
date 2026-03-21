@@ -9,12 +9,14 @@ const messages = {
       settings: 'Settings',
       help: 'Help',
       aboutUs: 'About Us',
+      undo: 'Undo',
+      redo: 'Redo',
       saveSchema: 'Save schema',
       openSchema: 'Open schema',
       greeting: 'Hello {name}',
       drawMenuItems: {
         entity: 'Entity',
-        attribute: 'Attribute', // Added
+        attribute: 'Attribute',
         relationship: 'Relationship',
         simple: 'Simple',
         isA: 'IsA',
@@ -123,7 +125,7 @@ const messages = {
       chooseFile: 'Choose a file',
       cancel: 'Cancel',
       save: 'Save',
-      add: 'Add', // Added
+      add: 'Add',
       delete: 'Delete',
       rename: 'Rename',
       goHome: 'Go Home',
@@ -183,12 +185,14 @@ const messages = {
       settings: 'Configuración',
       help: 'Ayuda',
       aboutUs: 'Acerca de',
+      undo: 'Deshacer',
+      redo: 'Rehacer',
       saveSchema: 'Guardar esquema',
       openSchema: 'Abrir esquema',
       greeting: 'Hola {name}',
       drawMenuItems: {
         entity: 'Entidad',
-        attribute: 'Atributo', // Added
+        attribute: 'Atributo',
         relationship: 'Relación',
         simple: 'Simple',
         isA: 'IsA',
@@ -297,7 +301,7 @@ const messages = {
       chooseFile: 'Elige un archivo',
       cancel: 'Cancelar',
       save: 'Guardar',
-      add: 'Añadir', // Added
+      add: 'Añadir',
       delete: 'Eliminar',
       rename: 'Renombrar',
       goHome: 'Ir al inicio',

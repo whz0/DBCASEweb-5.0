@@ -1,7 +1,37 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
+
+import { useDiagramStore } from '@/stores/diagramStore'
+
+const diagramStore = useDiagramStore()
+
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (['INPUT', 'TEXTAREA'].includes((event.target as HTMLElement).tagName)) {
+    return
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    if (event.key.toLowerCase() === 'z') {
+      event.preventDefault()
+      if (event.shiftKey) {
+        diagramStore.redo()
+      } else {
+        diagramStore.undo()
+      }
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
+</script>
 
 <template>
-  <!-- CI Test Comment -->
   <Toast />
   <main class="flex-1 justify-center overflow-auto">
     <RouterView />

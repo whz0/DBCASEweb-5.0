@@ -10,16 +10,22 @@ const dialogStore = useDialogStore()
 const diagramStore = useDiagramStore()
 
 const domainName = ref('')
-const baseType = ref('INTEGER')
+const baseType = ref('BIT')
 const values = ref('')
 
 const baseTypeOptions = [
-  { label: 'INTEGER', value: 'INTEGER' },
-  { label: 'VARCHAR', value: 'VARCHAR' },
-  { label: 'TEXT', value: 'TEXT' },
-  { label: 'FLOAT', value: 'FLOAT' },
-  { label: 'BOOLEAN', value: 'BOOLEAN' },
+  { label: 'BIT', value: 'BIT' },
+  { label: 'BLOB', value: 'BLOB' },
+  { label: 'CHAR', value: 'CHAR' },
   { label: 'DATE', value: 'DATE' },
+  { label: 'DATETIME', value: 'DATETIME' },
+  { label: 'DECIMAL', value: 'DECIMAL' },
+  { label: 'FLOAT', value: 'FLOAT' },
+  { label: 'GEOMETRY', value: 'GEOMETRY' },
+  { label: 'INTEGER', value: 'INTEGER' },
+  { label: 'TEXT', value: 'TEXT' },
+  { label: 'TIME', value: 'TIME' },
+  { label: 'VARCHAR', value: 'VARCHAR' },
 ]
 
 const visible = computed(() => dialogStore.isOpen(DialogId.AddDomain))

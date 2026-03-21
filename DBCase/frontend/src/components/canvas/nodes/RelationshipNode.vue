@@ -6,6 +6,7 @@
       y: relationship.position.y,
       draggable: true,
     }"
+    @dragstart="handleDragStart"
     @dragmove="handleDragMove"
     @mousedown="handleSelect"
     @touchstart="handleSelect"
@@ -81,6 +82,10 @@ const emit = defineEmits(['dragmove'])
 
 const handleDragMove = (event: KonvaEventObject<DragEvent>) => {
   emit('dragmove', { id: props.relationship.id, x: event.target.x(), y: event.target.y() })
+}
+
+const handleDragStart = () => {
+  store.saveHistory()
 }
 
 const handleSelect = (e: KonvaEventObject<MouseEvent>) => {
