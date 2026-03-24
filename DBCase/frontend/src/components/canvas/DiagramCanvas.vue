@@ -218,6 +218,7 @@ const getContextMenuItems = () => {
         icon: 'bi bi-pencil-square',
         command: () => dialogStore.open(DialogId.EditRelationship),
       },
+      { separator: true },
       {
         label: t('common.delete'),
         icon: 'bi bi-trash',
@@ -238,6 +239,7 @@ const getContextMenuItems = () => {
         icon: 'bi bi-pencil-square',
         command: () => dialogStore.open(DialogId.EditAttribute),
       },
+      { separator: true },
       {
         label: t('common.delete'),
         icon: 'bi bi-trash',
@@ -447,7 +449,20 @@ const handleRelationshipDragMove = (event: { id: string; x: number; y: number })
   store.updateRelationshipPosition(event.id, { x: event.x, y: event.y })
 }
 
+function handleKeydown(e: KeyboardEvent) {
+  // Ignore if user is typing in an input or textarea
+  if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+    return
+  }
+
+  const selectedId = store.selectedElementId
+  if ((e.key === 'Backspace' || e.key === 'Delete') && selectedId) {
+    store.deleteElement(selectedId)
+  }
+}
+
 onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
   if (container.value) {
     const updateStageSize = () => {
       if (container.value) {
@@ -464,5 +479,9 @@ onMounted(() => {
     })
     updateStageSize()
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
