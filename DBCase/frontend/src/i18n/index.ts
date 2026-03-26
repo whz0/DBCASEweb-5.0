@@ -186,6 +186,10 @@ const messages = {
       success: 'Account created successfully',
       error: 'Error creating account',
       userExists: 'Username already exists',
+      promptLabel: 'Enter a password',
+      weakLabel: 'Weak',
+      mediumLabel: 'Medium',
+      strongLabel: 'Strong',
     },
   },
   es: {
@@ -373,6 +377,10 @@ const messages = {
       success: 'Cuenta creada exitosamente',
       error: 'Error al crear la cuenta',
       userExists: 'El usuario ya existe',
+      promptLabel: 'Introduce una contraseña',
+      weakLabel: 'Débil',
+      mediumLabel: 'Media',
+      strongLabel: 'Fuerte',
     },
   },
 }
