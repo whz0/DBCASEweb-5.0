@@ -120,6 +120,8 @@ const messages = {
       selectFile: 'Select File (.dbw)',
       open: 'Open',
       selectedFile: 'Selected File',
+      format: 'File Format',
+      pdf: 'PDF Document (.pdf)',
     },
     errors: {
       404: '404',
@@ -172,6 +174,7 @@ const messages = {
       github: 'Sign in with GitHub',
       noAccount: "Don't have an account?",
       createAccount: 'Create one now',
+      success: 'Successful login',
     },
     register: {
       title: 'Create Account',
@@ -311,6 +314,8 @@ const messages = {
       selectFile: 'Seleccionar Archivo (.dbw)',
       open: 'Abrir',
       selectedFile: 'Archivo Seleccionado',
+      format: 'Formato de archivo',
+      pdf: 'Documento PDF (.pdf)',
     },
     errors: {
       404: '404',
@@ -363,6 +368,7 @@ const messages = {
       github: 'Iniciar sesión con GitHub',
       noAccount: '¿No tienes una cuenta?',
       createAccount: 'Crea una ahora',
+      success: 'Login exitoso',
     },
     register: {
       title: 'Crear Cuenta',

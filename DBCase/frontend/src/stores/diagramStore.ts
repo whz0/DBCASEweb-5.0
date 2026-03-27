@@ -1,3 +1,5 @@
+import { jsPDF } from 'jspdf'
+import type { Stage } from 'konva/lib/Stage'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -18,6 +20,7 @@ export const useDiagramStore = defineStore('diagram', () => {
   const domains = ref<Domain[]>([])
   const selectedElementId = ref<string | null>(null)
   const lastClickPosition = ref<Position>({ x: 100, y: 100 })
+  const stageRef = ref<Stage | null>(null)
 
   const past = ref<Snapshot[]>([])
   const future = ref<Snapshot[]>([])
@@ -31,6 +34,21 @@ export const useDiagramStore = defineStore('diagram', () => {
         domains: domains.value,
       }),
     )
+  }
+
+  function exportToPDF(filename: string = 'diagram') {
+    if (!stageRef.value) return
+
+    const stage = stageRef.value
+    const dataURL = stage.toDataURL({ pixelRatio: 2 })
+    const pdf = new jsPDF({
+      orientation: stage.width() > stage.height() ? 'landscape' : 'portrait',
+      unit: 'px',
+      format: [stage.width(), stage.height()],
+    })
+
+    pdf.addImage(dataURL, 'PNG', 0, 0, stage.width(), stage.height())
+    pdf.save(`${filename}.pdf`)
   }
 
   function saveHistory() {
@@ -374,5 +392,7 @@ export const useDiagramStore = defineStore('diagram', () => {
     addParticipantToRelationship,
     updateAttributePosition,
     setLastClickPosition,
+    stageRef,
+    exportToPDF,
   }
 })

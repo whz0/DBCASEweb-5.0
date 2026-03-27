@@ -462,6 +462,9 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 onMounted(() => {
+  if (stageRef.value) {
+    store.stageRef = stageRef.value.getStage()
+  }
   window.addEventListener('keydown', handleKeydown)
   if (container.value) {
     const updateStageSize = () => {

@@ -45,6 +45,7 @@ declare module 'vue' {
     PanelLogicalScheme: typeof import('./src/components/panels/PanelLogicalScheme.vue')['default']
     Password: typeof import('primevue/password')['default']
     ProfileData: typeof import('./src/components/ProfileData.vue')['default']
+    RadioButton: typeof import('primevue/radiobutton')['default']
     RelationshipNode: typeof import('./src/components/canvas/nodes/RelationshipNode.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

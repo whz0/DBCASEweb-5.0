@@ -37,12 +37,6 @@ const diagramStore = useDiagramStore()
       <div>
         <Button
           severity="secondary"
-          class="bi bi-download"
-          v-tooltip.bottom="t('panels.download')"
-          text
-        />
-        <Button
-          severity="secondary"
           class="bi bi-x-lg"
           @click="panelStore.close(PanelId.ERScheme)"
           v-tooltip.bottom="t('panels.close')"

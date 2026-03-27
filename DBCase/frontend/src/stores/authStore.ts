@@ -31,7 +31,7 @@ export const useAuthStore = defineStore('auth', () => {
       .then(async () => {
         const { data } = await http.get('/user/me')
         assignUser(data)
-        toast('Login exitoso', 'success')
+        toast(i18n.global.t('login.success'), 'success')
       })
       .catch((error) => {
         let message
