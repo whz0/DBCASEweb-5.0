@@ -86,7 +86,9 @@ const handleRegister = async (data: UnwrapRef<Credential>) => {
           <p class="text-muted-color">{{ t('register.subtitle') }}</p>
         </div>
 
-        <Card class="!rounded-3xl shadow-xl overflow-hidden">
+        <Card
+          class="rounded-3xl! border! border-(--p-button-outlined-secondary-border-color) shadow-none! overflow-hidden"
+        >
           <template #content>
             <form @submit.prevent="handleRegister(formData)">
               <div class="mb-5 text-center">
@@ -145,10 +147,10 @@ const handleRegister = async (data: UnwrapRef<Credential>) => {
                 :loading="loading"
                 icon="bi bi-person-plus"
                 fluid
-                class="!rounded-xl !py-3.5 !font-bold mt-2"
+                class="rounded-xl! py-3.5! font-bold! mt-2"
               />
 
-              <Divider align="center" class="!my-4">
+              <Divider align="center" class="my-4!">
                 <span class="text-xs uppercase font-bold tracking-widest text-muted-color px-3">
                   {{ t('login.or') }}
                 </span>
@@ -163,7 +165,7 @@ const handleRegister = async (data: UnwrapRef<Credential>) => {
                   severity="secondary"
                   outlined
                   fluid
-                  class="!rounded-xl !py-2.5 !text-sm"
+                  class="rounded-xl! py-3.5! text-sm!"
                 />
                 <Button
                   type="button"
@@ -173,7 +175,7 @@ const handleRegister = async (data: UnwrapRef<Credential>) => {
                   severity="secondary"
                   outlined
                   fluid
-                  class="!rounded-xl !py-2.5 !text-sm"
+                  class="rounded-xl! py-3.5! text-sm!"
                 />
               </div>
             </form>

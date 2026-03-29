@@ -82,7 +82,9 @@ const handleLogin = async (data: UnwrapRef<Credential>) => {
           <p class="text-muted-color">{{ t('login.subtitle') }}</p>
         </div>
 
-        <Card class="!rounded-3xl shadow-xl overflow-hidden">
+        <Card
+          class="rounded-3xl! border! border-(--p-button-outlined-secondary-border-color) shadow-none! overflow-hidden"
+        >
           <template #content>
             <form @submit.prevent="handleLogin(formData)">
               <div class="mb-6 text-center">
@@ -139,7 +141,7 @@ const handleLogin = async (data: UnwrapRef<Credential>) => {
                   severity="secondary"
                   outlined
                   fluid
-                  class="rounded-xl!! py-2.5! text-sm!"
+                  class="rounded-xl! py-3.5! text-sm!"
                 />
                 <Button
                   type="button"
@@ -149,7 +151,7 @@ const handleLogin = async (data: UnwrapRef<Credential>) => {
                   severity="secondary"
                   outlined
                   fluid
-                  class="rounded-xl!! py-2.5! text-sm!"
+                  class="rounded-xl! py-3.5! text-sm!"
                 />
               </div>
             </form>

@@ -22,6 +22,7 @@ const router = useRouter()
 import { useAuthStore } from '@/stores/authStore.ts'
 const { user, logout } = useAuthStore()
 
+import Menu from 'primevue/menu'
 import TieredMenu from 'primevue/tieredmenu'
 
 import GenerateSchemeDialog from '@/components/dialogs/GenerateSchemeDialog.vue'
@@ -29,17 +30,29 @@ import GenerateSchemeDialog from '@/components/dialogs/GenerateSchemeDialog.vue'
 const { t } = useI18n()
 const dialogStore = useDialogStore()
 
-const items = computed(() => [
-  { icon: 'bi bi-person', label: t('common.profile'), command: () => router.replace('/profile') },
+const userMenu = ref()
+const userMenuItems = computed(() => [
   {
-    icon: 'bi bi-box-arrow-right',
+    label: t('common.profile'),
+    icon: 'bi bi-person',
+    command: () => router.push('/profile'),
+  },
+  {
+    separator: true,
+  },
+  {
     label: t('common.logout'),
+    icon: 'bi bi-box-arrow-right',
     command: () => {
       logout()
       router.replace('/login')
     },
   },
 ])
+
+const toggleUserMenu = (event: Event) => {
+  userMenu.value.toggle(event)
+}
 
 const drawMenu = ref()
 const drawMenuItems = computed(() => [
@@ -165,16 +178,61 @@ const toggleDrawMenu = (event: Event) => {
       </template>
 
       <template #end>
-        <SplitButton :model="items">
-          <span class="flex items-center font-bold">
-            <img
-              src="@/assets/logo.png"
-              alt="Imagen Usuario"
-              style="height: 1rem; margin-right: 0.5rem"
-            />
-            <span>{{ t('toolbar.greeting', { name: user.username }) }}</span>
-          </span>
-        </SplitButton>
+        <div class="flex items-center">
+          <Button
+            type="button"
+            @click="toggleUserMenu"
+            aria-haspopup="true"
+            aria-controls="user_menu"
+            severity="secondary"
+            text
+            class="!flex !items-center !gap-3 !px-4 !py-2 !rounded-xl hover:!bg-surface-100 dark:hover:!bg-surface-800 !transition-all !border !border-transparent hover:!border-surface-200 dark:hover:!border-surface-700"
+          >
+            <div class="relative">
+              <img
+                src="@/assets/logo.png"
+                alt="User Avatar"
+                class="w-8 h-8 rounded-full ring-2 ring-surface-100 dark:ring-surface-800 object-cover"
+              />
+              <div
+                class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-surface-900 rounded-full"
+              ></div>
+            </div>
+            <div class="flex flex-col items-start leading-tight hidden md:flex">
+              <span class="text-sm font-bold">{{ user.username }}</span>
+              <span class="text-[10px] opacity-50 uppercase tracking-tighter">{{
+                t('common.user')
+              }}</span>
+            </div>
+            <i class="bi bi-chevron-down text-[10px] opacity-40 ml-1"></i>
+          </Button>
+          <Menu
+            ref="userMenu"
+            id="user_menu"
+            :model="userMenuItems"
+            popup
+            :style="{ width: '200px', borderRadius: '12px' }"
+            class="!mt-2 !shadow-xl !border-surface-100 dark:!border-surface-800"
+          >
+            <template #item="{ item, props }">
+              <a
+                v-ripple
+                class="flex items-center px-3 py-2.5 group"
+                v-bind="props.action"
+                :class="{ 'text-red-500!': item.label === t('common.logout') }"
+              >
+                <span
+                  :class="[
+                    item.icon,
+                    'text-sm transition-transform group-hover:scale-110',
+                    item.label === t('common.logout') ? 'text-red-500' : 'text-primary',
+                  ]"
+                />
+                <span class="ml-3 font-medium">{{ item.label }}</span>
+              </a>
+            </template>
+          </Menu>
+        </div>
       </template>
     </Toolbar>
   </div>

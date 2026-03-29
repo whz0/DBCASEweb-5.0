@@ -60,6 +60,7 @@ declare module 'vue' {
     ToolBar: typeof import('./src/components/ToolBar.vue')['default']
   }
   export interface GlobalDirectives {
+    Ripple: typeof import('primevue/ripple')['default']
     Tooltip: typeof import('primevue/tooltip')['default']
   }
 }
