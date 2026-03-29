@@ -52,6 +52,13 @@ public class UserController {
         return ResponseEntity.ok("Sesión cerrada");
     }
 
+    @PostMapping("/chart")
+    public ResponseEntity<User> saveChart(
+            @RequestBody String chart, @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userService.updateChart(userDetails.getUsername(), chart);
+        return ResponseEntity.ok(user);
+    }
+
     @PostMapping("/register")
     public ResponseEntity<User> register(
             @RequestBody RegisterRequest registerRequest, HttpServletResponse response) {

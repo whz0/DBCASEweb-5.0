@@ -2,7 +2,11 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 import { i18n } from '@/i18n'
-import http from '@/plugins/axios.ts'
+import { api } from '@/plugins/axios.ts'
+import { useDiagramStore } from '@/stores/diagramStore'
+import { useDialogStore } from '@/stores/dialogStore'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
+import { useGeneratePanelStore } from '@/stores/generatePanelStore'
 
 interface User {
   username: string
@@ -29,10 +33,10 @@ export const useAuthStore = defineStore('auth', () => {
     credential: object,
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
   ) {
-    return http
-      .post('/user/login', credential)
+    return api.user
+      .login(credential)
       .then(async () => {
-        const { data } = await http.get('/user/me')
+        const { data } = await api.user.getMe()
         assignUser(data)
         toast(i18n.global.t('login.success'), 'success')
       })
@@ -54,8 +58,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function validateToken() {
-    return http
-      .get('/user/me')
+    return api.user
+      .getMe()
       .then(({ data }) => {
         assignUser(data)
       })
@@ -72,8 +76,8 @@ export const useAuthStore = defineStore('auth', () => {
     credential: object,
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
   ) {
-    return http
-      .post('/user/register', credential)
+    return api.user
+      .register(credential)
       .then(({ data }) => {
         assignUser(data)
         toast(i18n.global.t('register.success'), 'success')
@@ -92,8 +96,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    return http.post('/user/logout').then(() => {
+    return api.user.logout().then(() => {
       assignUser()
+      useDiagramStore().reset()
+      useErSchemaStore().reset()
+      useDialogStore().reset()
+      useGeneratePanelStore().reset()
     })
   }
 

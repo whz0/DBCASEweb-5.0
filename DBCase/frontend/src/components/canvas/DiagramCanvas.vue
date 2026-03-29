@@ -108,7 +108,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import { useDiagramStore } from '@/stores/erSchemaStore.ts'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 import type {
   Attribute,
   Entity,
@@ -130,7 +130,7 @@ import AttributeNode from './nodes/AttributeNode.vue'
 import EntityNode from './nodes/EntityNode.vue'
 import RelationshipNode from './nodes/RelationshipNode.vue'
 
-const store = useDiagramStore()
+const store = useErSchemaStore()
 const dialogStore = useDialogStore()
 const { t } = useI18n()
 

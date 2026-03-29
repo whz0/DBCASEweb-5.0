@@ -24,8 +24,9 @@ public class User {
     private String username;
     private String password;
 
+    @Column(columnDefinition = "TEXT")
     private String chart;
 
-    @Column(name = "picture_url")
+    @Column(name = "picture_url", columnDefinition = "TEXT")
     private String pictureUrl;
 }

@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+import { api } from '@/plugins/axios'
+import { useAuthStore } from '@/stores/authStore'
 import type {
   Attribute,
   DiagramElement,
@@ -11,7 +13,7 @@ import type {
   Snapshot,
 } from '@/types/er-diagram-elements'
 
-export const useDiagramStore = defineStore('diagram', () => {
+export const useErSchemaStore = defineStore('erSchema', () => {
   const entities = ref<Entity[]>([])
   const relationships = ref<Relationship[]>([])
   const attributes = ref<Attribute[]>([])
@@ -166,6 +168,34 @@ export const useDiagramStore = defineStore('diagram', () => {
   function loadSnapshot(newState: Snapshot) {
     saveHistory()
     applySnapshot(newState)
+  }
+
+  async function saveToProfile() {
+    const snapshot = getCurrentSnapshot()
+    const json = JSON.stringify(snapshot)
+    try {
+      const { data } = await api.user.saveChart(json)
+      const authStore = useAuthStore()
+      authStore.user.chart = data.chart
+      return true
+    } catch (error) {
+      console.error('Error saving diagram to profile:', error)
+      return false
+    }
+  }
+
+  function loadFromProfile() {
+    const authStore = useAuthStore()
+    if (authStore.user.chart) {
+      try {
+        const snapshot = JSON.parse(authStore.user.chart)
+        loadSnapshot(snapshot)
+        return true
+      } catch (error) {
+        console.error('Error parsing saved diagram:', error)
+      }
+    }
+    return false
   }
 
   function syncWeakEntityRelationship(
@@ -345,6 +375,16 @@ export const useDiagramStore = defineStore('diagram', () => {
     }
   }
 
+  function reset() {
+    entities.value = []
+    relationships.value = []
+    attributes.value = []
+    domains.value = []
+    selectedElementId.value = null
+    past.value = []
+    future.value = []
+  }
+
   return {
     entities,
     relationships,
@@ -359,6 +399,8 @@ export const useDiagramStore = defineStore('diagram', () => {
     saveHistory,
     getCurrentSnapshot,
     loadSnapshot,
+    saveToProfile,
+    loadFromProfile,
     saveEntity,
     saveAttribute,
     saveRelationship,
@@ -374,5 +416,6 @@ export const useDiagramStore = defineStore('diagram', () => {
     addParticipantToRelationship,
     updateAttributePosition,
     setLastClickPosition,
+    reset,
   }
 })

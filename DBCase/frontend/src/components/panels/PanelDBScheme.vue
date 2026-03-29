@@ -5,9 +5,9 @@ import { useToast } from 'primevue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { DiagramType, useDiagramStore } from '@/stores/diagramStore.ts'
-import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
-import type { Diagram } from '@/types/diagram-elements.ts'
+import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
+import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
+import type { Diagram } from '@/types/diagram-elements'
 
 const parsers = {
   mysql: new MySQL(),
@@ -62,7 +62,7 @@ const handleGenerate = () => {
       toast.add({ severity: severity, detail: message, life: 3000 }),
     )
 
-    if (diagram) generateDiagram(diagram)
+    if (diagram.value) generateDiagram(diagram.value)
   }
 }
 </script>

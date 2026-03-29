@@ -22,10 +22,15 @@ export const useGeneratePanelStore = defineStore('panel', () => {
     return visible.value.has(id)
   }
 
+  const reset = () => {
+    visible.value.clear()
+  }
+
   return {
     visible,
     open,
     close,
     isOpen,
+    reset,
   }
 })

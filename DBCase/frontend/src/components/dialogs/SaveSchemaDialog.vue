@@ -4,11 +4,11 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import { useDiagramStore } from '@/stores/erSchemaStore.ts'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
-const diagramStore = useDiagramStore()
+const erSchemaStore = useErSchemaStore()
 const filename = ref('')
 const selectedFormat = ref<'dbw' | 'pdf'>('dbw')
 
@@ -22,7 +22,7 @@ const closeModal = () => {
 const saveAsDBW = () => {
   const schemaData = {
     version: '1.0',
-    state: diagramStore.getCurrentSnapshot(),
+    state: erSchemaStore.getCurrentSnapshot(),
   }
 
   const json = JSON.stringify(schemaData, null, 2)
@@ -38,18 +38,7 @@ const saveAsDBW = () => {
 }
 
 const saveAsPDF = () => {
-  const stage = diagramStore.stageRef
-  if (!stage) return
-
-  const dataURL = stage.toDataURL({ pixelRatio: 2 })
-  const pdf = new jsPDF({
-    orientation: stage.width() > stage.height() ? 'landscape' : 'portrait',
-    unit: 'px',
-    format: [stage.width(), stage.height()],
-  })
-
-  pdf.addImage(dataURL, 'PNG', 0, 0, stage.width(), stage.height())
-  pdf.save(`${filename.value.trim()}.pdf`)
+  erSchemaStore.exportToPDF(filename.value.trim())
 }
 
 const confirm = () => {

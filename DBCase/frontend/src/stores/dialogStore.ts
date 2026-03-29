@@ -36,10 +36,15 @@ export const useDialogStore = defineStore('dialogs', () => {
     return openDialogs.value.has(dialogId)
   }
 
+  function reset() {
+    openDialogs.value.clear()
+  }
+
   return {
     openDialogs,
     open,
     close,
     isOpen,
+    reset,
   }
 })

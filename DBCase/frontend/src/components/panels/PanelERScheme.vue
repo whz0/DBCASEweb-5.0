@@ -2,12 +2,12 @@
 import { useI18n } from 'vue-i18n'
 
 import DiagramCanvas from '@/components/canvas/DiagramCanvas.vue'
-import { useDiagramStore } from '@/stores/erSchemaStore.ts'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
 
 const { t } = useI18n()
 const panelStore = useGeneratePanelStore()
-const diagramStore = useDiagramStore()
+const erSchemaStore = useErSchemaStore()
 </script>
 
 <template>
@@ -17,16 +17,16 @@ const diagramStore = useDiagramStore()
         <Button
           severity="secondary"
           class="bi bi-arrow-90deg-left"
-          @click="diagramStore.undo()"
-          :disabled="!diagramStore.canUndo"
+          @click="erSchemaStore.undo()"
+          :disabled="!erSchemaStore.canUndo"
           v-tooltip.bottom="t('toolbar.undo')"
           text
         />
         <Button
           severity="secondary"
           class="bi bi-arrow-90deg-right"
-          @click="diagramStore.redo()"
-          :disabled="!diagramStore.canRedo"
+          @click="erSchemaStore.redo()"
+          :disabled="!erSchemaStore.canRedo"
           v-tooltip.bottom="t('toolbar.redo')"
           text
         />

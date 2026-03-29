@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useToast } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -16,11 +17,14 @@ import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
 import SaveSchemaDialog from '@/components/dialogs/SaveSchemaDialog.vue'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import { getAvatarColor, getUserInitial } from '@/utils/user'
 
 const router = useRouter()
 
-import { useAuthStore } from '@/stores/authStore.ts'
+import { useAuthStore } from '@/stores/authStore'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 const { user, logout } = useAuthStore()
+const erSchemaStore = useErSchemaStore()
 
 import Menu from 'primevue/menu'
 import TieredMenu from 'primevue/tieredmenu'
@@ -29,6 +33,7 @@ import GenerateSchemeDialog from '@/components/dialogs/GenerateSchemeDialog.vue'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
+const toast = useToast()
 
 const userMenu = ref()
 const avatarError = ref(false)
@@ -38,6 +43,28 @@ const userMenuItems = computed(() => [
     label: t('common.profile'),
     icon: 'bi bi-person',
     command: () => router.push('/profile'),
+  },
+  {
+    label: t('profile.saveCurrent'),
+    icon: 'bi bi-cloud-upload',
+    command: async () => {
+      const success = await erSchemaStore.saveToProfile()
+      if (success) {
+        toast.add({
+          severity: 'success',
+          summary: t('common.save'),
+          detail: t('common.save'),
+          life: 3000,
+        })
+      } else {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to save',
+          life: 3000,
+        })
+      }
+    },
   },
   {
     separator: true,
@@ -62,36 +89,6 @@ watch(
     avatarError.value = false
   },
 )
-
-const getAvatarColor = (name: string) => {
-  const colors = [
-    '#1abc9c',
-    '#2ecc71',
-    '#3498db',
-    '#9b59b6',
-    '#34495e',
-    '#16a085',
-    '#27ae60',
-    '#2980b9',
-    '#8e44ad',
-    '#2c3e50',
-    '#f1c40f',
-    '#e67e22',
-    '#e74c3c',
-    '#95a5a6',
-    '#f39c12',
-    '#d35400',
-    '#c0392b',
-    '#bdc3c7',
-    '#7f8c8d',
-  ]
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  const index = Math.abs(hash) % colors.length
-  return colors[index]
-}
 
 const drawMenu = ref()
 
@@ -242,7 +239,7 @@ const toggleDrawMenu = (event: Event) => {
                   backgroundColor: getAvatarColor(user.username || user.pictureUrl || 'U'),
                 }"
               >
-                {{ (user.username || 'U').charAt(0).toUpperCase() }}
+                {{ getUserInitial(user.username, user.pictureUrl) }}
               </div>
               <div
                 class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-surface-900 rounded-full shadow-sm"

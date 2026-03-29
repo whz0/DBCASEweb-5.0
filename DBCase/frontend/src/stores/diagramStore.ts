@@ -40,8 +40,13 @@ export const useDiagramStore = defineStore('d', () => {
     return myDiagram
   }
 
+  function reset() {
+    myDiagram.value = null
+  }
+
   return {
     save,
     generate,
+    reset,
   }
 })

@@ -1,11 +1,11 @@
 import { computed } from 'vue'
 
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import { useDiagramStore } from '@/stores/erSchemaStore.ts'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 
 export function useDiagramDialog(addId: DialogId, editId: DialogId) {
   const dialogStore = useDialogStore()
-  const diagramStore = useDiagramStore()
+  const erSchemaStore = useErSchemaStore()
 
   const isEditMode = computed(() => dialogStore.isOpen(editId))
   const visible = computed(() => dialogStore.isOpen(addId) || isEditMode.value)
@@ -16,7 +16,7 @@ export function useDiagramDialog(addId: DialogId, editId: DialogId) {
   }
 
   return {
-    diagramStore,
+    erSchemaStore,
     dialogStore,
     isEditMode,
     visible,

@@ -47,4 +47,10 @@ public class UserService {
         user.setPassword(password);
         return userRepository.save(user);
     }
+
+    public User updateChart(String username, String chart) {
+        User user = getCurrentUser(username);
+        user.setChart(chart);
+        return userRepository.save(user);
+    }
 }

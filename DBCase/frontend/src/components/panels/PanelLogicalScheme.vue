@@ -3,8 +3,8 @@ import { useToast } from 'primevue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { DiagramType, useDiagramStore } from '@/stores/diagramStore.ts'
-import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
+import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
+import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -32,7 +32,9 @@ const handleGenerate = () => {
   const diagram = generate((message, severity) =>
     toast.add({ severity: severity, detail: message, life: 3000 }),
   )
-  console.log(diagram)
+  if (diagram.value) {
+    console.log(diagram.value)
+  }
 }
 </script>
 

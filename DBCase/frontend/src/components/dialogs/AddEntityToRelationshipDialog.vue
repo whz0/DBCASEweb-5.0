@@ -3,12 +3,12 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import { useDiagramStore } from '@/stores/erSchemaStore.ts'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 import type { Entity } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
-const diagramStore = useDiagramStore()
+const erSchemaStore = useErSchemaStore()
 
 const selectedEntity = ref<Entity | null>(null)
 const cardinalityMin = ref('0')
@@ -16,13 +16,13 @@ const cardinalityMax = ref('n')
 const role = ref('')
 
 const entities = computed(() => {
-  const selectedRelationshipId = diagramStore.selectedElementId
+  const selectedRelationshipId = erSchemaStore.selectedElementId
   if (!selectedRelationshipId) return []
-  const relationship = diagramStore.relationships.find((r) => r.id === selectedRelationshipId)
+  const relationship = erSchemaStore.relationships.find((r) => r.id === selectedRelationshipId)
   if (!relationship) return []
 
   // Filter out entities that already participate
-  return diagramStore.entities.filter(
+  return erSchemaStore.entities.filter(
     (e) => !relationship.participants.some((p) => p.entityId === e.id),
   )
 })
@@ -30,15 +30,15 @@ const entities = computed(() => {
 const visible = computed(() => dialogStore.isOpen(DialogId.AddEntityToRelationship))
 
 const currentRelationship = computed(() => {
-  const id = diagramStore.selectedElementId
-  return diagramStore.relationships.find((r) => r.id === id) || null
+  const id = erSchemaStore.selectedElementId
+  return erSchemaStore.relationships.find((r) => r.id === id) || null
 })
 
 const participantsWithNames = computed(() => {
   if (!currentRelationship.value) return []
   return currentRelationship.value.participants.map((p) => ({
     ...p,
-    name: diagramStore.entities.find((e) => e.id === p.entityId)?.name || 'Unknown',
+    name: erSchemaStore.entities.find((e) => e.id === p.entityId)?.name || 'Unknown',
   }))
 })
 
@@ -51,9 +51,9 @@ const closeModal = () => {
 }
 
 const addParticipant = () => {
-  const selectedRelationshipId = diagramStore.selectedElementId
+  const selectedRelationshipId = erSchemaStore.selectedElementId
   if (selectedRelationshipId && selectedEntity.value) {
-    diagramStore.addParticipantToRelationship(selectedRelationshipId, {
+    erSchemaStore.addParticipantToRelationship(selectedRelationshipId, {
       entityId: selectedEntity.value.id,
       cardinalityMin: cardinalityMin.value,
       cardinalityMax: cardinalityMax.value,
@@ -153,7 +153,7 @@ const onCardinalityChange = (e: { value: CardinalityOption }) => {
               severity="danger"
               text
               @click="
-                diagramStore.removeParticipantFromRelationship(currentRelationship!.id, p.entityId)
+                erSchemaStore.removeParticipantFromRelationship(currentRelationship!.id, p.entityId)
               "
             />
           </li>

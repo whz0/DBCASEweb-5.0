@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 
-import { useDiagramStore } from '@/stores/erSchemaStore.ts'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 
-const diagramStore = useDiagramStore()
+const erSchemaStore = useErSchemaStore()
 
 const handleKeyDown = (event: KeyboardEvent) => {
   if (['INPUT', 'TEXTAREA'].includes((event.target as HTMLElement).tagName)) {
@@ -14,9 +14,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key.toLowerCase() === 'z') {
       event.preventDefault()
       if (event.shiftKey) {
-        diagramStore.redo()
+        erSchemaStore.redo()
       } else {
-        diagramStore.undo()
+        erSchemaStore.undo()
       }
     }
   }
@@ -33,7 +33,7 @@ onUnmounted(() => {
 
 <template>
   <Toast />
-  <main class="flex-1 justify-center overflow-auto">
+  <main class="flex-1 min-h-0">
     <RouterView />
   </main>
 </template>

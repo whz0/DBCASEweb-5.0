@@ -4,11 +4,11 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import { useDiagramStore } from '@/stores/erSchemaStore.ts'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
-const diagramStore = useDiagramStore()
+const erSchemaStore = useErSchemaStore()
 
 const selectedFile = ref<File | null>(null)
 
@@ -35,9 +35,9 @@ const openSchema = () => {
         const data = JSON.parse(content)
 
         if (data.state) {
-          diagramStore.loadSnapshot(data.state)
+          erSchemaStore.loadSnapshot(data.state)
         } else {
-          diagramStore.loadSnapshot(data)
+          erSchemaStore.loadSnapshot(data)
         }
         closeModal()
       } catch (error) {
