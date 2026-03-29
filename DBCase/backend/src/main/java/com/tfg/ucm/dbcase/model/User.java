@@ -1,5 +1,6 @@
 package com.tfg.ucm.dbcase.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,4 +25,7 @@ public class User {
     private String password;
 
     private String chart;
+
+    @Column(name = "picture_url")
+    private String pictureUrl;
 }

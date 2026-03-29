@@ -30,18 +30,25 @@ class UserServiceTest {
 
     private static Stream<Arguments> oauthLoginProvider() {
         return Stream.of(
-                Arguments.of("newUser", null, 1), Arguments.of("existingUser", new User(), 0));
+                Arguments.of("newUser", null, "pic1", 1),
+                Arguments.of("existingUser", new User(), "pic2", 1),
+                Arguments.of(
+                        "existingUserWithSamePic",
+                        new User(1L, "existingUserWithSamePic", "pass", "chart", "samePic"),
+                        "samePic",
+                        0));
     }
 
     @ParameterizedTest(name = "Processing OAuth login for {0}")
     @MethodSource("oauthLoginProvider")
-    void testProcessOAuthPostLogin(String username, User repoReturn, int expectedSaveCalls) {
+    void testProcessOAuthPostLogin(
+            String username, User repoReturn, String picture, int expectedSaveCalls) {
         // Arrange
         when(userRepository.findByUsername(username)).thenReturn(Optional.ofNullable(repoReturn));
         when(jwtService.generateToken(username)).thenReturn("mock-jwt-token");
 
         // Act
-        String token = userService.processOAuthPostLogin(username);
+        String token = userService.processOAuthPostLogin(username, picture);
 
         // Assert
         assertEquals("mock-jwt-token", token);

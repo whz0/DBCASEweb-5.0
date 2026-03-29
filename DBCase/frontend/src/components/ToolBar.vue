@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -31,6 +31,8 @@ const { t } = useI18n()
 const dialogStore = useDialogStore()
 
 const userMenu = ref()
+const avatarError = ref(false)
+
 const userMenuItems = computed(() => [
   {
     label: t('common.profile'),
@@ -54,7 +56,45 @@ const toggleUserMenu = (event: Event) => {
   userMenu.value.toggle(event)
 }
 
+watch(
+  () => user.pictureUrl,
+  () => {
+    avatarError.value = false
+  },
+)
+
+const getAvatarColor = (name: string) => {
+  const colors = [
+    '#1abc9c',
+    '#2ecc71',
+    '#3498db',
+    '#9b59b6',
+    '#34495e',
+    '#16a085',
+    '#27ae60',
+    '#2980b9',
+    '#8e44ad',
+    '#2c3e50',
+    '#f1c40f',
+    '#e67e22',
+    '#e74c3c',
+    '#95a5a6',
+    '#f39c12',
+    '#d35400',
+    '#c0392b',
+    '#bdc3c7',
+    '#7f8c8d',
+  ]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const index = Math.abs(hash) % colors.length
+  return colors[index]
+}
+
 const drawMenu = ref()
+
 const drawMenuItems = computed(() => [
   {
     label: t('toolbar.drawMenuItems.entity'),
@@ -185,20 +225,30 @@ const toggleDrawMenu = (event: Event) => {
             aria-haspopup="true"
             aria-controls="user_menu"
             severity="secondary"
-            text
-            class="!flex !items-center !gap-3 !px-4 !py-2 !rounded-xl hover:!bg-surface-100 dark:hover:!bg-surface-800 !transition-all !border !border-transparent hover:!border-surface-200 dark:hover:!border-surface-700"
+            class="flex! items-center! gap-3! px-4! py-2! rounded-xl! bg-transparent! border! border-surface-200! dark:border-surface-800! hover:bg-surface-50! dark:hover:bg-surface-900! shadow-none! transition-all!"
           >
             <div class="relative">
               <img
-                src="@/assets/logo.png"
+                v-if="user.pictureUrl && !avatarError"
+                :src="user.pictureUrl"
+                @error="avatarError = true"
                 alt="User Avatar"
-                class="w-8 h-8 rounded-full ring-2 ring-surface-100 dark:ring-surface-800 object-cover"
+                class="w-9 h-9 rounded-full ring-2 ring-surface-100 dark:ring-surface-800 object-cover shadow-sm"
               />
               <div
-                class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-surface-900 rounded-full"
+                v-else
+                class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-surface-100 dark:ring-surface-800"
+                :style="{
+                  backgroundColor: getAvatarColor(user.username || user.pictureUrl || 'U'),
+                }"
+              >
+                {{ (user.username || 'U').charAt(0).toUpperCase() }}
+              </div>
+              <div
+                class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-surface-900 rounded-full shadow-sm"
               ></div>
             </div>
-            <div class="flex flex-col items-start leading-tight hidden md:flex">
+            <div class="flex flex-col items-start leading-tight md:flex">
               <span class="text-sm font-bold">{{ user.username }}</span>
               <span class="text-[10px] opacity-50 uppercase tracking-tighter">{{
                 t('common.user')

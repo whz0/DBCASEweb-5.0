@@ -29,6 +29,11 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                     GOOGLE, "email",
                     GITHUB, "login");
 
+    private static final Map<String, String> PICTURE_ATTRIBUTES =
+            Map.of(
+                    GOOGLE, "picture",
+                    GITHUB, "avatar_url");
+
     private final UserService userService;
     private final CookieService cookieService;
 
@@ -41,9 +46,12 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         final String provider = oauthToken.getAuthorizedClientRegistrationId();
         final @NonNull OAuth2User oAuth2User = oauthToken.getPrincipal();
 
-        final String username = getUsername(provider, oAuth2User);
+        final String username =
+                extractAttribute(provider, oAuth2User, PROVIDERS).orElseGet(oAuth2User::getName);
+        final String picture =
+                extractAttribute(provider, oAuth2User, PICTURE_ATTRIBUTES).orElse(null);
 
-        final String token = userService.processOAuthPostLogin(username);
+        final String token = userService.processOAuthPostLogin(username, picture);
 
         cookieService.addHttpOnlyCookie("auth_token", token, 60 * 60 * 15, response);
 
@@ -56,13 +64,13 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    private String getUsername(final String provider, final @NonNull OAuth2User oAuth2User) {
+    private Optional<String> extractAttribute(
+            final String provider, final @NonNull OAuth2User oAuth2User, Map<String, String> map) {
         return Optional.ofNullable(provider)
                 .map(String::toLowerCase)
-                .map(PROVIDERS::get)
+                .map(map::get)
                 .map(oAuth2User::getAttribute)
                 .filter(String.class::isInstance)
-                .map(String.class::cast)
-                .orElseGet(oAuth2User::getName);
+                .map(String.class::cast);
     }
 }

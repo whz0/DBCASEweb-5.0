@@ -7,18 +7,21 @@ import http from '@/plugins/axios.ts'
 interface User {
   username: string
   chart: string
+  pictureUrl: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User>({
     username: '',
     chart: '',
+    pictureUrl: '',
   })
 
   function init() {
     if (sessionStorage.getItem('username') != null) {
       user.value.username = sessionStorage.getItem('username') ?? ''
       user.value.chart = sessionStorage.getItem('chart') ?? ''
+      user.value.pictureUrl = sessionStorage.getItem('pictureUrl') ?? ''
     }
   }
 
@@ -96,16 +99,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   function assignUser(u: User | null = null) {
     if (u != null) {
-      const username: keyof typeof u = 'username'
-      const chart: keyof typeof u = 'chart'
-      user.value.username = u[username]
-      user.value.chart = u[chart]
+      user.value.username = u.username
+      user.value.chart = u.chart
+      user.value.pictureUrl = u.pictureUrl
     } else {
       user.value.username = ''
       user.value.chart = ''
+      user.value.pictureUrl = ''
     }
     sessionStorage.setItem('username', user.value.username)
     sessionStorage.setItem('chart', user.value.chart)
+    sessionStorage.setItem('pictureUrl', user.value.pictureUrl)
   }
 
   return {

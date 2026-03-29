@@ -14,12 +14,20 @@ public class UserService {
     private final JWTService jwtService;
     private final UserRepository userRepository;
 
-    public String processOAuthPostLogin(String username) {
+    public String processOAuthPostLogin(String username, String picture) {
         Optional<User> userOptional = userRepository.findByUsername(username);
+        User user;
         if (userOptional.isEmpty()) {
-            User newUser = new User();
-            newUser.setUsername(username);
-            userRepository.save(newUser);
+            user = new User();
+            user.setUsername(username);
+            user.setPictureUrl(picture);
+            userRepository.save(user);
+        } else {
+            user = userOptional.get();
+            if (picture != null && !picture.equals(user.getPictureUrl())) {
+                user.setPictureUrl(picture);
+                userRepository.save(user);
+            }
         }
         return jwtService.generateToken(username);
     }
