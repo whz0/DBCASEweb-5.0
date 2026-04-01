@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
         let severity: 'error' | 'warn' | 'info' = 'error'
 
         if (error.response) {
-          message = error.response.data?.message || 'Error de autenticación'
+          message = error.response.data?.message || error.response.data || 'Error de autenticación'
           severity = error.response.status >= 500 ? 'error' : 'warn'
         } else if (error.request) {
           message = 'No se pudo contactar con el servidor'
@@ -96,13 +96,17 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    return api.user.logout().then(() => {
+    try {
+      await api.user.logout()
+    } catch (error) {
+      console.error('Logout API failed:', error)
+    } finally {
       assignUser()
       useDiagramStore().reset()
       useErSchemaStore().reset()
       useDialogStore().reset()
       useGeneratePanelStore().reset()
-    })
+    }
   }
 
   function assignUser(u: User | null = null) {

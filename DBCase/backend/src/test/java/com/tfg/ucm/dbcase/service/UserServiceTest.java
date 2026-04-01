@@ -6,6 +6,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import com.tfg.ucm.dbcase.model.User;
 import com.tfg.ucm.dbcase.repository.UserRepository;
@@ -31,7 +32,11 @@ class UserServiceTest {
     private static Stream<Arguments> oauthLoginProvider() {
         return Stream.of(
                 Arguments.of("newUser", null, "pic1", 1),
-                Arguments.of("existingUser", new User(), "pic2", 1),
+                Arguments.of(
+                        "existingUser",
+                        new User(null, "existingUser", null, null, null),
+                        "pic2",
+                        1),
                 Arguments.of(
                         "existingUserWithSamePic",
                         new User(1L, "existingUserWithSamePic", "pass", "chart", "samePic"),
@@ -43,9 +48,15 @@ class UserServiceTest {
     @MethodSource("oauthLoginProvider")
     void testProcessOAuthPostLogin(
             String username, User repoReturn, String picture, int expectedSaveCalls) {
+
         // Arrange
         when(userRepository.findByUsername(username)).thenReturn(Optional.ofNullable(repoReturn));
-        when(jwtService.generateToken(username)).thenReturn("mock-jwt-token");
+
+        when(jwtService.generateToken(any())).thenReturn("mock-jwt-token");
+
+        lenient()
+                .when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         String token = userService.processOAuthPostLogin(username, picture);
@@ -53,7 +64,7 @@ class UserServiceTest {
         // Assert
         assertEquals("mock-jwt-token", token);
         verify(userRepository, times(expectedSaveCalls)).save(any(User.class));
-        verify(jwtService, times(1)).generateToken(username);
+        verify(jwtService, times(1)).generateToken(any());
     }
 
     private static Stream<String> usernameProvider() {

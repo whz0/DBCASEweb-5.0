@@ -40,20 +40,22 @@ if (store.entities.length === 0 && store.relationships.length === 0) {
 </script>
 
 <template>
-  <header>
-    <ToolBar />
-  </header>
-  <Splitter class="h-full" :layout="layout">
-    <SplitterPanel v-show="panelStore.isOpen(PanelId.ERScheme)" :minSize="25">
-      <PanelERScheme />
-    </SplitterPanel>
-    <SplitterPanel v-show="panelStore.isOpen(PanelId.LogicalScheme)" :minSize="25">
-      <PanelLogicalScheme />
-    </SplitterPanel>
-    <SplitterPanel v-show="panelStore.isOpen(PanelId.BDScheme)" :minSize="25">
-      <PanelDBScheme />
-    </SplitterPanel>
-  </Splitter>
+  <div class="h-screen flex flex-col overflow-hidden">
+    <header>
+      <ToolBar />
+    </header>
+    <Splitter class="flex-1 min-h-0" :layout="layout">
+      <SplitterPanel v-show="panelStore.isOpen(PanelId.ERScheme)" :minSize="25">
+        <PanelERScheme />
+      </SplitterPanel>
+      <SplitterPanel v-show="panelStore.isOpen(PanelId.LogicalScheme)" :minSize="25">
+        <PanelLogicalScheme />
+      </SplitterPanel>
+      <SplitterPanel v-show="panelStore.isOpen(PanelId.BDScheme)" :minSize="25">
+        <PanelDBScheme />
+      </SplitterPanel>
+    </Splitter>
+  </div>
 </template>
 
 <style scoped></style>

@@ -33,11 +33,11 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<User> login(
             @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
-        String token = authService.verify(loginRequest);
+        final String token = authService.verify(loginRequest);
         cookieService.addHttpOnlyCookie("auth_token", token, 60 * 60 * 24, response);
 
-        String username = jwtService.extractUsername(token);
-        User user = userService.getCurrentUser(username);
+        final String username = jwtService.extractUsername(token);
+        final User user = userService.getCurrentUser(username);
         return ResponseEntity.ok(user);
     }
 

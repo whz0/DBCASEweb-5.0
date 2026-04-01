@@ -2,7 +2,6 @@ package com.tfg.ucm.dbcase.service;
 
 import com.tfg.ucm.dbcase.model.User;
 import com.tfg.ucm.dbcase.repository.UserRepository;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -15,21 +14,28 @@ public class UserService {
     private final UserRepository userRepository;
 
     public String processOAuthPostLogin(String username, String picture) {
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        User user;
-        if (userOptional.isEmpty()) {
-            user = new User();
-            user.setUsername(username);
+        User user =
+                userRepository
+                        .findByUsername(username)
+                        .map(existingUser -> updatePictureIfNeeded(existingUser, picture))
+                        .orElseGet(() -> createOauth2User(username, picture));
+
+        return jwtService.generateToken(user.getUsername());
+    }
+
+    private User createOauth2User(String username, String picture) {
+        User user = new User();
+        user.setUsername(username);
+        user.setPictureUrl(picture);
+        return userRepository.save(user);
+    }
+
+    private User updatePictureIfNeeded(User user, String picture) {
+        if (picture != null && !picture.equals(user.getPictureUrl())) {
             user.setPictureUrl(picture);
-            userRepository.save(user);
-        } else {
-            user = userOptional.get();
-            if (picture != null && !picture.equals(user.getPictureUrl())) {
-                user.setPictureUrl(picture);
-                userRepository.save(user);
-            }
+            return userRepository.save(user);
         }
-        return jwtService.generateToken(username);
+        return user;
     }
 
     public User getCurrentUser(String username) {

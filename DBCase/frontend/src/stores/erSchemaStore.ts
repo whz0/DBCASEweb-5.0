@@ -1,3 +1,5 @@
+import { jsPDF } from 'jspdf'
+import type { Stage } from 'konva/lib/Stage'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -20,6 +22,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
   const domains = ref<Domain[]>([])
   const selectedElementId = ref<string | null>(null)
   const lastClickPosition = ref<Position>({ x: 100, y: 100 })
+  const stageRef = ref<Stage | null>(null)
 
   const past = ref<Snapshot[]>([])
   const future = ref<Snapshot[]>([])
@@ -33,6 +36,21 @@ export const useErSchemaStore = defineStore('erSchema', () => {
         domains: domains.value,
       }),
     )
+  }
+
+  function exportToPDF(filename: string = 'diagram') {
+    if (!stageRef.value) return
+
+    const stage = stageRef.value
+    const dataURL = stage.toDataURL({ pixelRatio: 2 })
+    const pdf = new jsPDF({
+      orientation: stage.width() > stage.height() ? 'landscape' : 'portrait',
+      unit: 'px',
+      format: [stage.width(), stage.height()],
+    })
+
+    pdf.addImage(dataURL, 'PNG', 0, 0, stage.width(), stage.height())
+    pdf.save(`${filename}.pdf`)
   }
 
   function saveHistory() {
@@ -381,6 +399,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     attributes.value = []
     domains.value = []
     selectedElementId.value = null
+    lastClickPosition.value = { x: 100, y: 100 }
     past.value = []
     future.value = []
   }
@@ -416,6 +435,8 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     addParticipantToRelationship,
     updateAttributePosition,
     setLastClickPosition,
+    stageRef,
+    exportToPDF,
     reset,
   }
 })

@@ -1,8 +1,7 @@
 <template>
   <div
     ref="container"
-    class="h-full relative"
-    style="width: 100%"
+    class="w-full h-full relative overflow-hidden"
     @contextmenu.stop.prevent="onContextMenu"
   >
     <ContextMenu ref="cm" :model="menuModel" />
@@ -11,6 +10,7 @@
       :config="stageConfig"
       @mousedown="handleStageMouseDown"
       @touchstart="handleStageMouseDown"
+      @wheel="handleWheel"
     >
       <v-layer>
         <!-- Connections -->
@@ -76,25 +76,26 @@
 
         <!-- Nodes -->
         <EntityNode
-          v-for="entity in store.entities"
+          v-for="entity in erSchemaStore.entities"
           :key="entity.id"
           :entity="entity"
           @dragmove="handleEntityDragMove"
         />
         <RelationshipNode
-          v-for="relationship in store.relationships"
+          v-for="relationship in erSchemaStore.relationships"
           :key="relationship.id"
           :relationship="relationship"
           @dragmove="handleRelationshipDragMove"
         />
         <AttributeNode
-          v-for="attribute in store.attributes"
+          v-for="attribute in erSchemaStore.attributes"
           :key="attribute.id"
           :attribute="attribute"
           @dragmove="handleAttributeDragMove"
         />
       </v-layer>
     </v-stage>
+    <MiniMap v-if="mainStage" :main-stage="mainStage" />
   </div>
 </template>
 
@@ -107,6 +108,7 @@ import type { MenuItem } from 'primevue/menuitem'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import MiniMap from './MiniMap.vue'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import type {
@@ -130,7 +132,7 @@ import AttributeNode from './nodes/AttributeNode.vue'
 import EntityNode from './nodes/EntityNode.vue'
 import RelationshipNode from './nodes/RelationshipNode.vue'
 
-const store = useErSchemaStore()
+const erSchemaStore = useErSchemaStore()
 const dialogStore = useDialogStore()
 const { t } = useI18n()
 
@@ -139,6 +141,7 @@ interface KonvaStageComponent {
   getStage: () => Stage
 }
 const stageRef = ref<KonvaStageComponent | null>(null)
+const mainStage = ref<Stage | null>(null)
 const stageConfig = reactive({
   width: 0,
   height: 0,
@@ -148,14 +151,42 @@ const stageConfig = reactive({
 const cm = ref()
 const menuModel = ref<MenuItem[]>([])
 
+const handleWheel = (e: KonvaEventObject<WheelEvent>) => {
+  e.evt.preventDefault()
+  const stage = e.target.getStage()
+  if (!stage) return
+
+  const oldScale = stage.scaleX()
+  const pointer = stage.getPointerPosition()
+
+  if (pointer) {
+    const mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    }
+
+    const scaleBy = 1.05
+    const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy
+
+    stage.scale({ x: newScale, y: newScale })
+
+    const newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    }
+    stage.position(newPos)
+    stage.batchDraw()
+  }
+}
+
 const handleStageMouseDown = (e: KonvaEventObject<MouseEvent>) => {
   if (e.evt.button === 0 && e.target === e.target.getStage()) {
-    store.selectElement(null)
+    erSchemaStore.selectElement(null)
   }
 }
 
 const getContextMenuItems = () => {
-  const selectedId = store.selectedElementId
+  const selectedId = erSchemaStore.selectedElementId
   if (!selectedId) {
     return [
       {
@@ -176,9 +207,9 @@ const getContextMenuItems = () => {
     ]
   }
 
-  const isEntity = store.entities.some((e) => e.id === selectedId)
-  const isRelationship = store.relationships.some((r) => r.id === selectedId)
-  const isAttribute = store.attributes.some((a) => a.id === selectedId)
+  const isEntity = erSchemaStore.entities.some((e) => e.id === selectedId)
+  const isRelationship = erSchemaStore.relationships.some((r) => r.id === selectedId)
+  const isAttribute = erSchemaStore.attributes.some((a) => a.id === selectedId)
 
   if (isEntity) {
     return [
@@ -201,7 +232,7 @@ const getContextMenuItems = () => {
       {
         label: t('common.delete'),
         icon: 'bi bi-trash',
-        command: () => store.deleteElement(selectedId),
+        command: () => erSchemaStore.deleteElement(selectedId),
       },
     ]
   }
@@ -222,7 +253,7 @@ const getContextMenuItems = () => {
       {
         label: t('common.delete'),
         icon: 'bi bi-trash',
-        command: () => store.deleteElement(selectedId),
+        command: () => erSchemaStore.deleteElement(selectedId),
       },
     ]
   }
@@ -243,7 +274,7 @@ const getContextMenuItems = () => {
       {
         label: t('common.delete'),
         icon: 'bi bi-trash',
-        command: () => store.deleteElement(selectedId),
+        command: () => erSchemaStore.deleteElement(selectedId),
       },
     ]
   }
@@ -262,7 +293,7 @@ const onContextMenu = (event: MouseEvent) => {
   if (pointerPosition) {
     const transform = stage.getAbsoluteTransform().copy().invert()
     const pos = transform.point(pointerPosition)
-    store.setLastClickPosition({ x: pos.x, y: pos.y })
+    erSchemaStore.setLastClickPosition({ x: pos.x, y: pos.y })
 
     const intersectedShape = stage.getIntersection(pointerPosition) as KonvaShape | null
 
@@ -272,10 +303,10 @@ const onContextMenu = (event: MouseEvent) => {
         node = node.getParent()
       }
       if (node && node.id()) {
-        store.selectElement(node.id())
+        erSchemaStore.selectElement(node.id())
       }
     } else {
-      store.selectElement(null)
+      erSchemaStore.selectElement(null)
     }
   }
 
@@ -329,9 +360,9 @@ interface RelationshipConnection {
 
 const relationshipConnections = computed(() => {
   const connections: RelationshipConnection[] = []
-  store.relationships.forEach((rel: Relationship) => {
+  erSchemaStore.relationships.forEach((rel: Relationship) => {
     rel.participants.forEach((participant: RelationshipParticipant) => {
-      const entity = store.entities.find((e) => e.id === participant.entityId)
+      const entity = erSchemaStore.entities.find((e) => e.id === participant.entityId)
       if (entity) {
         const relShape = calculateRelationshipRenderProps(rel)
         const entityShape = calculateEntityRenderProps(entity)
@@ -388,9 +419,9 @@ interface AttributeConnection {
 
 const attributeConnections = computed(() => {
   const connections: AttributeConnection[] = []
-  store.attributes.forEach((attribute: Attribute) => {
-    const parentEntity = store.entities.find((entity: Entity) => entity.id === attribute.parentId)
-    const parentAttr = store.attributes.find((attr: Attribute) => attr.id === attribute.parentId)
+  erSchemaStore.attributes.forEach((attribute: Attribute) => {
+    const parentEntity = erSchemaStore.entities.find((entity: Entity) => entity.id === attribute.parentId)
+    const parentAttr = erSchemaStore.attributes.find((attr: Attribute) => attr.id === attribute.parentId)
 
     if (parentEntity || parentAttr) {
       const attributeShape = calculateAttributeRenderProps(attribute)
@@ -440,13 +471,13 @@ const attributeConnections = computed(() => {
 })
 
 const handleEntityDragMove = (event: { id: string; x: number; y: number }) => {
-  store.updateEntityPosition(event.id, { x: event.x, y: event.y })
+  erSchemaStore.updateEntityPosition(event.id, { x: event.x, y: event.y })
 }
 const handleAttributeDragMove = (event: { id: string; x: number; y: number }) => {
-  store.updateAttributePosition(event.id, { x: event.x, y: event.y })
+  erSchemaStore.updateAttributePosition(event.id, { x: event.x, y: event.y })
 }
 const handleRelationshipDragMove = (event: { id: string; x: number; y: number }) => {
-  store.updateRelationshipPosition(event.id, { x: event.x, y: event.y })
+  erSchemaStore.updateRelationshipPosition(event.id, { x: event.x, y: event.y })
 }
 
 function handleKeydown(e: KeyboardEvent) {
@@ -455,15 +486,16 @@ function handleKeydown(e: KeyboardEvent) {
     return
   }
 
-  const selectedId = store.selectedElementId
+  const selectedId = erSchemaStore.selectedElementId
   if ((e.key === 'Backspace' || e.key === 'Delete') && selectedId) {
-    store.deleteElement(selectedId)
+    erSchemaStore.deleteElement(selectedId)
   }
 }
 
 onMounted(() => {
   if (stageRef.value) {
-    store.stageRef = stageRef.value.getStage()
+    mainStage.value = stageRef.value.getStage()
+    erSchemaStore.stageRef = mainStage.value
   }
   window.addEventListener('keydown', handleKeydown)
   if (container.value) {
