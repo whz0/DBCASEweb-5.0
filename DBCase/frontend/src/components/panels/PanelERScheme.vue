@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 
 import DiagramCanvas from '@/components/canvas/DiagramCanvas.vue'
-import { useDiagramStore } from '@/stores/diagramStore'
+import { useDiagramStore } from '@/stores/erSchemaStore.ts'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
 
 const { t } = useI18n()

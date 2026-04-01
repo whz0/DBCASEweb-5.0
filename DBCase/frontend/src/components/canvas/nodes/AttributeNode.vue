@@ -54,7 +54,7 @@
 import type { KonvaEventObject } from 'konva/lib/Node'
 import { computed } from 'vue'
 
-import { useDiagramStore } from '@/stores/diagramStore'
+import { useDiagramStore } from '@/stores/erSchemaStore.ts'
 import type { Attribute } from '@/types/er-diagram-elements'
 
 const props = defineProps<{

@@ -4,7 +4,7 @@ import PanelERScheme from '@/components/panels/PanelERScheme.vue'
 import PanelLogicalScheme from '@/components/panels/PanelLogicalScheme.vue'
 import ToolBar from '@/components/ToolBar.vue'
 import { useLayout } from '@/composables/useLayout'
-import { useDiagramStore } from '@/stores/diagramStore'
+import { useDiagramStore } from '@/stores/erSchemaStore.ts'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
 
 const panelStore = useGeneratePanelStore()

@@ -81,6 +81,7 @@ const messages = {
     },
     relationship: {
       addRelationship: 'Add Relationship',
+      deleteRelationship: 'Delete Relationship',
       editRelationship: 'Edit Relationship',
       relationshipName: 'Relationship Name',
       enterRelationshipName: 'Enter relationship name',
@@ -246,6 +247,7 @@ const messages = {
     },
     entity: {
       addEntity: 'Añadir Entidad',
+      deleteEntity: 'Borrar Entidad',
       editEntity: 'Editar Entidad',
       entityName: 'Nombre de Entidad',
       enterEntityName: 'Introduce el nombre de la entidad',
@@ -276,6 +278,7 @@ const messages = {
     },
     relationship: {
       addRelationship: 'Añadir Relación',
+      deleteRelationship: 'Borrar Relación',
       editRelationship: 'Editar Relación',
       relationshipName: 'Nombre de la Relación',
       enterRelationshipName: 'Introduce el nombre de la relación',

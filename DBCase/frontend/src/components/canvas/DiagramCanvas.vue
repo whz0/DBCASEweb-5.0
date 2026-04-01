@@ -107,7 +107,7 @@ import type { MenuItem } from 'primevue/menuitem'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { useDiagramStore } from '@/stores/diagramStore'
+import { useDiagramStore } from '@/stores/erSchemaStore.ts'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import type {
   Attribute,
