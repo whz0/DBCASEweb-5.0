@@ -4,10 +4,10 @@ import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
 import { DialogId } from '@/stores/dialogStore'
-import type { Entity } from '@/types/er-diagram-elements'
+import type { Entity, Relationship, RelationshipParticipant } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
-const { diagramStore, isEditMode, visible, closeModal } = useDiagramDialog(
+const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddIsARelationship,
   DialogId.EditRelationship,
 )
@@ -15,32 +15,35 @@ const { diagramStore, isEditMode, visible, closeModal } = useDiagramDialog(
 const selectedParent = ref<Entity | null>(null)
 const selectedChildren = ref<Entity[]>([])
 
-const entities = computed(() => diagramStore.entities)
+const entities = computed(() => erSchemaStore.entities)
 
 const currentRelationship = computed(() => {
   if (!isEditMode.value) return null
-  const id = diagramStore.selectedElementId
-  return diagramStore.relationships.find((r) => r.id === id) || null
+  const id = erSchemaStore.selectedElementId
+  return erSchemaStore.relationships.find((r: Relationship) => r.id === id) || null
 })
 
 watch(visible, (isNowVisible) => {
   if (isNowVisible) {
     if (isEditMode.value && currentRelationship.value) {
       const rel = currentRelationship.value
-      const parentPart = rel.participants.find((p) => p.role === 'Parent')
-      const childParts = rel.participants.filter((p) => p.role === 'Child')
+      const parentPart = rel.participants.find((p: RelationshipParticipant) => p.role === 'Parent')
+      const childParts = rel.participants.filter((p: RelationshipParticipant) => p.role === 'Child')
 
       if (parentPart) {
         selectedParent.value =
-          diagramStore.entities.find((e) => e.id === parentPart.entityId) || null
+          erSchemaStore.entities.find((e: Entity) => e.id === parentPart.entityId) || null
       }
       selectedChildren.value = childParts
-        .map((p) => diagramStore.entities.find((e) => e.id === p.entityId)!)
+        .map(
+          (p: RelationshipParticipant) =>
+            erSchemaStore.entities.find((e: Entity) => e.id === p.entityId)!,
+        )
         .filter(Boolean)
     } else {
-      const selectedId = diagramStore.selectedElementId
+      const selectedId = erSchemaStore.selectedElementId
       if (selectedId) {
-        const entity = diagramStore.entities.find((e) => e.id === selectedId)
+        const entity = erSchemaStore.entities.find((e: Entity) => e.id === selectedId)
         if (entity) {
           selectedParent.value = entity
         }
@@ -54,7 +57,7 @@ watch(visible, (isNowVisible) => {
 
 const saveIsA = () => {
   if (selectedParent.value && selectedChildren.value.length > 0) {
-    diagramStore.saveIsARelationship(
+    erSchemaStore.saveIsARelationship(
       {
         parent: selectedParent.value,
         children: selectedChildren.value,
@@ -92,7 +95,7 @@ const saveIsA = () => {
       <MultiSelect
         id="children"
         v-model="selectedChildren"
-        :options="entities.filter((e) => e.id !== selectedParent?.id)"
+        :options="entities.filter((e: Entity) => e.id !== selectedParent?.id)"
         optionLabel="name"
         :placeholder="t('isa.selectChildren')"
         display="chip"

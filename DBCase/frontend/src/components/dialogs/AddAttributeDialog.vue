@@ -4,9 +4,10 @@ import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
 import { DialogId } from '@/stores/dialogStore'
+import type { Attribute, Entity, Relationship } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
-const { diagramStore, isEditMode, visible, closeModal } = useDiagramDialog(
+const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddAttribute,
   DialogId.EditAttribute,
 )
@@ -21,27 +22,27 @@ const isUnique = ref(false)
 const size = ref(20)
 const selectedDomainId = ref<string | null>(null)
 
-const domains = computed(() => diagramStore.domains)
+const domains = computed(() => erSchemaStore.domains)
 
 const currentAttribute = computed(() => {
   if (!isEditMode.value) return null
-  const id = diagramStore.selectedElementId
-  return diagramStore.attributes.find((a) => a.id === id) || null
+  const id = erSchemaStore.selectedElementId
+  return erSchemaStore.attributes.find((a: Attribute) => a.id === id) || null
 })
 
 const parentOptions = computed(() => {
   return [
-    ...diagramStore.entities.map((e) => ({
+    ...erSchemaStore.entities.map((e: Entity) => ({
       id: e.id,
       name: `${e.name} (Entity)`,
       position: e.position,
     })),
-    ...diagramStore.relationships.map((r) => ({
+    ...erSchemaStore.relationships.map((r: Relationship) => ({
       id: r.id,
       name: `${r.name} (Relationship)`,
       position: r.position,
     })),
-    ...diagramStore.attributes.map((a) => ({
+    ...erSchemaStore.attributes.map((a: Attribute) => ({
       id: a.id,
       name: `${a.name} (Attribute)`,
       position: a.position,
@@ -63,11 +64,11 @@ watch(visible, (isNowVisible) => {
       size.value = attr.size ?? 20
       selectedDomainId.value = attr.domainId || null
     } else {
-      const selectedId = diagramStore.selectedElementId
+      const selectedId = erSchemaStore.selectedElementId
       if (selectedId) {
-        const isEntity = diagramStore.entities.some((e) => e.id === selectedId)
-        const isRel = diagramStore.relationships.some((r) => r.id === selectedId)
-        const isAttr = diagramStore.attributes.some((a) => a.id === selectedId)
+        const isEntity = erSchemaStore.entities.some((e: Entity) => e.id === selectedId)
+        const isRel = erSchemaStore.relationships.some((r: Relationship) => r.id === selectedId)
+        const isAttr = erSchemaStore.attributes.some((a: Attribute) => a.id === selectedId)
         if (isEntity || isRel || isAttr) {
           selectedParentId.value = selectedId
         }
@@ -88,7 +89,7 @@ watch(visible, (isNowVisible) => {
 
 const saveAttribute = () => {
   if (selectedParentId.value && attributeName.value.trim()) {
-    diagramStore.saveAttribute(
+    erSchemaStore.saveAttribute(
       {
         name: attributeName.value.trim(),
         parentId: selectedParentId.value,

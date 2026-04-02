@@ -4,9 +4,10 @@ import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
 import { DialogId } from '@/stores/dialogStore'
+import type { Domain } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
-const { diagramStore, dialogStore, isEditMode, visible, closeModal } = useDiagramDialog(
+const { erSchemaStore, dialogStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddDomain,
   DialogId.EditDomain,
 )
@@ -17,8 +18,8 @@ const values = ref('')
 
 const currentDomain = computed(() => {
   if (!isEditMode.value) return null
-  const id = diagramStore.selectedElementId
-  return diagramStore.domains.find((d) => d.id === id) || null
+  const id = erSchemaStore.selectedElementId
+  return erSchemaStore.domains.find((d: Domain) => d.id === id) || null
 })
 
 watch(visible, (isNowVisible) => {
@@ -53,11 +54,13 @@ const baseTypeOptions = [
 const saveDomain = () => {
   if (!domainName.value.trim()) return
 
-  diagramStore.saveDomain(
+  erSchemaStore.saveDomain(
     {
       name: domainName.value.trim(),
       baseType: baseType.value,
-      values: values.value.trim() ? values.value.split(',').map((v) => v.trim()) : undefined,
+      values: values.value.trim()
+        ? values.value.split(',').map((v: string) => v.trim())
+        : undefined,
     },
     isEditMode.value,
   )
@@ -91,11 +94,11 @@ const saveDomain = () => {
       <label for="values" class="font-semibold mt-2">{{ t('domain.allowedValues') }}</label>
       <InputText id="values" v-model="values" :placeholder="t('domain.enterValues')" />
 
-      <div v-if="diagramStore.domains.length > 0 && !isEditMode" class="mt-4">
+      <div v-if="erSchemaStore.domains.length > 0 && !isEditMode" class="mt-4">
         <h3 class="font-bold mb-2">{{ t('domain.existingDomains') }}</h3>
         <ul class="max-h-40 overflow-y-auto border rounded p-2">
           <li
-            v-for="domain in diagramStore.domains"
+            v-for="domain in erSchemaStore.domains"
             :key="domain.id"
             class="flex justify-between items-center py-1 border-b last:border-0"
           >
@@ -107,7 +110,7 @@ const saveDomain = () => {
                 text
                 @click="
                   () => {
-                    diagramStore.selectElement(domain.id)
+                    erSchemaStore.selectElement(domain.id)
                     dialogStore.open(DialogId.EditDomain)
                   }
                 "
@@ -116,7 +119,7 @@ const saveDomain = () => {
                 icon="bi bi-trash"
                 severity="danger"
                 text
-                @click="diagramStore.deleteElement(domain.id)"
+                @click="erSchemaStore.deleteElement(domain.id)"
               />
             </div>
           </li>

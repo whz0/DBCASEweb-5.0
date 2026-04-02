@@ -4,10 +4,10 @@ import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
 import { DialogId } from '@/stores/dialogStore'
-import type { Entity } from '@/types/er-diagram-elements'
+import type { Entity, Relationship, RelationshipParticipant } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
-const { diagramStore, isEditMode, visible, closeModal } = useDiagramDialog(
+const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddEntity,
   DialogId.EditEntity,
 )
@@ -19,12 +19,12 @@ const selectedStrongEntity = ref<Entity | null>(null)
 
 const currentEntity = computed(() => {
   if (!isEditMode.value) return null
-  const id = diagramStore.selectedElementId
-  return diagramStore.entities.find((e) => e.id === id) || null
+  const id = erSchemaStore.selectedElementId
+  return erSchemaStore.entities.find((e: Entity) => e.id === id) || null
 })
 
 const strongEntities = computed(() =>
-  diagramStore.entities.filter((e) => e.id !== currentEntity.value?.id),
+  erSchemaStore.entities.filter((e: Entity) => e.id !== currentEntity.value?.id),
 )
 
 watch(visible, (isNowVisible) => {
@@ -34,18 +34,22 @@ watch(visible, (isNowVisible) => {
       isWeakEntity.value = !!currentEntity.value.isWeak
 
       if (isWeakEntity.value) {
-        const idRel = diagramStore.relationships.find(
-          (r) =>
-            r.type === 'Weak' && r.participants.some((p) => p.entityId === currentEntity.value?.id),
+        const idRel = erSchemaStore.relationships.find(
+          (r: Relationship) =>
+            r.type === 'Weak' &&
+            r.participants.some(
+              (p: RelationshipParticipant) => p.entityId === currentEntity.value?.id,
+            ),
         )
         if (idRel) {
           relationName.value = idRel.name
           const strongParticipant = idRel.participants.find(
-            (p) => p.entityId !== currentEntity.value?.id,
+            (p: RelationshipParticipant) => p.entityId !== currentEntity.value?.id,
           )
           if (strongParticipant) {
             selectedStrongEntity.value =
-              diagramStore.entities.find((e) => e.id === strongParticipant.entityId) || null
+              erSchemaStore.entities.find((e: Entity) => e.id === strongParticipant.entityId) ||
+              null
           }
         }
       }
@@ -61,7 +65,7 @@ watch(visible, (isNowVisible) => {
 const saveEntity = () => {
   if (!entityName.value.trim()) return
 
-  diagramStore.saveEntity(
+  erSchemaStore.saveEntity(
     { name: entityName.value.trim(), isWeak: isWeakEntity.value },
     isEditMode.value,
     selectedStrongEntity.value,

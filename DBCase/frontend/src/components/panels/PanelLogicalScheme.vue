@@ -29,12 +29,9 @@ const handleSave = () => {
 }
 
 const handleGenerate = () => {
-  const diagram = generate((message, severity) =>
+  const _i = generate((message, severity) =>
     toast.add({ severity: severity, detail: message, life: 3000 }),
   )
-  if (diagram.value) {
-    console.log(diagram.value)
-  }
 }
 </script>
 

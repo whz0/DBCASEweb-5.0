@@ -4,9 +4,10 @@ import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
 import { DialogId } from '@/stores/dialogStore'
+import type { Relationship } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
-const { diagramStore, isEditMode, visible, closeModal } = useDiagramDialog(
+const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddRelationship,
   DialogId.EditRelationship,
 )
@@ -15,8 +16,8 @@ const name = ref('')
 
 const currentRelationship = computed(() => {
   if (!isEditMode.value) return null
-  const id = diagramStore.selectedElementId
-  return diagramStore.relationships.find((r) => r.id === id) || null
+  const id = erSchemaStore.selectedElementId
+  return erSchemaStore.relationships.find((r: Relationship) => r.id === id) || null
 })
 
 watch(visible, (isNowVisible) => {
@@ -32,7 +33,7 @@ watch(visible, (isNowVisible) => {
 const saveRelationship = () => {
   if (!name.value.trim()) return
 
-  diagramStore.saveRelationship({ name: name.value.trim() }, isEditMode.value)
+  erSchemaStore.saveRelationship({ name: name.value.trim() }, isEditMode.value)
   closeModal()
 }
 </script>

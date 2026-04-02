@@ -7,7 +7,6 @@ import { useI18n } from 'vue-i18n'
 
 import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
-import type { Diagram } from '@/types/diagram-elements'
 
 const parsers = {
   mysql: new MySQL(),
@@ -31,7 +30,7 @@ const editorOptions = {
 const { t } = useI18n()
 const toast = useToast()
 const panelStore = useGeneratePanelStore()
-const { save, generate } = useDiagramStore()
+const { save } = useDiagramStore()
 
 const validate = () => {
   const parser = parsers[selectLanguage.value as keyof typeof parsers]
@@ -46,10 +45,6 @@ const handleSave = () => {
   }
 }
 
-const generateDiagram = (diagram: Diagram) => {
-  console.log(diagram)
-}
-
 const handleGenerate = () => {
   if (selectLanguage.value == undefined) {
     toast.add({
@@ -58,11 +53,6 @@ const handleGenerate = () => {
       life: 3000,
     })
   } else {
-    const diagram = generate((message, severity) =>
-      toast.add({ severity: severity, detail: message, life: 3000 }),
-    )
-
-    if (diagram.value) generateDiagram(diagram.value)
   }
 }
 </script>

@@ -108,7 +108,6 @@ import type { MenuItem } from 'primevue/menuitem'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import MiniMap from './MiniMap.vue'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import type {
@@ -128,6 +127,7 @@ import {
   type RectShape,
 } from '@/utils/geometry'
 
+import MiniMap from './MiniMap.vue'
 import AttributeNode from './nodes/AttributeNode.vue'
 import EntityNode from './nodes/EntityNode.vue'
 import RelationshipNode from './nodes/RelationshipNode.vue'
@@ -420,8 +420,12 @@ interface AttributeConnection {
 const attributeConnections = computed(() => {
   const connections: AttributeConnection[] = []
   erSchemaStore.attributes.forEach((attribute: Attribute) => {
-    const parentEntity = erSchemaStore.entities.find((entity: Entity) => entity.id === attribute.parentId)
-    const parentAttr = erSchemaStore.attributes.find((attr: Attribute) => attr.id === attribute.parentId)
+    const parentEntity = erSchemaStore.entities.find(
+      (entity: Entity) => entity.id === attribute.parentId,
+    )
+    const parentAttr = erSchemaStore.attributes.find(
+      (attr: Attribute) => attr.id === attribute.parentId,
+    )
 
     if (parentEntity || parentAttr) {
       const attributeShape = calculateAttributeRenderProps(attribute)

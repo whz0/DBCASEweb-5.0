@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import type { Stage } from 'konva/lib/Stage'
+import type { KonvaEventObject } from 'konva/lib/Node'
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 
-import { useDiagramStore } from '@/stores/diagramStore'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
+import type { Entity, Relationship } from '@/types/er-diagram-elements'
 
 const props = defineProps<{
-  mainStage: Stage | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mainStage: any | null
 }>()
 
-const store = useDiagramStore()
+const store = useErSchemaStore()
 const miniMapWidth = 200
 const miniMapHeight = 150
 const padding = 10
@@ -71,10 +73,12 @@ watchEffect(() => {
   updateMiniMap()
 })
 
-const handleMouseDown = (e: any) => {
+const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
   if (!props.mainStage) return
   const stage = props.mainStage
-  const pos = e.target.getStage().getPointerPosition()
+  const miniStage = e.target.getStage()
+  if (!miniStage) return
+  const pos = miniStage.getPointerPosition()
   if (!pos) return
 
   const stageScale = stage.scaleX()
@@ -101,19 +105,23 @@ onUnmounted(() => {
 })
 
 // Simplified shapes for minimap
-const miniEntities = computed(() => store.entities.map(e => ({
-  x: e.position.x * scale.value + offset.value.x,
-  y: e.position.y * scale.value + offset.value.y,
-  width: (e.name.length < 8 ? 100 : e.name.length * 11) * scale.value,
-  height: 40 * scale.value
-})))
+const miniEntities = computed(() =>
+  store.entities.map((e: Entity) => ({
+    x: e.position.x * scale.value + offset.value.x,
+    y: e.position.y * scale.value + offset.value.y,
+    width: (e.name.length < 8 ? 100 : e.name.length * 11) * scale.value,
+    height: 40 * scale.value,
+  })),
+)
 
-const miniRelationships = computed(() => store.relationships.map(r => ({
-  x: r.position.x * scale.value + offset.value.x,
-  y: r.position.y * scale.value + offset.value.y,
-  width: (r.name.length < 8 ? 80 : r.name.length * 10) * scale.value,
-  height: 40 * scale.value
-})))
+const miniRelationships = computed(() =>
+  store.relationships.map((r: Relationship) => ({
+    x: r.position.x * scale.value + offset.value.x,
+    y: r.position.y * scale.value + offset.value.y,
+    width: (r.name.length < 8 ? 80 : r.name.length * 10) * scale.value,
+    height: 40 * scale.value,
+  })),
+)
 </script>
 
 <template>
@@ -133,8 +141,8 @@ const miniRelationships = computed(() => store.relationships.map(r => ({
             width: entity.width,
             height: entity.height,
             fill: '#ffcc45',
-            cornerRadius: 2 * scale.value,
-            opacity: 0.6
+            cornerRadius: 2 * scale,
+            opacity: 0.6,
           }"
         />
         <v-rect
@@ -149,7 +157,7 @@ const miniRelationships = computed(() => store.relationships.map(r => ({
             rotation: 45,
             offsetX: rel.width / 2,
             offsetY: rel.height / 2,
-            opacity: 0.6
+            opacity: 0.6,
           }"
         />
 
@@ -158,7 +166,7 @@ const miniRelationships = computed(() => store.relationships.map(r => ({
             ...viewportRect,
             stroke: '#3b82f6',
             strokeWidth: 2,
-            fill: '#3b82f622'
+            fill: '#3b82f622',
           }"
         />
       </v-layer>

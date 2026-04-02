@@ -1,8 +1,7 @@
 package com.tfg.ucm.dbcase.controller;
 
-import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.TransformRequest;
-import com.tfg.ucm.dbcase.service.DiagramContext;
+import com.tfg.ucm.dbcase.service.DiagramTransformationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,15 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class DiagramController {
 
-    private final DiagramContext diagramContext;
+    private final DiagramTransformationService diagramTransformationService;
 
     @PostMapping("/generate")
     public ResponseEntity<Object> generate(@RequestBody TransformRequest request) {
-
         Object o = null;
         try {
-            Diagram d = diagramContext.generate(request.getType(), request.getDiagram());
-            o = diagramContext.transform(request.getTransformTo(), d);
+            o = diagramTransformationService.transformDiagram(request);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

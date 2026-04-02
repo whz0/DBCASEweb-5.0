@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
 
-import http from '@/plugins/axios.ts'
-import type { Diagram } from '@/types/diagram-elements.ts'
+import { api } from '@/plugins/axios.ts'
 
 export enum DiagramType {
   er = 'er',
@@ -11,21 +9,15 @@ export enum DiagramType {
 }
 
 export const useDiagramStore = defineStore('d', () => {
-  const myDiagram = ref<Diagram | null>(null)
-
   async function save(
     diagram: object,
     type: DiagramType,
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
   ) {
-    return http
-      .post('diagram/generate', {
-        type: type,
-        diagram: diagram,
-      })
+    return api.diagram
+      .generate(diagram, type)
       .then((data) => {
-        myDiagram.value = data.data
-        toast('Se ha guardado correctamente el diagrama', 'success')
+        toast('Se ha guardado correctamente el diagrama' + data, 'success')
       })
       .catch((e) => {
         toast(e, 'error')
@@ -35,14 +27,10 @@ export const useDiagramStore = defineStore('d', () => {
   function generate(
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
   ) {
-    if (myDiagram.value == null) toast('No hay diagrama guardado para trasnformar', 'error')
-    else toast('Generado con éxito', 'success')
-    return myDiagram
+    toast('hola', 'info')
   }
 
-  function reset() {
-    myDiagram.value = null
-  }
+  function reset() {}
 
   return {
     save,

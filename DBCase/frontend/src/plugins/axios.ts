@@ -16,6 +16,12 @@ export const api = {
         headers: { 'Content-Type': 'text/plain' },
       }),
   },
+  diagram: {
+    generate: (diagram: object, type: string, transformTo?: string) =>
+      http.post('/diagram/generate', {
+        type: type,
+        diagram: diagram,
+        transformTo: transformTo,
+      }),
+  },
 }
-
-export default http
