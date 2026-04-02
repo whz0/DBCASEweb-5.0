@@ -15,4 +15,9 @@ public class ERDiagramStrategy implements DiagramStrategy {
     public Diagram generate(Object diagram) {
         return null;
     }
+
+    @Override
+    public Object transform(Diagram diagram) {
+        return null;
+    }
 }

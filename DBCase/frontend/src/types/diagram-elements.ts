@@ -1,38 +1,34 @@
 export interface Node {
-
-  name: String,
-  color?: String,
+  name: string
+  color?: string
 }
 
 export interface Entity extends Node {
-
-  weak?: boolean,
+  weak?: boolean
 }
 
 export interface Attribute extends Node {
-
-  pk?: boolean,
-  fk?: boolean,
-  compose?: boolean,
-  notNull?: boolean,
-  unique?: boolean,
-  multivalue?: boolean,
-  size?: number,
+  pk?: boolean
+  fk?: boolean
+  compose?: boolean
+  notNull?: boolean
+  unique?: boolean
+  multivalue?: boolean
+  size?: number
 }
 
 export interface Relationship extends Node {
-
+  cardinality: number
+  level: number
 }
 
 export interface Edge {
-
-  source: String,
-  target: String,
-  label?: String,
+  source: string
+  target: string
+  label?: string
 }
 
 export interface Diagram {
-
-  nodes: Node[],
-  edges: Edge[],
+  nodes: Node[]
+  edges: Edge[]
 }

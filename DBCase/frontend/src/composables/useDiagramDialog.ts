@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 
-import { useDiagramStore } from '@/stores/erSchemaStore.ts'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import { useDiagramStore } from '@/stores/erSchemaStore.ts'
 
 export function useDiagramDialog(addId: DialogId, editId: DialogId) {
   const dialogStore = useDialogStore()

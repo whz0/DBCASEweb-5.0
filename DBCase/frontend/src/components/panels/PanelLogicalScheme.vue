@@ -1,36 +1,38 @@
 <script setup lang="ts">
-import {ref} from 'vue'
-import {useI18n} from 'vue-i18n'
-import {useToast} from "primevue";
+import { useToast } from 'primevue'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import {PanelId, useGeneratePanelStore} from '@/stores/generatePanelStore.ts'
-import {DiagramType, useDiagramStore} from "@/stores/diagramStore.ts"
+import { DiagramType, useDiagramStore } from '@/stores/diagramStore.ts'
+import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
 
 const { t } = useI18n()
 const toast = useToast()
 
 const panelStore = useGeneratePanelStore()
-const {save, generate} = useDiagramStore()
+const { save, generate } = useDiagramStore()
 
 const relationship = ref('')
 const restriction = ref('')
 const lossRestriction = ref('')
 
 const handleSave = () => {
-  save({
-    'relationship': relationship.value,
-    'restriction': restriction.value,
-    'lossRestriction': lossRestriction.value,
-  },
+  save(
+    {
+      relationship: relationship.value,
+      restriction: restriction.value,
+      lossRestriction: lossRestriction.value,
+    },
     DiagramType.logical,
-    (message, severity) =>
-      toast.add({ severity: severity, detail: message, life: 3000 })
+    (message, severity) => toast.add({ severity: severity, detail: message, life: 3000 }),
   )
 }
 
 const handleGenerate = () => {
   const diagram = generate((message, severity) =>
-    toast.add({ severity: severity, detail: message, life: 3000 }))
+    toast.add({ severity: severity, detail: message, life: 3000 }),
+  )
+  console.log(diagram)
 }
 </script>
 
@@ -73,7 +75,13 @@ const handleGenerate = () => {
       <label for="restriction" class="text-xl!">Restricciones de integridad referencial</label>
     </FloatLabel>
     <FloatLabel variant="on" class="my-3">
-      <Textarea id="lossRestriction" v-model="lossRestriction" rows="4" style="resize: none" fluid />
+      <Textarea
+        id="lossRestriction"
+        v-model="lossRestriction"
+        rows="4"
+        style="resize: none"
+        fluid
+      />
       <label for="lossRestriction" class="text-xl!">Restricciones perdidas</label>
     </FloatLabel>
   </div>

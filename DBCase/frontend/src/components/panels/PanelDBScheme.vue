@@ -1,71 +1,68 @@
 <script setup lang="ts">
-import {type Ref, ref, type UnwrapRef} from 'vue'
-import {useI18n} from 'vue-i18n'
-import {useToast} from "primevue";
-import {MySQL, PostgreSQL} from 'dt-sql-parser'
+import { MySQL, PostgreSQL } from 'dt-sql-parser'
+import CodeEditor from 'monaco-editor-vue3'
+import { useToast } from 'primevue'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import {PanelId, useGeneratePanelStore} from '@/stores/generatePanelStore.ts'
-import {DiagramType, useDiagramStore} from "@/stores/diagramStore.ts";
-import CodeEditor from "monaco-editor-vue3";
-import type {Diagram} from "@/types/diagram-elements.ts";
+import { DiagramType, useDiagramStore } from '@/stores/diagramStore.ts'
+import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
+import type { Diagram } from '@/types/diagram-elements.ts'
 
 const parsers = {
-  'mysql': new MySQL(),
-  'postgresql': new PostgreSQL(),
+  mysql: new MySQL(),
+  postgresql: new PostgreSQL(),
 }
 
 const selectLanguage = ref()
 const languages = ref([
-  {language: 'MySQL', value: 'mysql'},
-  {language: 'PostgreSQL', value: 'postgresql'},
+  { language: 'MySQL', value: 'mysql' },
+  { language: 'PostgreSQL', value: 'postgresql' },
 ])
 
-const code = ref();
+const code = ref()
 
 const editorOptions = {
   fontSize: 14,
   minimap: { enabled: false },
-  automaticLayout: true
-};
+  automaticLayout: true,
+}
 
 const { t } = useI18n()
 const toast = useToast()
 const panelStore = useGeneratePanelStore()
-const {save, generate} = useDiagramStore()
+const { save, generate } = useDiagramStore()
 
 const validate = () => {
   const parser = parsers[selectLanguage.value as keyof typeof parsers]
-  return parser.validate(code.value).map(e => e.message)
+  return parser.validate(code.value).map((e) => e.message)
 }
 
 const handleSave = () => {
-  if(validate()) {
-    save(code.value,
-      DiagramType.db,
-      (message, severity) =>
-        toast.add({ severity: severity, detail: message, life: 3000 })
+  if (validate()) {
+    save(code.value, DiagramType.db, (message, severity) =>
+      toast.add({ severity: severity, detail: message, life: 3000 }),
     )
   }
 }
 
 const generateDiagram = (diagram: Diagram) => {
-  console.log('Hola')
+  console.log(diagram)
 }
 
 const handleGenerate = () => {
-
-  if(selectLanguage.value == undefined){
+  if (selectLanguage.value == undefined) {
     toast.add({
       severity: 'error',
       detail: 'Seleccione un lenguaje para trasnformar',
-      life: 3000
+      life: 3000,
     })
-  }
-  else {
+  } else {
     const diagram = generate((message, severity) =>
-      toast.add({ severity: severity, detail: message, life: 3000 }))
+      toast.add({ severity: severity, detail: message, life: 3000 }),
+    )
 
-    if(diagram) generateDiagram(diagram)
+    if (diagram) generateDiagram(diagram)
   }
 }
 </script>
@@ -79,7 +76,8 @@ const handleGenerate = () => {
         optionLabel="language"
         optionValue="value"
         placeholder="Select a Language"
-        class="w-full md:w-56" />
+        class="w-full md:w-56"
+      />
     </div>
     <div class="text-3xl">
       <h1>{{ t('panels.physical') }}</h1>
@@ -109,12 +107,7 @@ const handleGenerate = () => {
     </div>
   </div>
   <div class="h-full my-4">
-    <CodeEditor
-      v-model:value="code"
-      language="sql"
-      theme="vs-white"
-      :options="editorOptions"
-    />
+    <CodeEditor v-model:value="code" language="sql" theme="vs-white" :options="editorOptions" />
   </div>
 </template>
 

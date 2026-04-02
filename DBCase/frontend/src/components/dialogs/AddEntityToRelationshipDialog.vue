@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { useDiagramStore } from '@/stores/erSchemaStore.ts'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
+import { useDiagramStore } from '@/stores/erSchemaStore.ts'
 import type { Entity } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()

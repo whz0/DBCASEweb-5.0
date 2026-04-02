@@ -11,4 +11,5 @@ public class TransformRequest {
 
     private String type;
     private Object diagram;
+    private String transformTo;
 }

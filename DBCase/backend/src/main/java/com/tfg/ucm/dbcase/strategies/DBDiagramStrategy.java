@@ -48,6 +48,11 @@ public class DBDiagramStrategy implements DiagramStrategy {
                 .build();
     }
 
+    @Override
+    public Object transform(Diagram diagram) {
+        return null;
+    }
+
     private void parseStatement(String sqlStr, Map<String, Node> nodes, Set<Edge> edges)
             throws Exception {
         try {

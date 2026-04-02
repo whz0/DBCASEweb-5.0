@@ -41,6 +41,11 @@ public class LogicalDiagramStrategy implements DiagramStrategy {
                 .build();
     }
 
+    @Override
+    public Object transform(Diagram diagram) {
+        return null;
+    }
+
     private void parseRelationship(String relationship, Map<String, Node> nodes, Set<Edge> rel) {
 
         relationship
@@ -63,7 +68,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy {
             String entity, String attribute, Map<String, Node> nodes, Set<Edge> rel) {
 
         Node isRel = nodes.get(entity);
-        if (isRel != null && isRel.getClass() != Relationship.class) {
+        if (isRel instanceof Entity) {
             Pattern pattern = Pattern.compile("^__([a-zA-Z])__$");
             Matcher matcher = pattern.matcher(attribute);
             boolean pk = matcher.find();

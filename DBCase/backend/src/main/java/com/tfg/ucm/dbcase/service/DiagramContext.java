@@ -22,4 +22,8 @@ public class DiagramContext {
     public Diagram generate(String type, Object diagram) throws Exception {
         return strategies.get(type).generate(diagram);
     }
+
+    public Object transform(String type, Diagram diagram) {
+        return null;
+    }
 }

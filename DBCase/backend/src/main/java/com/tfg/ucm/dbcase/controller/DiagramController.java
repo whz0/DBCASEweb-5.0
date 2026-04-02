@@ -18,14 +18,15 @@ public class DiagramController {
     private final DiagramContext diagramContext;
 
     @PostMapping("/generate")
-    public ResponseEntity<Diagram> generate(@RequestBody TransformRequest request) {
+    public ResponseEntity<Object> generate(@RequestBody TransformRequest request) {
 
-        Diagram d = null;
+        Object o = null;
         try {
-            d = diagramContext.generate(request.getType(), request.getDiagram());
+            Diagram d = diagramContext.generate(request.getType(), request.getDiagram());
+            o = diagramContext.transform(request.getTransformTo(), d);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(d);
+        return ResponseEntity.ok(o);
     }
 }

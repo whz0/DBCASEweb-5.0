@@ -4,7 +4,9 @@ import com.tfg.ucm.dbcase.dto.Diagram;
 
 public interface DiagramStrategy {
 
-    public String getType();
+    String getType();
 
-    public Diagram generate(Object diagram) throws Exception;
+    Diagram generate(Object diagram) throws Exception;
+
+    Object transform(Diagram diagram);
 }
