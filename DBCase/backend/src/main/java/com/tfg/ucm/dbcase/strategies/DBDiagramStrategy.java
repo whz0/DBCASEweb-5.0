@@ -2,6 +2,7 @@ package com.tfg.ucm.dbcase.strategies;
 
 import com.tfg.ucm.dbcase.dto.Attribute;
 import com.tfg.ucm.dbcase.dto.Diagram;
+import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
@@ -9,7 +10,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.sf.jsqlparser.JSQLParserException;
@@ -46,7 +46,38 @@ public class DBDiagramStrategy implements DiagramStrategy {
 
     @Override
     public Object transform(Diagram diagram) {
-        return null;
+
+        StringBuilder sqlBuilder = new StringBuilder();
+        Graph<Node, Edge> graph = diagram.getDiagram();
+
+        List<Node> entities =
+                graph.vertexSet().stream().filter(n -> !(n instanceof Attribute)).toList();
+
+        entities.forEach(
+                ent -> {
+                    String table = "CREATE TABLE " + ent.getName() + "(\n";
+                    for (Edge edge : graph.edgesOf(ent)) {
+                        Node node = graph.getEdgeTarget(edge);
+                        if (node instanceof Attribute attribute) {
+                            String dataType = attribute.getDataType().toString();
+                            String primary = attribute.isPk() ? " PRIMARY KEY" : "";
+                            String notNull = attribute.isNoEmpty() ? " NOT NULL" : "";
+                            String unique = attribute.isUnique() ? " UNIQUE" : "";
+                            table =
+                                    table.concat(
+                                            node.getName()
+                                                    + " "
+                                                    + dataType
+                                                    + primary
+                                                    + notNull
+                                                    + unique
+                                                    + ",\n");
+                        }
+                    }
+                    table = table.concat(");\n\n");
+                    sqlBuilder.append(table);
+                });
+        return sqlBuilder;
     }
 
     private void parseStatement(String sqlStr, Graph<Node, Edge> diagram) throws Exception {
@@ -57,7 +88,9 @@ public class DBDiagramStrategy implements DiagramStrategy {
                 Node entity = Entity.builder().name(entityName).build();
                 diagram.addVertex(entity);
                 parseColumns(createTable.getColumnDefinitions(), entity, diagram);
-                parseIndex(createTable.getIndexes(), entity, diagram);
+                if (createTable.getIndexes() != null) {
+                    parseIndex(createTable.getIndexes(), entity, diagram);
+                }
             }
         } catch (JSQLParserException e) {
             throw new Exception("Error en el formato");
@@ -106,7 +139,7 @@ public class DBDiagramStrategy implements DiagramStrategy {
             Node attribute =
                     Attribute.builder()
                             .name(name)
-                            .color(type)
+                            .dataType(Domain.valueOf(type))
                             .pk(isPk)
                             .unique(isUnique)
                             .noEmpty(isNotNull)

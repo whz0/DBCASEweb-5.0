@@ -15,4 +15,5 @@ public class Attribute extends Node {
     private boolean unique;
     private boolean multivalue;
     private int size;
+    private Domain dataType;
 }

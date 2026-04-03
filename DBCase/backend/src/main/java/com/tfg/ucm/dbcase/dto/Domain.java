@@ -1,6 +1,16 @@
 package com.tfg.ucm.dbcase.dto;
 
-import lombok.Data;
-
-@Data
-public class Domain {}
+public enum Domain {
+    BIT,
+    BLOB,
+    CHAR,
+    DATE,
+    DATETIME,
+    DECIMAL,
+    FLOAT,
+    GEOMETRY,
+    INTEGER,
+    TEXT,
+    TIME,
+    VARCHAR,
+}
