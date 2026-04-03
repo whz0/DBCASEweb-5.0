@@ -7,14 +7,12 @@ import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.Relationship;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,18 +25,14 @@ public class LogicalDiagramStrategy implements DiagramStrategy {
     @Override
     public Diagram generate(Object diagram) {
 
-        Map<String, Node> nodes = new HashMap<>();
-        Set<Edge> edges = new HashSet<>();
+        Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
 
         LinkedHashMap<String, String> dia = (LinkedHashMap<String, String>) diagram;
-        parseRestriction(dia.get("restriction"), nodes, edges);
-        parseRelationship(dia.get("relationship"), nodes, edges);
-        parseLossRestriction(dia.get("lossRestriction"), nodes, edges);
+        parseRestriction(dia.get("restriction"), result);
+        parseRelationship(dia.get("relationship"), result);
+        parseLossRestriction(dia.get("lossRestriction"), result);
 
-        return Diagram.builder()
-                .nodes(nodes.values().stream().toList())
-                .edges(edges.stream().toList())
-                .build();
+        return Diagram.builder().diagram(result).build();
     }
 
     @Override
@@ -46,43 +40,46 @@ public class LogicalDiagramStrategy implements DiagramStrategy {
         return null;
     }
 
-    private void parseRelationship(String relationship, Map<String, Node> nodes, Set<Edge> rel) {
+    private void parseRelationship(String relationship, Graph<Node, Edge> diagram) {
 
         relationship
                 .lines()
                 .forEach(
                         (line) -> {
                             String[] parts = line.split(" ", 2);
-                            String entity = parts[0];
+                            Node entity = Entity.builder().name(parts[0]).build();
                             String[] attributes = parts[1].replaceAll("[()]", "").split(",");
 
                             Iterator<String> i = Arrays.stream(attributes).iterator();
 
                             while (i.hasNext()) {
-                                addAttribute(entity, i.next(), nodes, rel);
+                                addAttribute(entity, i.next().trim(), diagram);
                             }
                         });
     }
 
-    private void addAttribute(
-            String entity, String attribute, Map<String, Node> nodes, Set<Edge> rel) {
+    private void addAttribute(Node entity, String attribute, Graph<Node, Edge> diagram) {
 
-        Node isRel = nodes.get(entity);
-        if (isRel instanceof Entity) {
-            Pattern pattern = Pattern.compile("^__([a-zA-Z])__$");
-            Matcher matcher = pattern.matcher(attribute);
-            boolean pk = matcher.find();
-            if (pk) {
-                attribute = matcher.group(1);
-            }
-            if (!nodes.containsKey(attribute)) {
-                nodes.put(attribute, Attribute.builder().name(attribute).pk(pk).build());
-            }
-            rel.add(Edge.builder().target(attribute).source(entity).build());
+        Pattern pattern = Pattern.compile("^__([a-zA-Z]+)__$");
+        Matcher matcher = pattern.matcher(attribute);
+        boolean pk = matcher.find();
+        if (pk) {
+            attribute = matcher.group(1);
+        }
+        final String attributeName = attribute;
+        boolean exists =
+                diagram.vertexSet().stream().anyMatch(a -> a.getName().equals(attributeName));
+        if (!exists) {
+            Node attr = Attribute.builder().name(attributeName).pk(pk).build();
+            diagram.addVertex(attr);
+            diagram.addEdge(
+                    entity,
+                    attr,
+                    Edge.builder().label("attribute" + attributeName + entity.getName()).build());
         }
     }
 
-    private void parseRestriction(String restriction, Map<String, Node> nodes, Set<Edge> rel) {
+    private void parseRestriction(String restriction, Graph<Node, Edge> diagram) {
 
         restriction
                 .lines()
@@ -91,19 +88,19 @@ public class LogicalDiagramStrategy implements DiagramStrategy {
                             String[] restrict = line.split("->");
                             String origin = restrict[0].split("\\.")[0].trim();
                             String target = restrict[1].split("\\.")[0].trim();
+                            Node relationship = Relationship.builder().name(origin).build();
+                            Node entity = Entity.builder().name(target).build();
+                            diagram.addVertex(relationship);
+                            diagram.addVertex(entity);
 
-                            if (!nodes.containsKey(origin)) {
-                                nodes.put(origin, Relationship.builder().name(origin).build());
-                            }
-
-                            if (!nodes.containsKey(target)) {
-                                nodes.put(target, Entity.builder().name(target).build());
-                            }
-
-                            rel.add(Edge.builder().source(origin).target(target).build());
+                            diagram.addEdge(
+                                    relationship,
+                                    entity,
+                                    Edge.builder()
+                                            .label("relationship" + relationship + entity)
+                                            .build());
                         });
     }
 
-    private void parseLossRestriction(
-            String lossRestriction, Map<String, Node> nodes, Set<Edge> rel) {}
+    private void parseLossRestriction(String lossRestriction, Graph<Node, Edge> diagram) {}
 }

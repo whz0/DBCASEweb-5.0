@@ -6,12 +6,10 @@ import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.sf.jsqlparser.JSQLParserException;
@@ -20,6 +18,8 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,20 +32,16 @@ public class DBDiagramStrategy implements DiagramStrategy {
     @Override
     public Diagram generate(Object diagram) throws Exception {
 
-        Map<String, Node> nodes = new HashMap<>();
-        Set<Edge> edges = new HashSet<>();
+        Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
 
         String[] statements = ((String) diagram).split(";");
         Iterator<String> i = Arrays.stream(statements).iterator();
         while (i.hasNext()) {
             String statement = i.next();
-            parseStatement(statement, nodes, edges);
+            parseStatement(statement, result);
         }
 
-        return Diagram.builder()
-                .nodes(nodes.values().stream().toList())
-                .edges(edges.stream().toList())
-                .build();
+        return Diagram.builder().diagram(result).build();
     }
 
     @Override
@@ -53,44 +49,46 @@ public class DBDiagramStrategy implements DiagramStrategy {
         return null;
     }
 
-    private void parseStatement(String sqlStr, Map<String, Node> nodes, Set<Edge> edges)
-            throws Exception {
+    private void parseStatement(String sqlStr, Graph<Node, Edge> diagram) throws Exception {
         try {
             Statement statement = CCJSqlParserUtil.parse(sqlStr);
             if (statement instanceof CreateTable createTable) {
-                String entity = createTable.getTable().getName();
-                nodes.put(entity, Entity.builder().name(entity).build());
-                parseColumns(createTable.getColumnDefinitions(), entity, nodes, edges);
-                parseIndex(createTable.getIndexes(), entity, nodes, edges);
+                String entityName = createTable.getTable().getName();
+                Node entity = Entity.builder().name(entityName).build();
+                diagram.addVertex(entity);
+                parseColumns(createTable.getColumnDefinitions(), entity, diagram);
+                parseIndex(createTable.getIndexes(), entity, diagram);
             }
         } catch (JSQLParserException e) {
             throw new Exception("Error en el formato");
         }
     }
 
-    private void parseIndex(
-            List<Index> index, String entity, Map<String, Node> nodes, Set<Edge> edges) {
+    private void parseIndex(List<Index> index, Node entity, Graph<Node, Edge> diagram) {
         for (Index i : index) {
             boolean isPk = i.getType().toLowerCase().contentEquals("primary key");
             boolean isFk = i.getType().toLowerCase().contentEquals("foreign key");
             i.getColumns()
                     .forEach(
                             (column) -> {
-                                String col = column.getColumnName();
-                                Node node = nodes.get(col);
+                                String name = column.getColumnName();
+                                Node node =
+                                        diagram.getEdgeTarget(
+                                                Edge.builder()
+                                                        .label(
+                                                                "attribute"
+                                                                        + name
+                                                                        + entity.getName())
+                                                        .build());
                                 if (node instanceof Attribute attribute) {
-                                    nodes.put(col, attribute.toBuilder().pk(isPk).fk(isFk).build());
+                                    attribute.toBuilder().pk(isPk).fk(isFk).build();
                                 }
-                                edges.add(Edge.builder().source(entity).target(col).build());
                             });
         }
     }
 
     private void parseColumns(
-            List<ColumnDefinition> columns,
-            String entity,
-            Map<String, Node> nodes,
-            Set<Edge> edges) {
+            List<ColumnDefinition> columns, Node entity, Graph<Node, Edge> diagram) {
         for (ColumnDefinition col : columns) {
             String name = col.getColumnName();
             String type = col.getColDataType().getDataType();
@@ -105,16 +103,19 @@ public class DBDiagramStrategy implements DiagramStrategy {
                 isUnique = specs.stream().anyMatch(s -> s.equalsIgnoreCase("unique"));
                 isNotNull = Stream.of("not", "null").allMatch(normalizedSpecs::contains);
             }
-            nodes.put(
-                    name,
+            Node attribute =
                     Attribute.builder()
                             .name(name)
                             .color(type)
                             .pk(isPk)
                             .unique(isUnique)
                             .noEmpty(isNotNull)
-                            .build());
-            edges.add(Edge.builder().source(entity).target(name).build());
+                            .build();
+            diagram.addVertex(attribute);
+            diagram.addEdge(
+                    entity,
+                    attribute,
+                    Edge.builder().label("attribute" + name + entity.getName()).build());
         }
     }
 }

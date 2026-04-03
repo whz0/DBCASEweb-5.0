@@ -7,6 +7,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 public class Node {
 
+    public Node() {}
+    ;
+
     private String name;
     private String color;
 }
