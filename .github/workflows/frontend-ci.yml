@@ -10,6 +10,9 @@ on:
     paths:
       - 'DBCase/frontend/**'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
