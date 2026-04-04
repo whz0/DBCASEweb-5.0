@@ -33,13 +33,16 @@ class UserServiceTest {
         return Stream.of(
                 Arguments.of("newUser", null, "pic1", 1),
                 Arguments.of(
-                        "existingUser",
-                        new User(null, "existingUser", null, null, null),
-                        "pic2",
-                        1),
+                        "existingUser", User.builder().username("existingUser").build(), "pic2", 1),
                 Arguments.of(
                         "existingUserWithSamePic",
-                        new User(1L, "existingUserWithSamePic", "pass", "chart", "samePic"),
+                        User.builder()
+                                .id(1L)
+                                .username("existingUserWithSamePic")
+                                .password("pass")
+                                .chart("chart")
+                                .pictureUrl("samePic")
+                                .build(),
                         "samePic",
                         0));
     }

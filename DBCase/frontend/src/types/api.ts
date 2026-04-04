@@ -1,5 +1,10 @@
 import type { Snapshot } from './er-diagram-elements'
 
+export interface UserSettings {
+  language: string
+  theme: string
+}
+
 export interface LogicalDiagramInput {
   relationship: string
   restriction: string

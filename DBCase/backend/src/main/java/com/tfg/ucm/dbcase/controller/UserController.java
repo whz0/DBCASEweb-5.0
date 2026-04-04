@@ -3,6 +3,7 @@ package com.tfg.ucm.dbcase.controller;
 import com.tfg.ucm.dbcase.dto.LoginRequest;
 import com.tfg.ucm.dbcase.dto.RegisterRequest;
 import com.tfg.ucm.dbcase.model.User;
+import com.tfg.ucm.dbcase.model.UserSettings;
 import com.tfg.ucm.dbcase.service.AuthService;
 import com.tfg.ucm.dbcase.service.CookieService;
 import com.tfg.ucm.dbcase.service.JWTService;
@@ -56,6 +57,13 @@ public class UserController {
     public ResponseEntity<User> saveChart(
             @RequestBody String chart, @AuthenticationPrincipal UserDetails userDetails) {
         User user = userService.updateChart(userDetails.getUsername(), chart);
+        return ResponseEntity.ok(user);
+    }
+
+    @PostMapping("/settings")
+    public ResponseEntity<User> saveSettings(
+            @RequestBody UserSettings settings, @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userService.updateSettings(userDetails.getUsername(), settings);
         return ResponseEntity.ok(user);
     }
 

@@ -1,6 +1,7 @@
 package com.tfg.ucm.dbcase.service;
 
 import com.tfg.ucm.dbcase.model.User;
+import com.tfg.ucm.dbcase.model.UserSettings;
 import com.tfg.ucm.dbcase.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -57,6 +58,12 @@ public class UserService {
     public User updateChart(String username, String chart) {
         User user = getCurrentUser(username);
         user.setChart(chart);
+        return userRepository.save(user);
+    }
+
+    public User updateSettings(String username, UserSettings settings) {
+        User user = getCurrentUser(username);
+        user.setSettings(settings);
         return userRepository.save(user);
     }
 }

@@ -3,9 +3,12 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useTheme } from '@/composables/useTheme'
+import { api } from '@/plugins/axios'
+import { useAuthStore } from '@/stores/authStore'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 
 const dialogStore = useDialogStore()
+const authStore = useAuthStore()
 const { theme, setTheme } = useTheme()
 const { locale, t } = useI18n()
 
@@ -26,7 +29,13 @@ const changeLanguage = (lang: string) => {
 }
 
 const visible = computed(() => dialogStore.isOpen(DialogId.Accessibility))
-const closeModal = () => dialogStore.close(DialogId.Accessibility)
+
+const closeModal = () => {
+  if (authStore.user.username) {
+    api.user.saveSettings({ language: locale.value, theme: theme.value })
+  }
+  dialogStore.close(DialogId.Accessibility)
+}
 </script>
 
 <template>

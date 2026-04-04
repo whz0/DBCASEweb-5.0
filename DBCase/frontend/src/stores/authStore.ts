@@ -1,17 +1,22 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+import { useTheme } from '@/composables/useTheme'
 import { i18n } from '@/i18n'
 import { api } from '@/plugins/axios.ts'
 import { useDiagramStore } from '@/stores/diagramStore'
 import { useDialogStore } from '@/stores/dialogStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { useGeneratePanelStore } from '@/stores/generatePanelStore'
+import type { UserSettings } from '@/types/api'
+
+const theme = useTheme()
 
 interface User {
   username: string
   chart: string
   pictureUrl: string
+  settings?: UserSettings
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -114,10 +119,23 @@ export const useAuthStore = defineStore('auth', () => {
       user.value.username = u.username
       user.value.chart = u.chart
       user.value.pictureUrl = u.pictureUrl
+      user.value.settings = u.settings
+
+      if (u.settings?.language) {
+        i18n.global.locale = u.settings.language as 'en' | 'es'
+        localStorage.setItem('locale', u.settings.language)
+      }
+      if (u.settings?.theme) {
+        theme.setTheme(u.settings.theme as 'light' | 'dark' | 'system')
+      }
     } else {
       user.value.username = ''
       user.value.chart = ''
       user.value.pictureUrl = ''
+      user.value.settings = undefined
+      i18n.global.locale = 'en'
+      localStorage.setItem('locale', 'en')
+      theme.setTheme('system')
     }
     sessionStorage.setItem('username', user.value.username)
     sessionStorage.setItem('chart', user.value.chart)
