@@ -24,4 +24,16 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  build: {
+    chunkSizeWarningLimit: 5000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'monaco': ['monaco-editor-vue3'],
+          'parsers': ['dt-sql-parser'],
+          'vendor': ['vue', 'vue-router', 'pinia', 'primevue'],
+        }
+      }
+    }
+  }
 })
