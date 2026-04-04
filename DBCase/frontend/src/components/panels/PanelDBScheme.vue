@@ -8,6 +8,11 @@ import { useI18n } from 'vue-i18n'
 import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
 
+const { t } = useI18n()
+const toast = useToast()
+const panelStore = useGeneratePanelStore()
+const { save } = useDiagramStore()
+
 const parsers = {
   mysql: new MySQL(),
   postgresql: new PostgreSQL(),
@@ -26,11 +31,6 @@ const editorOptions = {
   minimap: { enabled: false },
   automaticLayout: true,
 }
-
-const { t } = useI18n()
-const toast = useToast()
-const panelStore = useGeneratePanelStore()
-const { save } = useDiagramStore()
 
 const validate = () => {
   const parser = parsers[selectLanguage.value as keyof typeof parsers]

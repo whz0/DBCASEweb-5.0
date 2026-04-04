@@ -2,39 +2,46 @@ package com.tfg.ucm.dbcase.strategies;
 
 import com.tfg.ucm.dbcase.dto.Attribute;
 import com.tfg.ucm.dbcase.dto.Diagram;
+import com.tfg.ucm.dbcase.dto.DiagramType;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Entity;
+import com.tfg.ucm.dbcase.dto.LogicalInput;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.Relationship;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
 
 @Service
-public class LogicalDiagramStrategy implements DiagramStrategy {
+public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
+    private static final Pattern PK_PATTERN = Pattern.compile("^__([a-zA-Z]+)__$");
+
     @Override
-    public String getType() {
-        return "logical";
+    public DiagramType getType() {
+        return DiagramType.LOGICAL;
     }
 
     @Override
-    public Diagram generate(Object diagram) {
+    public Class<LogicalInput> getInputType() {
+        return LogicalInput.class;
+    }
+
+    @Override
+    public Diagram generate(LogicalInput diagram) {
 
         Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
 
-        LinkedHashMap<String, String> dia = (LinkedHashMap<String, String>) diagram;
-        parseRestriction(dia.get("restriction"), result);
-        parseRelationship(dia.get("relationship"), result);
-        parseLossRestriction(dia.get("lossRestriction"), result);
+        parseRestriction(diagram.restriction(), result);
+        parseRelationship(diagram.relationship(), result);
+        parseLossRestriction(diagram.lossRestriction(), result);
 
         return Diagram.builder().diagram(result).build();
     }
@@ -45,7 +52,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy {
         LinkedHashMap<String, String> result = new LinkedHashMap<>();
         StringBuilder relationshipBuilder = new StringBuilder();
         StringBuilder restrictionBuilder = new StringBuilder();
-        //        StringBuilder lossRestrictionBuilder = new StringBuilder();
+        StringBuilder lossRestrictionBuilder = new StringBuilder();
 
         Graph<Node, Edge> graph = diagram.getDiagram();
 
@@ -96,13 +103,12 @@ public class LogicalDiagramStrategy implements DiagramStrategy {
 
         result.put("relationship", relationshipBuilder.toString());
         result.put("restriction", restrictionBuilder.toString());
-        result.put("lossRestriction", " ");
+        result.put("lossRestriction", lossRestrictionBuilder.toString());
 
         return result;
     }
 
     private void parseRelationship(String relationship, Graph<Node, Edge> diagram) {
-
         relationship
                 .lines()
                 .forEach(
@@ -116,18 +122,16 @@ public class LogicalDiagramStrategy implements DiagramStrategy {
                                     exists.orElseGet(() -> Entity.builder().name(parts[0]).build());
                             String[] attributes = parts[1].replaceAll("[()]", "").split(",");
 
-                            Iterator<String> i = Arrays.stream(attributes).iterator();
-
-                            while (i.hasNext()) {
-                                addAttribute(entity, i.next().trim(), diagram);
-                            }
+                            Stream.of(attributes)
+                                    .forEach(
+                                            attribute ->
+                                                    addAttribute(
+                                                            entity, attribute.trim(), diagram));
                         });
     }
 
     private void addAttribute(Node entity, String attribute, Graph<Node, Edge> diagram) {
-
-        Pattern pattern = Pattern.compile("^__([a-zA-Z]+)__$");
-        Matcher matcher = pattern.matcher(attribute);
+        Matcher matcher = PK_PATTERN.matcher(attribute);
         boolean pk = matcher.find();
         if (pk) {
             attribute = matcher.group(1);
@@ -137,7 +141,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy {
                 diagram.vertexSet().stream()
                         .filter(a -> a.getName().equals(attributeName))
                         .findAny();
-        Node attr = null;
+        Node attr;
         if (exists.isEmpty()) {
             Domain type = pk ? Domain.INTEGER : Domain.VARCHAR;
             attr = Attribute.builder().name(attributeName).pk(pk).dataType(type).build();

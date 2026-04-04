@@ -2,10 +2,12 @@ package com.tfg.ucm.dbcase.strategies;
 
 import com.tfg.ucm.dbcase.dto.Attribute;
 import com.tfg.ucm.dbcase.dto.Diagram;
+import com.tfg.ucm.dbcase.dto.DiagramType;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
+import com.tfg.ucm.dbcase.dto.PhysicalInput;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -23,18 +25,23 @@ import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DBDiagramStrategy implements DiagramStrategy {
+public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
     @Override
-    public String getType() {
-        return "db";
+    public DiagramType getType() {
+        return DiagramType.DB;
     }
 
     @Override
-    public Diagram generate(Object diagram) throws Exception {
+    public Class<PhysicalInput> getInputType() {
+        return PhysicalInput.class;
+    }
+
+    @Override
+    public Diagram generate(PhysicalInput diagram) throws Exception {
 
         Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
 
-        String[] statements = ((String) diagram).split(";");
+        String[] statements = diagram.sql().split(";");
         Iterator<String> i = Arrays.stream(statements).iterator();
         while (i.hasNext()) {
             String statement = i.next();
@@ -77,6 +84,7 @@ public class DBDiagramStrategy implements DiagramStrategy {
                     table = table.concat(");\n\n");
                     sqlBuilder.append(table);
                 });
+
         return sqlBuilder;
     }
 

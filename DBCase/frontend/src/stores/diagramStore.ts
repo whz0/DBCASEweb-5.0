@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { api } from '@/plugins/axios.ts'
+import type { AnyDiagramInput } from '@/types/api'
 
 export enum DiagramType {
   er = 'er',
@@ -10,7 +11,7 @@ export enum DiagramType {
 
 export const useDiagramStore = defineStore('d', () => {
   async function save(
-    diagram: object,
+    diagram: AnyDiagramInput,
     type: DiagramType,
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
   ) {

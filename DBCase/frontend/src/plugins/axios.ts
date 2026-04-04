@@ -1,5 +1,8 @@
 import axios from 'axios'
 
+import { DiagramType } from '@/stores/diagramStore'
+import type { AnyDiagramInput } from '@/types/api'
+
 const http = axios.create({
   baseURL: 'http://localhost:8080/api',
   withCredentials: true,
@@ -17,7 +20,7 @@ export const api = {
       }),
   },
   diagram: {
-    generate: (diagram: object, type: string, transformTo?: string) =>
+    generate: (diagram: AnyDiagramInput, type: DiagramType, transformTo?: DiagramType) =>
       http.post('/diagram/generate', {
         type: type,
         diagram: diagram,

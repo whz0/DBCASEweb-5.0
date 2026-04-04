@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TransformRequest {
 
-    private String type;
-    private Object diagram;
-    private String transformTo;
+    private DiagramType type;
+    private DiagramInput diagram;
+    private DiagramType transformTo;
 }
