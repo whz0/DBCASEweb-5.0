@@ -56,7 +56,10 @@ if (store.entities.length === 0 && store.relationships.length === 0) {
     name: 'Owns',
     position: { x: 175, y: 100 },
     type: 'Normal',
-    participants: [],
+    participants: [
+      { entityId: '1', cardinalityMin: '1', cardinalityMax: 'N' },
+      { entityId: '2', cardinalityMin: '0', cardinalityMax: 'N' },
+    ],
     attributes: [],
   })
 }

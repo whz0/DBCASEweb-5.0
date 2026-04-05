@@ -9,7 +9,6 @@ import { useDialogStore } from '@/stores/dialogStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { useGeneratePanelStore } from '@/stores/generatePanelStore'
 import type { UserSettings } from '@/types/api'
-import type { Snapshot } from '@/types/er-diagram-elements.ts'
 
 const theme = useTheme()
 
@@ -143,8 +142,8 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem('pictureUrl', user.value.pictureUrl)
   }
 
-  function setChart(chart: Snapshot) {
-    user.value.chart = chart && JSON.stringify(chart)
+  function setChart(chart: string) {
+    user.value.chart = chart
     sessionStorage.setItem('chart', user.value.chart)
   }
 

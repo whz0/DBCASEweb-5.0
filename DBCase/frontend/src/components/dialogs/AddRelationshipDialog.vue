@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
-import { DialogId } from '@/stores/dialogStore'
+import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import type { Relationship } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
@@ -11,28 +11,32 @@ const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddRelationship,
   DialogId.EditRelationship,
 )
+const dialogStore = useDialogStore()
 
 const name = ref('')
 
-const currentRelationship = computed(() => {
+const currentRelationship = computed<Relationship | null>(() => {
   if (!isEditMode.value) return null
   const id = erSchemaStore.selectedElementId
   return erSchemaStore.relationships.find((r: Relationship) => r.id === id) || null
 })
 
+const participantsWithNames = computed(() => {
+  if (!currentRelationship.value) return []
+  return currentRelationship.value.participants.map((p) => ({
+    ...p,
+    name: erSchemaStore.entities.find((e) => e.id === p.entityId)?.name ?? 'Unknown',
+  }))
+})
+
 watch(visible, (isNowVisible) => {
   if (isNowVisible) {
-    if (isEditMode.value && currentRelationship.value) {
-      name.value = currentRelationship.value.name
-    } else {
-      name.value = ''
-    }
+    name.value = isEditMode.value && currentRelationship.value ? currentRelationship.value.name : ''
   }
 })
 
-const saveRelationship = () => {
+const save = () => {
   if (!name.value.trim()) return
-
   erSchemaStore.saveRelationship({ name: name.value.trim() }, isEditMode.value)
   closeModal()
 }
@@ -55,8 +59,44 @@ const saveRelationship = () => {
         v-model="name"
         :placeholder="t('relationship.enterRelationshipName')"
         autofocus
-        @keyup.enter="saveRelationship"
+        @keyup.enter="save"
       />
+
+      <template v-if="isEditMode">
+        <div class="flex items-center justify-between mt-2">
+          <span class="font-semibold">{{ t('relationship.currentParticipants') }}</span>
+          <Button
+            :label="t('entity.addEntity')"
+            icon="bi bi-plus"
+            size="small"
+            severity="secondary"
+            @click="dialogStore.open(DialogId.AddEntityToRelationship)"
+          />
+        </div>
+        <ul v-if="participantsWithNames.length > 0">
+          <li
+            v-for="p in participantsWithNames"
+            :key="p.entityId"
+            class="flex justify-between items-center py-1 border-b border-black/10 dark:border-white/10 last:border-0"
+          >
+            <span class="text-sm">
+              <span class="font-semibold">{{ p.name }}</span>
+              ({{ p.cardinalityMin }},{{ p.cardinalityMax }})
+              <span v-if="p.role" class="italic text-gray-400"> — {{ p.role }}</span>
+            </span>
+            <Button
+              icon="bi bi-trash"
+              severity="danger"
+              text
+              size="small"
+              @click="
+                erSchemaStore.removeParticipantFromRelationship(currentRelationship!.id, p.entityId)
+              "
+            />
+          </li>
+        </ul>
+        <span v-else class="text-sm text-gray-400">{{ t('relationship.noParticipants') }}</span>
+      </template>
     </div>
 
     <template #footer>
@@ -69,10 +109,8 @@ const saveRelationship = () => {
       <Button
         :label="isEditMode ? t('common.confirm') : t('relationship.addRelationship')"
         icon="bi bi-check-lg"
-        @click="saveRelationship"
+        @click="save"
       />
     </template>
   </Dialog>
 </template>
-
-<style scoped></style>

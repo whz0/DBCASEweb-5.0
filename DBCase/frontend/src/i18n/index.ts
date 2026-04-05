@@ -94,6 +94,7 @@ const messages = {
       role: 'Role (Optional)',
       enterRole: 'e.g. Manager, Employee',
       currentParticipants: 'Current Participants',
+      noParticipants: 'No participants yet',
     },
     isa: {
       parent: 'Parent',
@@ -313,6 +314,7 @@ const messages = {
       role: 'Rol (Opcional)',
       enterRole: 'p.ej. Gerente, Empleado',
       currentParticipants: 'Participantes Actuales',
+      noParticipants: 'Sin participantes aún',
     },
     isa: {
       parent: 'Padre',

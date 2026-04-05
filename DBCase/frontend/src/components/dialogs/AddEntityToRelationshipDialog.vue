@@ -95,15 +95,12 @@ const onCardinalityChange = (e: { value: CardinalityOption }) => {
     :dismissable-mask="true"
     :draggable="false"
     :style="{ width: '30rem' }"
-    :header="t('relationship.addRelationship')"
+    :header="
+      t('relationship.addRelationship') +
+      (currentRelationship ? ': ' + currentRelationship.name : '')
+    "
   >
     <div class="flex flex-col gap-3">
-      <div v-if="currentRelationship" class="mb-2">
-        <span class="font-bold text-lg"
-          >{{ t('relationship.addRelationship') }}: {{ currentRelationship.name }}</span
-        >
-      </div>
-
       <label for="entity" class="font-semibold">{{ t('relationship.selectEntity') }}</label>
       <Select
         id="entity"
@@ -137,11 +134,11 @@ const onCardinalityChange = (e: { value: CardinalityOption }) => {
 
       <div v-if="participantsWithNames.length > 0" class="mt-4">
         <h3 class="font-bold mb-2">{{ t('relationship.currentParticipants') }}</h3>
-        <ul class="max-h-40 overflow-y-auto border rounded p-2">
+        <ul class="max-h-40 overflow-y-auto">
           <li
             v-for="p in participantsWithNames"
             :key="p.entityId"
-            class="flex justify-between items-center py-1 border-b last:border-0"
+            class="flex justify-between items-center py-1 border-b border-black/10 dark:border-white/10 last:border-0"
           >
             <span class="text-sm">
               <span class="font-semibold">{{ p.name }}</span>

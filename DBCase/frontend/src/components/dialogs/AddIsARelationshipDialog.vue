@@ -9,7 +9,7 @@ import type { Entity, Relationship, RelationshipParticipant } from '@/types/er-d
 const { t } = useI18n()
 const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddIsARelationship,
-  DialogId.EditRelationship,
+  DialogId.EditIsARelationship,
 )
 
 const selectedParent = ref<Entity | null>(null)

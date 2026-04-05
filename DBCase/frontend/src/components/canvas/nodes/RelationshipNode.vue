@@ -20,10 +20,11 @@
         strokeWidth: 1,
         closed: true,
         offsetX: calculateWeakDiamondOffsetX(relationship.name),
-        offsetY: 25,
+        offsetY: 30,
       }"
     />
     <v-line
+      v-if="relationship.type !== 'IsA'"
       :config="{
         points: calculateDiamondPoints(relationship.name),
         fill: '#FF3F20',
@@ -38,8 +39,8 @@
       v-if="relationship.type === 'IsA'"
       :config="{
         points: calculateTrianglePoints(),
-        fill: '#FF3F20',
-        stroke: isSelected ? 'blue' : '#c9280e',
+        fill: '#FF952A',
+        stroke: isSelected ? 'blue' : '#D37211',
         strokeWidth: isSelected ? 4 : 2,
         closed: true,
         offsetX: 25,
@@ -48,16 +49,16 @@
     />
     <v-text
       :config="{
-        text: relationship.type === 'IsA' ? '' : relationship.name,
+        text: relationship.type === 'IsA' ? 'IsA' : relationship.name,
         fontSize: 16,
         fontFamily: 'arial',
         fill: 'black',
-        width: calculateTextWidth(relationship.name),
+        width: relationship.type === 'IsA' ? 50 : calculateTextWidth(relationship.name),
         height: 50,
         align: 'center',
         verticalAlign: 'middle',
-        offsetX: calculateTextOffsetX(relationship.name),
-        offsetY: 25,
+        offsetX: relationship.type === 'IsA' ? 25 : calculateTextOffsetX(relationship.name),
+        offsetY: relationship.type === 'IsA' ? 35 : 25,
       }"
     />
   </v-group>
@@ -95,7 +96,7 @@ const handleSelect = (e: KonvaEventObject<MouseEvent>) => {
 
 const calculateTextWidth = (name: string) => {
   const baseWidth = 100
-  const charWidth = 11 // Approximation
+  const charWidth = 11
   return name.length < 8 ? baseWidth : name.length * charWidth
 }
 
@@ -114,17 +115,17 @@ const calculateDiamondOffsetX = (name: string) => {
 }
 
 const calculateWeakDiamondPoints = (name: string) => {
-  const width = calculateTextWidth(name) + 10 // Slightly larger for weak
-  const height = 60 // Slightly larger for weak
+  const width = calculateTextWidth(name) * 1.2
+  const height = 60
   return [width / 2, 0, width, height / 2, width / 2, height, 0, height / 2]
 }
 
 const calculateWeakDiamondOffsetX = (name: string) => {
-  return (calculateTextWidth(name) + 10) / 2
+  return (calculateTextWidth(name) * 1.2) / 2
 }
 
 const calculateTrianglePoints = () => {
   const size = 50
-  return [size / 2, 0, size, size, 0, size]
+  return [0, 0, size, 0, size / 2, size]
 }
 </script>

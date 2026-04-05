@@ -96,11 +96,11 @@ const saveDomain = () => {
 
       <div v-if="erSchemaStore.domains.length > 0 && !isEditMode" class="mt-4">
         <h3 class="font-bold mb-2">{{ t('domain.existingDomains') }}</h3>
-        <ul class="max-h-40 overflow-y-auto border rounded p-2">
+        <ul class="max-h-40 overflow-y-auto">
           <li
             v-for="domain in erSchemaStore.domains"
             :key="domain.id"
-            class="flex justify-between items-center py-1 border-b last:border-0"
+            class="flex justify-between items-center py-1 border-b border-black/10 dark:border-white/10 last:border-0"
           >
             <span>{{ domain.name }} ({{ domain.baseType }})</span>
             <div class="flex gap-1">

@@ -142,9 +142,9 @@ export const getLineTriangleIntersection = (
   const { cx, cy, size } = triangle
   const half = size / 2
   const v = [
-    { x: cx, y: cy - half }, // Top
-    { x: cx + half, y: cy + half }, // Bottom Right
-    { x: cx - half, y: cy + half }, // Bottom Left
+    { x: cx - half, y: cy - half }, // Top Left
+    { x: cx + half, y: cy - half }, // Top Right
+    { x: cx, y: cy + half }, // Bottom Tip
   ]
   const sides = [
     [v[0], v[1]],

@@ -31,7 +31,7 @@
         fill: '#ffcc45',
         stroke: isSelected ? 'blue' : '#bf9523',
         strokeWidth: isSelected ? 4 : 2,
-        cornerRadius: 8,
+        cornerRadius: entity.isWeak ? 4 : 8,
         offsetX: (entity.name.length < 8 ? 100 : entity.name.length * 11) / 2,
         offsetY: 20,
       }"

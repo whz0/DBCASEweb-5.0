@@ -235,6 +235,11 @@ const getContextMenuItems = () => {
         icon: 'bi bi-diagram-2',
         command: () => dialogStore.open(DialogId.AddIsARelationship),
       },
+      {
+        label: t('panels.createDomain'),
+        icon: 'bi bi-collection',
+        command: () => dialogStore.open(DialogId.AddDomain),
+      },
     ]
   }
 
@@ -269,7 +274,15 @@ const getContextMenuItems = () => {
   }
 
   if (isRelationship) {
+    const rel = erSchemaStore.relationships.find((r) => r.id === selectedId)
+    const editDialogId =
+      rel?.type === 'IsA' ? DialogId.EditIsARelationship : DialogId.EditRelationship
     return [
+      {
+        label: t('attribute.addAttribute'),
+        icon: 'bi bi-circle',
+        command: () => dialogStore.open(DialogId.AddAttribute),
+      },
       {
         label: t('entity.addEntity'),
         icon: 'bi bi-plus-circle',
@@ -278,7 +291,7 @@ const getContextMenuItems = () => {
       {
         label: t('relationship.editRelationship'),
         icon: 'bi bi-pencil-square',
-        command: () => dialogStore.open(DialogId.EditRelationship),
+        command: () => dialogStore.open(editDialogId),
       },
       { separator: true },
       {
@@ -451,55 +464,49 @@ interface AttributeConnection {
 const attributeConnections = computed(() => {
   const connections: AttributeConnection[] = []
   erSchemaStore.attributes.forEach((attribute: Attribute) => {
-    const parentEntity = erSchemaStore.entities.find(
-      (entity: Entity) => entity.id === attribute.parentId,
+    const parentEntity = erSchemaStore.entities.find((e: Entity) => e.id === attribute.parentId)
+    const parentRelationship = erSchemaStore.relationships.find(
+      (r: Relationship) => r.id === attribute.parentId,
     )
-    const parentAttr = erSchemaStore.attributes.find(
-      (attr: Attribute) => attr.id === attribute.parentId,
-    )
+    const parentAttr = erSchemaStore.attributes.find((a: Attribute) => a.id === attribute.parentId)
 
-    if (parentEntity || parentAttr) {
-      const attributeShape = calculateAttributeRenderProps(attribute)
-      const parentShape = parentEntity
-        ? calculateEntityRenderProps(parentEntity)
-        : calculateAttributeRenderProps(parentAttr!)
+    const parent = parentEntity || parentRelationship || parentAttr
+    if (!parent) return
 
-      const attributeCenter = { x: attributeShape.cx, y: attributeShape.cy }
-      const parentCenter =
-        'x' in parentShape
-          ? {
-              x: (parentShape as RectShape).x + (parentShape as RectShape).width / 2,
-              y: (parentShape as RectShape).y + (parentShape as RectShape).height / 2,
-            }
-          : { x: (parentShape as EllipseShape).cx, y: (parentShape as EllipseShape).cy }
+    const attributeShape = calculateAttributeRenderProps(attribute)
+    const attributeCenter = { x: attributeShape.cx, y: attributeShape.cy }
 
-      const startPoint = getLineEllipseIntersection(parentCenter, attributeCenter, attributeShape)
-      let endPoint: Position | null = null
+    let parentCenter: Position
+    let endPoint: Position | null = null
 
-      if ('x' in parentShape) {
-        endPoint = getLineRectangleIntersection(
-          attributeCenter,
-          parentCenter,
-          parentShape as RectShape,
-        )
-      } else {
-        endPoint = getLineEllipseIntersection(
-          attributeCenter,
-          parentCenter,
-          parentShape as EllipseShape,
-        )
+    if (parentRelationship) {
+      const relShape = calculateRelationshipRenderProps(parentRelationship)
+      parentCenter = { x: relShape.cx, y: relShape.cy }
+      endPoint = getLineDiamondIntersection(attributeCenter, parentCenter, relShape)
+    } else if (parentEntity) {
+      const entityShape = calculateEntityRenderProps(parentEntity)
+      parentCenter = {
+        x: entityShape.x + entityShape.width / 2,
+        y: entityShape.y + entityShape.height / 2,
       }
+      endPoint = getLineRectangleIntersection(attributeCenter, parentCenter, entityShape)
+    } else {
+      const parentAttrShape = calculateAttributeRenderProps(parentAttr as Attribute)
+      parentCenter = { x: parentAttrShape.cx, y: parentAttrShape.cy }
+      endPoint = getLineEllipseIntersection(attributeCenter, parentCenter, parentAttrShape)
+    }
 
-      if (startPoint && endPoint) {
-        connections.push({
-          attributeId: attribute.id,
-          parentId: attribute.parentId,
-          startX: startPoint.x,
-          startY: startPoint.y,
-          endX: endPoint.x,
-          endY: endPoint.y,
-        })
-      }
+    const startPoint = getLineEllipseIntersection(parentCenter, attributeCenter, attributeShape)
+
+    if (startPoint && endPoint) {
+      connections.push({
+        attributeId: attribute.id,
+        parentId: attribute.parentId,
+        startX: startPoint.x,
+        startY: startPoint.y,
+        endX: endPoint.x,
+        endY: endPoint.y,
+      })
     }
   })
   return connections

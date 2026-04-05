@@ -17,6 +17,7 @@ export const enum DialogId {
   AddDomain,
   EditEntity,
   EditRelationship,
+  EditIsARelationship,
   EditAttribute,
   EditDomain,
 }

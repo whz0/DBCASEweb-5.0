@@ -34,7 +34,7 @@
     />
     <v-text
       :config="{
-        text: attribute.name,
+        text: attribute.isKey || attribute.isNotNull ? attribute.name : attribute.name + '*',
         fontSize: 16,
         fontFamily: 'arial',
         textDecoration: attribute.isKey ? 'underline' : '',
