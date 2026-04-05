@@ -6,6 +6,7 @@
   >
     <ContextMenu ref="cm" :model="menuModel" />
     <v-stage
+      v-if="!isDiagramEmpty"
       ref="stageRef"
       :config="stageConfig"
       @mousedown="handleStageMouseDown"
@@ -95,7 +96,14 @@
         />
       </v-layer>
     </v-stage>
-    <MiniMap v-if="mainStage" :main-stage="mainStage" />
+    <ContentUnavailableView
+      v-else
+      icon="bi bi-pencil-square"
+      :title="t('schema.emptyDiagramTitle')"
+      :message="t('schema.emptyDiagramMessage')"
+      :actions="emptyDiagramActions"
+    />
+    <MiniMap v-if="mainStage && !isDiagramEmpty" :main-stage="mainStage" />
   </div>
 </template>
 
@@ -127,6 +135,7 @@ import {
   type RectShape,
 } from '@/utils/geometry'
 
+import ContentUnavailableView from '../ContentUnavailableView.vue'
 import MiniMap from './MiniMap.vue'
 import AttributeNode from './nodes/AttributeNode.vue'
 import EntityNode from './nodes/EntityNode.vue'
@@ -135,6 +144,28 @@ import RelationshipNode from './nodes/RelationshipNode.vue'
 const erSchemaStore = useErSchemaStore()
 const dialogStore = useDialogStore()
 const { t } = useI18n()
+
+const isDiagramEmpty = computed(() => {
+  return (
+    erSchemaStore.entities.length === 0 &&
+    erSchemaStore.relationships.length === 0 &&
+    erSchemaStore.attributes.length === 0
+  )
+})
+
+const emptyDiagramActions = computed(() => [
+  {
+    label: t('entity.addEntity'),
+    icon: 'bi bi-plus-square',
+    onClick: () => dialogStore.open(DialogId.AddEntity),
+  },
+  {
+    label: t('relationship.addRelationship'),
+    icon: 'bi bi-diamond',
+    severity: 'secondary' as const,
+    onClick: () => dialogStore.open(DialogId.AddRelationship),
+  },
+])
 
 const container = ref<HTMLDivElement | null>(null)
 interface KonvaStageComponent {

@@ -123,6 +123,12 @@ const messages = {
       selectedFile: 'Selected File',
       format: 'File Format',
       pdf: 'PDF Document (.pdf)',
+      emptyDiagramTitle: 'Empty Diagram',
+      emptyDiagramMessage:
+        'Start modeling by adding entities or relationships to your conceptual schema.',
+      noSchemasTitle: 'No schemas open',
+      noSchemasMessage:
+        'Open a saved schema or generate a new one from the conceptual editor to start working.',
     },
     errors: {
       404: '404',
@@ -176,6 +182,10 @@ const messages = {
       saveCurrent: 'Save Current to Profile',
       backToEditor: 'Back to Editor',
       diagramInfo: 'This diagram is stored in your account and can be accessed from any device.',
+      noDiagramsMessage:
+        "You don't have any saved diagram. Go back to the editor to start drawing.",
+      noDiagramsCloudMessage:
+        "You don't have any saved diagram in the cloud. Do you want to save your current progress?",
     },
     login: {
       title: 'Sign In',
@@ -332,6 +342,12 @@ const messages = {
       selectedFile: 'Archivo Seleccionado',
       format: 'Formato de archivo',
       pdf: 'Documento PDF (.pdf)',
+      emptyDiagramTitle: 'Diagrama vacío',
+      emptyDiagramMessage:
+        'Comienza a modelar añadiendo entidades o relaciones a tu esquema conceptual.',
+      noSchemasTitle: 'Sin esquemas abiertos',
+      noSchemasMessage:
+        'Abre un esquema guardado o genera uno nuevo a partir del editor conceptual para empezar a trabajar.',
     },
     errors: {
       404: '404',
@@ -386,6 +402,10 @@ const messages = {
       backToEditor: 'Volver al Editor',
       diagramInfo:
         'Este diagrama está almacenado en tu cuenta y puedes acceder a él desde cualquier dispositivo.',
+      noDiagramsMessage:
+        'No tienes ningún diagrama guardado. Vuelve al editor para empezar a dibujar.',
+      noDiagramsCloudMessage:
+        'No tienes ningún diagrama guardado en la nube. ¿Quieres guardar tu progreso actual?',
     },
     login: {
       title: 'Iniciar Sesión',

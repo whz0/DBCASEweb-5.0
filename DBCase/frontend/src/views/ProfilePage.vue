@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import ContentUnavailableView from '@/components/ContentUnavailableView.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { getAvatarColor, getUserInitial } from '@/utils/user'
@@ -16,6 +17,11 @@ const toast = useToast()
 
 const user = computed(() => authStore.user)
 const avatarError = ref(false)
+
+const hasChart = computed(() => {
+  const chart = authStore.user.chart
+  return chart && chart !== 'null' && chart !== ''
+})
 
 const handleLoadDiagram = () => {
   if (erSchemaStore.loadFromProfile()) {
@@ -47,6 +53,40 @@ const handleLogout = () => {
   authStore.logout()
   router.replace('/login')
 }
+
+const isEditorEmpty = computed(() => {
+  return (
+    erSchemaStore.entities.length === 0 &&
+    erSchemaStore.relationships.length === 0 &&
+    erSchemaStore.attributes.length === 0
+  )
+})
+
+const profileActions = computed(() => {
+  if (isEditorEmpty.value) {
+    return [
+      {
+        label: t('profile.backToEditor'),
+        icon: 'bi bi-pencil-square',
+        onClick: () => router.push('/'),
+      },
+    ]
+  } else {
+    return [
+      {
+        label: t('profile.saveCurrent'),
+        icon: 'bi bi-cloud-upload',
+        onClick: handleSaveDiagram,
+      },
+      {
+        label: t('profile.backToEditor'),
+        icon: 'bi bi-arrow-left',
+        severity: 'secondary' as const,
+        onClick: () => router.push('/'),
+      },
+    ]
+  }
+})
 </script>
 
 <template>
@@ -124,7 +164,7 @@ const handleLogout = () => {
             class="rounded-3xl! border! border-(--p-button-outlined-secondary-border-color) shadow-none! h-full"
           >
             <template #content>
-              <div v-if="user.chart" class="flex flex-col items-center justify-center gap-6 py-12">
+              <div v-if="hasChart" class="flex flex-col items-center justify-center gap-6 py-12">
                 <div class="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
                   <i class="bi bi-file-earmark-code text-5xl text-primary"></i>
                 </div>
@@ -140,14 +180,17 @@ const handleLogout = () => {
                   />
                 </div>
               </div>
-              <div v-else class="flex flex-col items-center justify-center gap-6 py-12 opacity-50">
-                <div
-                  class="w-24 h-24 rounded-full bg-surface-200 dark:bg-surface-800 flex items-center justify-center"
-                >
-                  <i class="bi bi-cloud-slash text-5xl"></i>
-                </div>
-                <p class="text-xl font-medium">{{ t('profile.noDiagrams') }}</p>
-              </div>
+              <ContentUnavailableView
+                v-else
+                icon="bi bi-cloud-slash"
+                :title="t('profile.noDiagrams')"
+                :message="
+                  isEditorEmpty
+                    ? t('profile.noDiagramsMessage')
+                    : t('profile.noDiagramsCloudMessage')
+                "
+                :actions="profileActions"
+              />
             </template>
           </Card>
         </div>

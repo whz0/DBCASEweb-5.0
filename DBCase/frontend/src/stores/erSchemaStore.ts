@@ -194,7 +194,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     try {
       const { data } = await api.user.saveChart(json)
       const authStore = useAuthStore()
-      authStore.user.chart = data.chart
+      authStore.setChart(data.chart)
       return true
     } catch (error) {
       console.error('Error saving diagram to profile:', error)

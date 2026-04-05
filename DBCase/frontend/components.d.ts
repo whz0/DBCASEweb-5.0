@@ -24,6 +24,7 @@ declare module 'vue' {
     Card: typeof import('primevue/card')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
     CommandTable: typeof import('./src/components/CommandTable.vue')['default']
+    ContentUnavailableView: typeof import('./src/components/ContentUnavailableView.vue')['default']
     DiagramCanvas: typeof import('./src/components/canvas/DiagramCanvas.vue')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
