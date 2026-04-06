@@ -20,10 +20,23 @@
           :key="connection.relId + '-' + connection.entityId"
         >
           <!-- Main Connection Line -->
-          <v-line
+          <v-arrow
+            v-if="connection.isParent"
             :config="{
               points: [connection.startX, connection.startY, connection.endX, connection.endY],
-              stroke: 'black',
+              stroke: strokeColor,
+              fill: strokeColor,
+              strokeWidth: 1,
+              pointerLength: 8,
+              pointerWidth: 8,
+              zIndex: -1,
+            }"
+          />
+          <v-line
+            v-else
+            :config="{
+              points: [connection.startX, connection.startY, connection.endX, connection.endY],
+              stroke: strokeColor,
               strokeWidth: 1,
               zIndex: -1,
             }"
@@ -40,7 +53,7 @@
                 connection.endY,
                 4,
               ),
-              stroke: 'black',
+              stroke: strokeColor,
               strokeWidth: 1,
               zIndex: -1,
             }"
@@ -52,7 +65,7 @@
               x: (connection.startX + connection.endX) / 2,
               y: (connection.startY + connection.endY) / 2 - 20,
               fontSize: 14,
-              fill: 'black',
+              fill: strokeColor,
               align: 'center',
             }"
           />
@@ -65,7 +78,7 @@
           <v-line
             :config="{
               points: [connection.startX, connection.startY, connection.endX, connection.endY],
-              stroke: 'black',
+              stroke: strokeColor,
               strokeWidth: 1,
               lineCap: 'round',
               lineJoin: 'round',
@@ -116,6 +129,7 @@ import type { MenuItem } from 'primevue/menuitem'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useTheme } from '@/composables/useTheme'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import type {
@@ -144,6 +158,8 @@ import RelationshipNode from './nodes/RelationshipNode.vue'
 const erSchemaStore = useErSchemaStore()
 const dialogStore = useDialogStore()
 const { t } = useI18n()
+const { actualTheme } = useTheme()
+const strokeColor = computed(() => (actualTheme.value === 'dark' ? '#e5e7eb' : 'black'))
 
 const isDiagramEmpty = computed(() => {
   return (
@@ -268,6 +284,7 @@ const getContextMenuItems = () => {
       {
         label: t('common.delete'),
         icon: 'bi bi-trash',
+        class: 'text-red-500',
         command: () => erSchemaStore.deleteElement(selectedId),
       },
     ]
@@ -297,6 +314,7 @@ const getContextMenuItems = () => {
       {
         label: t('common.delete'),
         icon: 'bi bi-trash',
+        class: 'text-red-500',
         command: () => erSchemaStore.deleteElement(selectedId),
       },
     ]
@@ -318,6 +336,7 @@ const getContextMenuItems = () => {
       {
         label: t('common.delete'),
         icon: 'bi bi-trash',
+        class: 'text-red-500',
         command: () => erSchemaStore.deleteElement(selectedId),
       },
     ]
@@ -400,6 +419,7 @@ interface RelationshipConnection {
   endY: number
   card: string
   isTotal: boolean
+  isParent: boolean
 }
 
 const relationshipConnections = computed(() => {
@@ -444,6 +464,7 @@ const relationshipConnections = computed(() => {
                 ? ''
                 : `(${participant.cardinalityMin},${participant.cardinalityMax})`,
             isTotal: minCard !== '' && parseInt(minCard) >= 1,
+            isParent: rel.type === 'IsA' && participant.role === 'Parent',
           })
         }
       }
