@@ -52,58 +52,59 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         LinkedHashMap<String, String> result = new LinkedHashMap<>();
         StringBuilder relationshipBuilder = new StringBuilder();
         StringBuilder restrictionBuilder = new StringBuilder();
-        StringBuilder lossRestrictionBuilder = new StringBuilder();
 
         Graph<Node, Edge> graph = diagram.getDiagram();
 
-        List<Node> entities =
+        List<Node> tableNodes =
                 graph.vertexSet().stream().filter(n -> !(n instanceof Attribute)).toList();
 
-        entities.forEach(
-                ent -> {
-                    String line = ent.getName() + " (";
-                    List<Edge> edges = graph.edgesOf(ent).stream().toList();
-                    for (int i = 0; i < edges.size(); i++) {
-                        Edge edge = edges.get(i);
-                        Node node = graph.getEdgeTarget(edge);
-                        if (node instanceof Attribute attribute) {
-                            boolean pk = attribute.isPk();
-                            line =
-                                    line.concat(
-                                            String.format(
-                                                    "%s"
-                                                            + attribute.getName()
-                                                            + "%s"
-                                                            + (i == edges.size() - 1 ? "" : ", "),
-                                                    pk ? "__" : "",
-                                                    pk ? "__" : ""));
+        for (Node startNode : tableNodes) {
+            StringBuilder attrList = new StringBuilder();
 
-                            if (ent instanceof Relationship relationship) {
-                                Node entity =
-                                        Graphs.neighborListOf(graph, node).stream()
-                                                .filter(n -> !(n.equals(relationship)))
-                                                .findFirst()
-                                                .get();
-                                String restriction =
-                                        relationship.getName()
-                                                + "."
-                                                + attribute.getName()
-                                                + " -> "
-                                                + entity.getName()
-                                                + "."
-                                                + attribute.getName()
-                                                + "\n";
-                                restrictionBuilder.append(restriction);
-                            }
-                        }
-                    }
-                    line = line.concat(")\n");
-                    relationshipBuilder.append(line);
-                });
+            Graphs.successorListOf(graph, startNode).stream()
+                    .filter(n -> n instanceof Attribute)
+                    .map(n -> (Attribute) n)
+                    .forEach(
+                            attr -> {
+                                if (!attrList.isEmpty()) {
+                                    attrList.append(", ");
+                                }
+                                attrList.append(
+                                        attr.isPk()
+                                                ? "__" + attr.getName() + "__"
+                                                : attr.getName());
+
+                                if (startNode instanceof Relationship && attr.isPk()) {
+                                    Graphs.neighborListOf(graph, attr).stream()
+                                            .filter(
+                                                    n ->
+                                                            !(n instanceof Attribute)
+                                                                    && !n.equals(startNode))
+                                            .findFirst()
+                                            .ifPresent(
+                                                    ref ->
+                                                            restrictionBuilder
+                                                                    .append(startNode.getName())
+                                                                    .append(".")
+                                                                    .append(attr.getName())
+                                                                    .append(" -> ")
+                                                                    .append(ref.getName())
+                                                                    .append(".")
+                                                                    .append(attr.getName())
+                                                                    .append("\n"));
+                                }
+                            });
+
+            relationshipBuilder
+                    .append(startNode.getName())
+                    .append(" (")
+                    .append(attrList)
+                    .append(")\n");
+        }
 
         result.put("relationship", relationshipBuilder.toString());
         result.put("restriction", restrictionBuilder.toString());
-        result.put("lossRestriction", lossRestrictionBuilder.toString());
+        result.put("lossRestriction", "");
 
         return result;
     }
@@ -111,40 +112,34 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
     private void parseRelationship(String relationship, Graph<Node, Edge> diagram) {
         relationship
                 .lines()
+                .filter(line -> !line.isBlank())
                 .forEach(
-                        (line) -> {
+                        line -> {
                             String[] parts = line.split(" ", 2);
-                            Optional<Node> exists =
+                            String nodeName = parts[0].trim();
+                            boolean isRel =
                                     diagram.vertexSet().stream()
-                                            .filter(n -> n.getName().equals(parts[0]))
-                                            .findAny();
-                            Node entity =
-                                    exists.orElseGet(() -> Entity.builder().name(parts[0]).build());
+                                            .anyMatch(
+                                                    n ->
+                                                            n.getName().equals(nodeName)
+                                                                    && n instanceof Relationship);
+                            Node entity = getOrCreate(nodeName, isRel, diagram);
                             String[] attributes = parts[1].replaceAll("[()]", "").split(",");
-
                             Stream.of(attributes)
-                                    .forEach(
-                                            attribute ->
-                                                    addAttribute(
-                                                            entity, attribute.trim(), diagram));
+                                    .forEach(attr -> addAttribute(entity, attr.trim(), diagram));
                         });
     }
 
     private void addAttribute(Node entity, String attribute, Graph<Node, Edge> diagram) {
         Matcher matcher = PK_PATTERN.matcher(attribute);
         boolean pk = matcher.find();
-        if (pk) {
-            attribute = matcher.group(1);
-        }
-        final String attributeName = attribute;
+        final String attrName = pk ? matcher.group(1) : attribute;
         Optional<Node> exists =
-                diagram.vertexSet().stream()
-                        .filter(a -> a.getName().equals(attributeName))
-                        .findAny();
+                diagram.vertexSet().stream().filter(a -> a.getName().equals(attrName)).findAny();
         Node attr;
         if (exists.isEmpty()) {
             Domain type = pk ? Domain.INTEGER : Domain.VARCHAR;
-            attr = Attribute.builder().name(attributeName).pk(pk).dataType(type).build();
+            attr = Attribute.builder().name(attrName).pk(pk).dataType(type).build();
             diagram.addVertex(attr);
         } else {
             attr = exists.get();
@@ -152,29 +147,39 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         diagram.addEdge(
                 entity,
                 attr,
-                Edge.builder().label("attribute" + attributeName + entity.getName()).build());
+                Edge.builder().label("attribute" + attrName + entity.getName()).build());
     }
 
     private void parseRestriction(String restriction, Graph<Node, Edge> diagram) {
-
         restriction
                 .lines()
+                .filter(line -> !line.isBlank())
                 .forEach(
-                        (line) -> {
-                            String[] restrict = line.split("->");
-                            String origin = restrict[0].split("\\.")[0].trim();
-                            String target = restrict[1].split("\\.")[0].trim();
-                            Node relationship = Relationship.builder().name(origin).build();
-                            Node entity = Entity.builder().name(target).build();
-                            diagram.addVertex(relationship);
-                            diagram.addVertex(entity);
-
+                        line -> {
+                            String[] parts = line.split("->");
+                            String relName = parts[0].split("\\.")[0].trim();
+                            String entityName = parts[1].split("\\.")[0].trim();
+                            Node relationship = getOrCreate(relName, true, diagram);
+                            Node entity = getOrCreate(entityName, false, diagram);
                             diagram.addEdge(
                                     relationship,
                                     entity,
-                                    Edge.builder()
-                                            .label("relationship" + relationship + entity)
-                                            .build());
+                                    Edge.builder().label("rel" + relName + entityName).build());
+                        });
+    }
+
+    private Node getOrCreate(String name, boolean isRelationship, Graph<Node, Edge> diagram) {
+        return diagram.vertexSet().stream()
+                .filter(n -> n.getName().equals(name))
+                .findFirst()
+                .orElseGet(
+                        () -> {
+                            Node n =
+                                    isRelationship
+                                            ? Relationship.builder().name(name).build()
+                                            : Entity.builder().name(name).build();
+                            diagram.addVertex(n);
+                            return n;
                         });
     }
 
