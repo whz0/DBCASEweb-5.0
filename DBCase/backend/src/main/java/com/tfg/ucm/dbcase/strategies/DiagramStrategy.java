@@ -1,8 +1,8 @@
 package com.tfg.ucm.dbcase.strategies;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
-import com.tfg.ucm.dbcase.dto.DiagramInput;
-import com.tfg.ucm.dbcase.dto.DiagramType;
+import com.tfg.ucm.dbcase.dto.input.DiagramInput;
+import com.tfg.ucm.dbcase.dto.input.DiagramType;
 
 public interface DiagramStrategy<I extends DiagramInput> {
 

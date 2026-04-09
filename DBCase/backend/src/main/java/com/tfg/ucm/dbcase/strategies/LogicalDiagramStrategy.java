@@ -2,13 +2,13 @@ package com.tfg.ucm.dbcase.strategies;
 
 import com.tfg.ucm.dbcase.dto.Attribute;
 import com.tfg.ucm.dbcase.dto.Diagram;
-import com.tfg.ucm.dbcase.dto.DiagramType;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Entity;
-import com.tfg.ucm.dbcase.dto.LogicalInput;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.Relationship;
+import com.tfg.ucm.dbcase.dto.input.DiagramType;
+import com.tfg.ucm.dbcase.dto.input.LogicalInput;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;

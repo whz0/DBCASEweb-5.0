@@ -9,8 +9,11 @@ public enum Domain {
     DECIMAL,
     FLOAT,
     GEOMETRY,
+    INT,
     INTEGER,
+    NUMERIC,
     TEXT,
     TIME,
+    TIMESTAMP,
     VARCHAR,
 }

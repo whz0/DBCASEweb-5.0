@@ -1,8 +1,8 @@
 package com.tfg.ucm.dbcase.strategies;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
-import com.tfg.ucm.dbcase.dto.DiagramType;
-import com.tfg.ucm.dbcase.dto.ErInput;
+import com.tfg.ucm.dbcase.dto.input.DiagramType;
+import com.tfg.ucm.dbcase.dto.input.ErInput;
 import org.springframework.stereotype.Service;
 
 @Service

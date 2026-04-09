@@ -1,12 +1,9 @@
-package com.tfg.ucm.dbcase.dto;
+package com.tfg.ucm.dbcase.dto.input;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.EXTERNAL_PROPERTY,
-        property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = ErInput.class, name = "er"),
     @JsonSubTypes.Type(value = LogicalInput.class, name = "logical"),

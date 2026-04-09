@@ -27,3 +27,7 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET}
 jwt:
   secret: "SsXhO9cPI5berPvVYKr9ylOF1q0Z9snw/EzEhfwN0VY="
+
+logging:
+  level:
+    org.springframework.web: DEBUG

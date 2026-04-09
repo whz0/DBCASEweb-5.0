@@ -1,5 +1,7 @@
 package com.tfg.ucm.dbcase.dto;
 
+import com.tfg.ucm.dbcase.dto.input.DiagramInput;
+import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

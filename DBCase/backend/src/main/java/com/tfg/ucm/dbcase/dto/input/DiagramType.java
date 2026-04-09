@@ -1,4 +1,4 @@
-package com.tfg.ucm.dbcase.dto;
+package com.tfg.ucm.dbcase.dto.input;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;

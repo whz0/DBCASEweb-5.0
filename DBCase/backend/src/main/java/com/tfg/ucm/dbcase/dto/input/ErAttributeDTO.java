@@ -1,4 +1,4 @@
-package com.tfg.ucm.dbcase.dto;
+package com.tfg.ucm.dbcase.dto.input;
 
 import java.util.List;
 

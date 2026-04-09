@@ -7,5 +7,4 @@ import lombok.Data;
 @Builder(toBuilder = true)
 public class Edge {
     private String label;
-    private String cardinality;
 }
