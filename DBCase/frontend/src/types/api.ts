@@ -21,4 +21,3 @@ export type AnyDiagramInput =
   | ConceptualDiagramInput
   | LogicalDiagramInput
   | SqlDiagramInput
-  | string

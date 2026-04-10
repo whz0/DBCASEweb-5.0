@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { DiagramType } from '@/stores/diagramStore.ts'
 
 const { t } = useI18n()
 
@@ -10,7 +11,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
-  (e: 'transform', target: 'er' | 'logical' | 'physical'): void
+  (e: 'transform', value: DiagramType): void
 }>()
 </script>
 
@@ -27,17 +28,17 @@ const emit = defineEmits<{
     <div class="flex flex-col gap-2">
       <Button
         v-if="props.sourceType !== 'er'"
-        @click="emit('transform', 'er')"
+        @click="emit('transform', DiagramType.er)"
         :label="t('schema.generateER')"
       />
       <Button
         v-if="props.sourceType !== 'logical'"
-        @click="emit('transform', 'logical')"
+        @click="emit('transform', DiagramType.logical)"
         :label="t('schema.generateLogical')"
       />
       <Button
         v-if="props.sourceType !== 'physical'"
-        @click="emit('transform', 'physical')"
+        @click="emit('transform', DiagramType.db)"
         :label="t('schema.generatePhysical')"
       />
     </div>

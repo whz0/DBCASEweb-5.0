@@ -1,38 +1,68 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useToast } from 'primevue'
-import { useI18n } from 'vue-i18n'
+import {ref, watch} from 'vue'
+import {useToast} from 'primevue'
+import {useI18n} from 'vue-i18n'
 
 import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
-import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
-import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
+import {DiagramType, useDiagramStore} from '@/stores/diagramStore'
+import {PanelId, useGeneratePanelStore} from '@/stores/generatePanelStore'
+import {useErSchemaStore} from '@/stores/erSchemaStore'
 
 const { t } = useI18n()
 const toast = useToast()
 
 const panelStore = useGeneratePanelStore()
-const { save, generate } = useDiagramStore()
+const diagramStore = useDiagramStore()
+const erSchemaStore = useErSchemaStore()
+const { save, transform } = useDiagramStore()
 
 const relationship = ref('')
 const restriction = ref('')
 const lossRestriction = ref('')
+const toastMessage = (message: string, severity: 'error' | 'warn' | 'info' | 'success') =>
+  toast.add({ severity, detail: message, life: 3000 })
+
+watch(
+  () => diagramStore.logicalResult,
+  (value) => {
+    if (!value) return
+
+    const map = new Map(Object.entries(value))
+
+    relationship.value = map.get('relationship') ?? ''
+    restriction.value = map.get('restriction') ?? ''
+    lossRestriction.value = map.get('lossRestriction') ?? ''
+  },
+)
 
 const handleSave = () => {
-  save(
-    {
-      relationship: relationship.value,
-      restriction: restriction.value,
-      lossRestriction: lossRestriction.value,
-    },
-    DiagramType.logical,
-    (message, severity) => toast.add({ severity: severity, detail: message, life: 3000 }),
-  )
+  save(toastMessage)
 }
 
 const showTransform = ref(false)
 
-const handleTransform = (target: 'er' | 'logical' | 'physical') => {
+const handleTransform = async (value: DiagramType) => {
   showTransform.value = false
+
+  const diagram = {
+    relationship: relationship.value,
+    restriction: restriction.value,
+    lossRestriction: lossRestriction.value,
+  }
+
+  const data = await transform(
+    diagram,
+    DiagramType.logical,
+    value,
+    toastMessage,
+  )
+
+  if (value === DiagramType.er) {
+    if(data) erSchemaStore.loadSnapshot(data)
+    if (!panelStore.isOpen(PanelId.ERScheme)) panelStore.open(PanelId.ERScheme)
+  } else if(value === DiagramType.db) {
+    if (!panelStore.isOpen(PanelId.BDScheme)) panelStore.open(PanelId.BDScheme)
+  }
 }
 </script>
 

@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { MySQL, PostgreSQL } from 'dt-sql-parser'
+import {MySQL, PostgreSQL} from 'dt-sql-parser'
 import CodeEditor from 'monaco-editor-vue3'
-import { useToast } from 'primevue'
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import {useToast} from 'primevue'
+import {ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
 
 import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
-import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
-import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
+import {DiagramType, useDiagramStore} from '@/stores/diagramStore'
+import {PanelId, useGeneratePanelStore} from '@/stores/generatePanelStore'
+import {useErSchemaStore} from '@/stores/erSchemaStore'
 
 const { t } = useI18n()
 const toast = useToast()
 const panelStore = useGeneratePanelStore()
-const { save } = useDiagramStore()
+const { save, transform } = useDiagramStore()
+const diagramStore = useDiagramStore()
+const erSchemaStore = useErSchemaStore()
 
 const parsers = {
   mysql: new MySQL(),
@@ -26,6 +29,15 @@ const languages = ref([
 ])
 
 const code = ref()
+const toastMessage = (message: string, severity: 'error' | 'warn' | 'info' | 'success') =>
+  toast.add({ severity, detail: message, life: 3000 })
+
+watch(
+  () => diagramStore.dbResult,
+  (val) => {
+    if (val) code.value = val
+  },
+)
 
 const editorOptions = {
   fontSize: 14,
@@ -39,17 +51,26 @@ const validate = () => {
 }
 
 const handleSave = () => {
-  if (validate()) {
-    save(code.value, DiagramType.db, (message, severity) =>
-      toast.add({ severity: severity, detail: message, life: 3000 }),
-    )
-  }
+  save(toastMessage)
 }
 
 const showTransform = ref(false)
 
-const handleTransform = (target: 'er' | 'logical' | 'physical') => {
+const handleTransform = async (value: DiagramType) => {
   showTransform.value = false
+  if (!validate()) return
+
+  const diagram = {
+    sql: code.value
+  }
+  const data = await transform(diagram, DiagramType.db, value, toastMessage)
+
+  if (value === DiagramType.er) {
+    if(data) erSchemaStore.loadSnapshot(data)
+    if (!panelStore.isOpen(PanelId.ERScheme)) panelStore.open(PanelId.ERScheme)
+  } else if(value == DiagramType.logical) {
+    if (!panelStore.isOpen(PanelId.LogicalScheme)) panelStore.open(PanelId.LogicalScheme)
+  }
 }
 </script>
 

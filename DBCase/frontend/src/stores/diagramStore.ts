@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 import { api } from '@/plugins/axios.ts'
 import type { AnyDiagramInput } from '@/types/api'
+import type { Snapshot } from '@/types/er-diagram-elements.ts'
 
 export enum DiagramType {
   er = 'er',
@@ -9,33 +11,52 @@ export enum DiagramType {
   db = 'db',
 }
 
-export const useDiagramStore = defineStore('d', () => {
+export const useDiagramStore = defineStore('diagram', () => {
+  const erResult = ref<Snapshot | null>(null)
+  const logicalResult = ref<Map<string, string> | null>(null)
+  const dbResult = ref<string | null>(null)
+
   async function save(
+    toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
+  ) {
+    toast('Hola, no hay función guardar', 'info')
+  }
+
+  async function transform(
     diagram: AnyDiagramInput,
     type: DiagramType,
+    transformTo: DiagramType,
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
   ) {
     return api.diagram
-      .generate(diagram, type, DiagramType.logical)
-      .then((data) => {
-        toast('Se ha guardado correctamente el diagrama' + data, 'success')
+      .generate(diagram, type, transformTo)
+      .then(({ data }) => {
+        toast('Se ha generado exitosamente el diagrama', 'success')
+        if (transformTo === DiagramType.er) erResult.value = data
+        if (transformTo === DiagramType.logical) logicalResult.value = data
+        if (transformTo === DiagramType.db) dbResult.value = data
+        return data
       })
       .catch((e) => {
-        toast(e, 'error')
+        toast(
+          e?.response?.data?.message ?? e?.message ?? 'Error al transformar el diagrama',
+          'error',
+        )
+        return null
       })
   }
 
-  function generate(
-    toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
-  ) {
-    toast('hola', 'info')
+  function reset() {
+    logicalResult.value = null
+    dbResult.value = null
   }
 
-  function reset() {}
-
   return {
+    erResult,
+    logicalResult,
+    dbResult,
     save,
-    generate,
+    transform,
     reset,
   }
 })
