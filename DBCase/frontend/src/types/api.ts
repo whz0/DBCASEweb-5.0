@@ -17,7 +17,4 @@ export interface SqlDiagramInput {
 
 export type ConceptualDiagramInput = Snapshot
 
-export type AnyDiagramInput =
-  | ConceptualDiagramInput
-  | LogicalDiagramInput
-  | SqlDiagramInput
+export type AnyDiagramInput = ConceptualDiagramInput | LogicalDiagramInput | SqlDiagramInput

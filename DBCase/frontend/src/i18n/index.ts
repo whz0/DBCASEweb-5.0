@@ -131,6 +131,9 @@ const messages = {
       noSchemasMessage:
         'Open a saved schema or generate a new one from the conceptual editor to start working.',
       transform: 'Transform',
+      relationship: 'Relationship',
+      restriction: 'Referential integrity constraints',
+      lostRestriction: 'Lost restrictions',
     },
     errors: {
       404: '404',
@@ -352,6 +355,9 @@ const messages = {
       noSchemasMessage:
         'Abre un esquema guardado o genera uno nuevo a partir del editor conceptual para empezar a trabajar.',
       transform: 'Transformar',
+      relationship: 'Relaciones',
+      restriction: 'Restricciones de integridad referencial',
+      lostRestriction: 'Restricciones perdidas',
     },
     errors: {
       404: '404',

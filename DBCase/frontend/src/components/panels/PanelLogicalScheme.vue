@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import {ref, watch} from 'vue'
-import {useToast} from 'primevue'
-import {useI18n} from 'vue-i18n'
+import { ref, watch } from 'vue'
+import { useToast } from 'primevue'
+import { useI18n } from 'vue-i18n'
 
 import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
-import {DiagramType, useDiagramStore} from '@/stores/diagramStore'
-import {PanelId, useGeneratePanelStore} from '@/stores/generatePanelStore'
-import {useErSchemaStore} from '@/stores/erSchemaStore'
+import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
+import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -50,17 +50,12 @@ const handleTransform = async (value: DiagramType) => {
     lossRestriction: lossRestriction.value,
   }
 
-  const data = await transform(
-    diagram,
-    DiagramType.logical,
-    value,
-    toastMessage,
-  )
+  const data = await transform(diagram, DiagramType.logical, value, toastMessage)
 
   if (value === DiagramType.er) {
-    if(data) erSchemaStore.loadSnapshot(data)
+    if (data) erSchemaStore.loadSnapshot(data)
     if (!panelStore.isOpen(PanelId.ERScheme)) panelStore.open(PanelId.ERScheme)
-  } else if(value === DiagramType.db) {
+  } else if (value === DiagramType.db) {
     if (!panelStore.isOpen(PanelId.BDScheme)) panelStore.open(PanelId.BDScheme)
   }
 }
@@ -103,11 +98,11 @@ const handleTransform = async (value: DiagramType) => {
   <div class="bg-danger-500 p-6 w-1em h-full">
     <FloatLabel variant="on" class="my-3">
       <Textarea id="relationship" v-model="relationship" rows="8" style="resize: none" fluid />
-      <label for="relationship" class="text-xl!">Relaciones</label>
+      <label for="relationship" class="text-xl!">{{ t('schema.relationship') }}</label>
     </FloatLabel>
     <FloatLabel variant="on" class="my-3">
       <Textarea id="restriction" v-model="restriction" rows="4" style="resize: none" fluid />
-      <label for="restriction" class="text-xl!">Restricciones de integridad referencial</label>
+      <label for="restriction" class="text-xl!">{{ t('schema.restriction') }}</label>
     </FloatLabel>
     <FloatLabel variant="on" class="my-3">
       <Textarea
@@ -117,7 +112,7 @@ const handleTransform = async (value: DiagramType) => {
         style="resize: none"
         fluid
       />
-      <label for="lossRestriction" class="text-xl!">Restricciones perdidas</label>
+      <label for="lossRestriction" class="text-xl!">{{ t('schema.lostRestriction') }}</label>
     </FloatLabel>
   </div>
 </template>

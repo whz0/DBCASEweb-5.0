@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import {ref} from 'vue'
-import {useI18n} from 'vue-i18n'
-import {useToast} from 'primevue'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useToast } from 'primevue'
 
 import DiagramCanvas from '@/components/canvas/DiagramCanvas.vue'
 import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
-import {useErSchemaStore} from '@/stores/erSchemaStore'
-import {PanelId, useGeneratePanelStore} from '@/stores/generatePanelStore.ts'
-import {DiagramType, useDiagramStore} from '@/stores/diagramStore.ts'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
+import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
+import { DiagramType, useDiagramStore } from '@/stores/diagramStore.ts'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -22,12 +22,7 @@ const handleTransform = async (value: DiagramType) => {
   const toastFn = (message: string, severity: 'error' | 'warn' | 'info' | 'success') =>
     toast.add({ severity, detail: message, life: 3000 })
 
-  await diagramStore.transform(
-    erSchemaStore.getCurrentSnapshot(),
-    DiagramType.er,
-    value,
-    toastFn,
-  )
+  await diagramStore.transform(erSchemaStore.getCurrentSnapshot(), DiagramType.er, value, toastFn)
 
   if (value === DiagramType.logical) {
     if (!panelStore.isOpen(PanelId.LogicalScheme)) panelStore.open(PanelId.LogicalScheme)

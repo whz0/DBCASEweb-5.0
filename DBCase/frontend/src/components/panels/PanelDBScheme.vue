@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import {MySQL, PostgreSQL} from 'dt-sql-parser'
+import { MySQL, PostgreSQL } from 'dt-sql-parser'
 import CodeEditor from 'monaco-editor-vue3'
-import {useToast} from 'primevue'
-import {ref, watch} from 'vue'
-import {useI18n} from 'vue-i18n'
+import { useToast } from 'primevue'
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
-import {DiagramType, useDiagramStore} from '@/stores/diagramStore'
-import {PanelId, useGeneratePanelStore} from '@/stores/generatePanelStore'
-import {useErSchemaStore} from '@/stores/erSchemaStore'
+import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
+import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
+import { useErSchemaStore } from '@/stores/erSchemaStore'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -61,14 +61,14 @@ const handleTransform = async (value: DiagramType) => {
   if (!validate()) return
 
   const diagram = {
-    sql: code.value
+    sql: code.value,
   }
   const data = await transform(diagram, DiagramType.db, value, toastMessage)
 
   if (value === DiagramType.er) {
-    if(data) erSchemaStore.loadSnapshot(data)
+    if (data) erSchemaStore.loadSnapshot(data)
     if (!panelStore.isOpen(PanelId.ERScheme)) panelStore.open(PanelId.ERScheme)
-  } else if(value == DiagramType.logical) {
+  } else if (value == DiagramType.logical) {
     if (!panelStore.isOpen(PanelId.LogicalScheme)) panelStore.open(PanelId.LogicalScheme)
   }
 }
