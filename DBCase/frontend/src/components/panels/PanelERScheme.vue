@@ -1,13 +1,13 @@
 <script setup lang="ts">
+import { useToast } from 'primevue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useToast } from 'primevue'
 
 import DiagramCanvas from '@/components/canvas/DiagramCanvas.vue'
 import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
+import { DiagramType, useDiagramStore } from '@/stores/diagramStore.ts'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
-import { DiagramType, useDiagramStore } from '@/stores/diagramStore.ts'
 
 const { t } = useI18n()
 const toast = useToast()
