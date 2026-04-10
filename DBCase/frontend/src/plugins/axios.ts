@@ -23,9 +23,9 @@ export const api = {
   diagram: {
     generate: (diagram: AnyDiagramInput, type: DiagramType, transformTo?: DiagramType) =>
       http.post('/diagram/generate', {
-        type: type,
-        diagram: diagram,
-        transformTo: transformTo,
+        type,
+        diagram: { ...(typeof diagram === 'string' ? { sql: diagram } : diagram), type },
+        transformTo,
       }),
   },
 }

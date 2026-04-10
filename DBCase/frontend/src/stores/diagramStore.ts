@@ -16,7 +16,7 @@ export const useDiagramStore = defineStore('d', () => {
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
   ) {
     return api.diagram
-      .generate(diagram, type)
+      .generate(diagram, type, DiagramType.logical)
       .then((data) => {
         toast('Se ha guardado correctamente el diagrama' + data, 'success')
       })

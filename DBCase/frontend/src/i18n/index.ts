@@ -130,6 +130,7 @@ const messages = {
       noSchemasTitle: 'No schemas open',
       noSchemasMessage:
         'Open a saved schema or generate a new one from the conceptual editor to start working.',
+      transform: 'Transform',
     },
     errors: {
       404: '404',
@@ -350,6 +351,7 @@ const messages = {
       noSchemasTitle: 'Sin esquemas abiertos',
       noSchemasMessage:
         'Abre un esquema guardado o genera uno nuevo a partir del editor conceptual para empezar a trabajar.',
+      transform: 'Transformar',
     },
     errors: {
       404: '404',

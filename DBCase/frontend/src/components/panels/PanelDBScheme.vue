@@ -5,6 +5,7 @@ import { useToast } from 'primevue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
 import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
 
@@ -45,15 +46,10 @@ const handleSave = () => {
   }
 }
 
-const handleGenerate = () => {
-  if (selectLanguage.value == undefined) {
-    toast.add({
-      severity: 'error',
-      detail: 'Seleccione un lenguaje para trasnformar',
-      life: 3000,
-    })
-  } else {
-  }
+const showTransform = ref(false)
+
+const handleTransform = (target: 'er' | 'logical' | 'physical') => {
+  showTransform.value = false
 }
 </script>
 
@@ -82,9 +78,9 @@ const handleGenerate = () => {
       />
       <Button
         severity="secondary"
-        class="bi bi-diagram-3"
-        @click="handleGenerate"
-        v-tooltip.bottom="t('schema.generatePhysical')"
+        class="bi bi-arrow-left-right"
+        @click="showTransform = true"
+        v-tooltip.bottom="t('schema.transform')"
         text
       />
       <Button
@@ -99,6 +95,11 @@ const handleGenerate = () => {
   <div class="h-full my-4">
     <CodeEditor v-model:value="code" language="sql" theme="vs-white" :options="editorOptions" />
   </div>
+  <TransformDiagramDialog
+    v-model:visible="showTransform"
+    source-type="physical"
+    @transform="handleTransform"
+  />
 </template>
 
 <style scoped></style>

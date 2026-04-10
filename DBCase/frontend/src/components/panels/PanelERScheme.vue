@@ -1,13 +1,21 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import DiagramCanvas from '@/components/canvas/DiagramCanvas.vue'
+import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore.ts'
 
 const { t } = useI18n()
 const panelStore = useGeneratePanelStore()
 const erSchemaStore = useErSchemaStore()
+
+const showTransform = ref(false)
+
+const handleTransform = (target: 'er' | 'logical' | 'physical') => {
+  showTransform.value = false
+}
 </script>
 
 <template>
@@ -37,6 +45,13 @@ const erSchemaStore = useErSchemaStore()
       <div>
         <Button
           severity="secondary"
+          class="bi bi-arrow-left-right"
+          @click="showTransform = true"
+          v-tooltip.bottom="t('schema.transform')"
+          text
+        />
+        <Button
+          severity="secondary"
           class="bi bi-x-lg"
           @click="panelStore.close(PanelId.ERScheme)"
           v-tooltip.bottom="t('panels.close')"
@@ -48,6 +63,11 @@ const erSchemaStore = useErSchemaStore()
       <DiagramCanvas />
     </div>
   </div>
+  <TransformDiagramDialog
+    v-model:visible="showTransform"
+    source-type="er"
+    @transform="handleTransform"
+  />
 </template>
 
 <style scoped></style>

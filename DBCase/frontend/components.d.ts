@@ -14,6 +14,7 @@ declare module 'vue' {
     AboutUsDialog: typeof import('./src/components/dialogs/AboutUsDialog.vue')['default']
     AccessibilityDialog: typeof import('./src/components/dialogs/AccessibilityDialog.vue')['default']
     AddAttributeDialog: typeof import('./src/components/dialogs/AddAttributeDialog.vue')['default']
+    AddButton: typeof import('./src/components/buttons/AddButton.vue')['default']
     AddDomainDialog: typeof import('./src/components/dialogs/AddDomainDialog.vue')['default']
     AddEntityDialog: typeof import('./src/components/dialogs/AddEntityDialog.vue')['default']
     AddEntityToRelationshipDialog: typeof import('./src/components/dialogs/AddEntityToRelationshipDialog.vue')['default']
@@ -25,6 +26,7 @@ declare module 'vue' {
     Checkbox: typeof import('primevue/checkbox')['default']
     CommandTable: typeof import('./src/components/CommandTable.vue')['default']
     ContentUnavailableView: typeof import('./src/components/ContentUnavailableView.vue')['default']
+    DeleteButton: typeof import('./src/components/buttons/DeleteButton.vue')['default']
     DiagramCanvas: typeof import('./src/components/canvas/DiagramCanvas.vue')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
@@ -50,6 +52,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SaveSchemaDialog: typeof import('./src/components/dialogs/SaveSchemaDialog.vue')['default']
+    ScrollablePanel: typeof import('./src/components/panels/ScrollablePanel.vue')['default']
     Select: typeof import('primevue/select')['default']
     SplitButton: typeof import('primevue/splitbutton')['default']
     Splitter: typeof import('primevue/splitter')['default']
@@ -59,6 +62,7 @@ declare module 'vue' {
     Toast: typeof import('primevue/toast')['default']
     Toolbar: typeof import('primevue/toolbar')['default']
     ToolBar: typeof import('./src/components/ToolBar.vue')['default']
+    TransformDiagramDialog: typeof import('./src/components/dialogs/TransformDiagramDialog.vue')['default']
   }
   export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']

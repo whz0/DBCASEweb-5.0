@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { useToast } from 'primevue'
 import { ref } from 'vue'
+import { useToast } from 'primevue'
 import { useI18n } from 'vue-i18n'
 
+import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
 import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
 
@@ -28,10 +29,10 @@ const handleSave = () => {
   )
 }
 
-const handleGenerate = () => {
-  const _i = generate((message, severity) =>
-    toast.add({ severity: severity, detail: message, life: 3000 }),
-  )
+const showTransform = ref(false)
+
+const handleTransform = (target: 'er' | 'logical' | 'physical') => {
+  showTransform.value = false
 }
 </script>
 
@@ -50,9 +51,9 @@ const handleGenerate = () => {
       />
       <Button
         severity="secondary"
-        class="bi bi-diagram-3"
-        @click="handleGenerate"
-        v-tooltip.bottom="t('schema.generateLogical')"
+        class="bi bi-arrow-left-right"
+        @click="showTransform = true"
+        v-tooltip.bottom="t('schema.transform')"
         text
       />
       <Button
@@ -64,6 +65,11 @@ const handleGenerate = () => {
       />
     </div>
   </div>
+  <TransformDiagramDialog
+    v-model:visible="showTransform"
+    source-type="logical"
+    @transform="handleTransform"
+  />
   <div class="bg-danger-500 p-6 w-1em h-full">
     <FloatLabel variant="on" class="my-3">
       <Textarea id="relationship" v-model="relationship" rows="8" style="resize: none" fluid />
