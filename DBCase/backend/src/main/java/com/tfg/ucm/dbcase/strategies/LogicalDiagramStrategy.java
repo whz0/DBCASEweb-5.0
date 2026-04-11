@@ -6,17 +6,19 @@ import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
+import com.tfg.ucm.dbcase.dto.Participant;
 import com.tfg.ucm.dbcase.dto.Relationship;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
 import org.jgrapht.Graph;
-import org.jgrapht.Graphs;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
 
@@ -61,8 +63,8 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         for (Node startNode : tableNodes) {
             StringBuilder attrList = new StringBuilder();
 
-            Graphs.successorListOf(graph, startNode).stream()
-                    .filter(Attribute.class::isInstance)
+            graph.vertexSet().stream()
+                    .filter(n -> n instanceof Attribute && graph.containsEdge(startNode, n))
                     .map(Attribute.class::cast)
                     .forEach(
                             attr -> {
@@ -74,24 +76,16 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                                                 ? "__" + attr.getName() + "__"
                                                 : attr.getName());
 
-                                if (startNode instanceof Relationship && attr.isPk()) {
-                                    Graphs.neighborListOf(graph, attr).stream()
-                                            .filter(
-                                                    n ->
-                                                            !(n instanceof Attribute)
-                                                                    && !n.equals(startNode))
-                                            .findFirst()
-                                            .ifPresent(
-                                                    ref ->
-                                                            restrictionBuilder
-                                                                    .append(startNode.getName())
-                                                                    .append(".")
-                                                                    .append(attr.getName())
-                                                                    .append(" -> ")
-                                                                    .append(ref.getName())
-                                                                    .append(".")
-                                                                    .append(attr.getName())
-                                                                    .append("\n"));
+                                if (attr.isPk() && attr.getFk() != null) {
+                                    restrictionBuilder
+                                            .append(attr.getFk())
+                                            .append(".")
+                                            .append(attr.getName())
+                                            .append(" -> ")
+                                            .append(startNode.getName())
+                                            .append(".")
+                                            .append(attr.getName())
+                                            .append("\n");
                                 }
                             });
 
@@ -138,11 +132,18 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 diagram.vertexSet().stream().filter(a -> a.getName().equals(attrName)).findAny();
         Node attr;
         if (exists.isEmpty()) {
-            Domain type = pk ? Domain.INTEGER : Domain.VARCHAR;
-            attr = Attribute.builder().name(attrName).pk(pk).dataType(type).build();
+            Domain type = pk ? Domain.INTEGER : null;
+            String fk = (pk && entity instanceof Relationship) ? entity.getName() : null;
+            attr = Attribute.builder().name(attrName).pk(pk).dataType(type).fk(fk).build();
             diagram.addVertex(attr);
         } else {
             attr = exists.get();
+            if (pk
+                    && entity instanceof Relationship
+                    && attr instanceof Attribute a
+                    && a.getFk() == null) {
+                a.setFk(entity.getName());
+            }
         }
         diagram.addEdge(
                 entity,
@@ -157,14 +158,39 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 .forEach(
                         line -> {
                             String[] parts = line.split("->");
-                            String relName = parts[0].split("\\.")[0].trim();
-                            String entityName = parts[1].split("\\.")[0].trim();
-                            Node relationship = getOrCreate(relName, true, diagram);
-                            Node entity = getOrCreate(entityName, false, diagram);
+                            String srcName = parts[0].split("\\.")[0].trim();
+                            String attrName = parts[0].split("\\.")[1].trim();
+                            String tgtName = parts[1].split("\\.")[0].trim();
+                            Node src = getOrCreate(srcName, true, diagram);
+                            Node tgt = getOrCreate(tgtName, false, diagram);
+                            if (src instanceof Relationship rel) {
+                                boolean alreadyIn =
+                                        rel.getParticipants().stream()
+                                                .anyMatch(p -> p.getEntity().equals(tgt));
+                                if (!alreadyIn) {
+                                    Participant p = new Participant();
+                                    p.setEntity(tgt);
+                                    rel.getParticipants().add(p);
+                                }
+                            }
+
+                            diagram.vertexSet().stream()
+                                    .filter(
+                                            n ->
+                                                    n instanceof Attribute
+                                                            && n.getName().equals(attrName))
+                                    .map(n -> (Attribute) n)
+                                    .findFirst()
+                                    .ifPresent(
+                                            a -> {
+                                                if (a.getFk() == null) {
+                                                    a.setFk(srcName);
+                                                }
+                                            });
                             diagram.addEdge(
-                                    relationship,
-                                    entity,
-                                    Edge.builder().label("rel" + relName + entityName).build());
+                                    src,
+                                    tgt,
+                                    Edge.builder().label("rel" + srcName + tgtName).build());
                         });
     }
 
@@ -176,12 +202,17 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                         () -> {
                             Node n =
                                     isRelationship
-                                            ? Relationship.builder().name(name).build()
+                                            ? Relationship.builder()
+                                            .name(name)
+                                            .participants(new java.util.ArrayList<>())
+                                            .attributes(new java.util.ArrayList<>())
+                                            .build()
                                             : Entity.builder().name(name).build();
                             diagram.addVertex(n);
                             return n;
                         });
     }
 
-    private void parseLossRestriction(String lossRestriction, Graph<Node, Edge> diagram) {}
+    private void parseLossRestriction(String lossRestriction, Graph<Node, Edge> diagram) {
+    }
 }

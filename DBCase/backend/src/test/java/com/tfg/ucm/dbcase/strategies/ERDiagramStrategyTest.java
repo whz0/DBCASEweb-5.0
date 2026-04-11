@@ -1,9 +1,23 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.tfg.ucm.dbcase.dto.*;
-import com.tfg.ucm.dbcase.dto.input.*;
+import com.tfg.ucm.dbcase.dto.Attribute;
+import com.tfg.ucm.dbcase.dto.Diagram;
+import com.tfg.ucm.dbcase.dto.Edge;
+import com.tfg.ucm.dbcase.dto.Entity;
+import com.tfg.ucm.dbcase.dto.Node;
+import com.tfg.ucm.dbcase.dto.Relationship;
+import com.tfg.ucm.dbcase.dto.Undefined;
+import com.tfg.ucm.dbcase.dto.input.ErAttributeDTO;
+import com.tfg.ucm.dbcase.dto.input.ErEntityDTO;
+import com.tfg.ucm.dbcase.dto.input.ErInput;
+import com.tfg.ucm.dbcase.dto.input.ErRelationshipDTO;
+import com.tfg.ucm.dbcase.dto.input.ErRelationshipParticipantDTO;
 import java.util.List;
 import org.jgrapht.Graph;
 import org.jgrapht.traverse.BreadthFirstIterator;
@@ -65,7 +79,7 @@ class ERDiagramStrategyTest {
     void testGenerateAttributeLinkedToEntity() {
         ErInput input =
                 new ErInput(
-                        List.of(new ErEntityDTO("e1", "A", null, false, List.of("B"), List.of())),
+                        List.of(new ErEntityDTO("e1", "A", null, false, List.of("a2"), List.of())),
                         List.of(),
                         List.of(
                                 new ErAttributeDTO(
@@ -117,6 +131,65 @@ class ERDiagramStrategyTest {
     }
 
     @Test
+    void testGenerateAttributeFkSetWhenParentIsRelationship() {
+        ErInput input =
+                new ErInput(
+                        List.of(
+                                new ErEntityDTO("e1", "A", null, false, List.of(), List.of()),
+                                new ErEntityDTO("e2", "B", null, false, List.of(), List.of())),
+                        List.of(
+                                new ErRelationshipDTO(
+                                        "r1",
+                                        "R",
+                                        null,
+                                        "Normal",
+                                        List.of(
+                                                new ErRelationshipParticipantDTO(
+                                                        "e1", "1", "N", null),
+                                                new ErRelationshipParticipantDTO(
+                                                        "e2", "1", "N", null)),
+                                        List.of("a1"))),
+                        List.of(
+                                new ErAttributeDTO(
+                                        "a1", "X", null, "r1", false, false, false, false, false,
+                                        null, 0, List.of())),
+                        List.of());
+
+        Diagram diagram = strategy.generate(input);
+
+        Attribute attr =
+                (Attribute)
+                        diagram.getDiagram().vertexSet().stream()
+                                .filter(n -> n.getName().equals("X"))
+                                .findFirst()
+                                .orElseThrow();
+        assertEquals("R", attr.getFk());
+    }
+
+    @Test
+    void testGenerateAttributeFkNullWhenParentIsEntity() {
+        ErInput input =
+                new ErInput(
+                        List.of(new ErEntityDTO("e1", "A", null, false, List.of("a1"), List.of())),
+                        List.of(),
+                        List.of(
+                                new ErAttributeDTO(
+                                        "a1", "X", null, "e1", false, false, false, false, false,
+                                        null, 0, List.of())),
+                        List.of());
+
+        Diagram diagram = strategy.generate(input);
+
+        Attribute attr =
+                (Attribute)
+                        diagram.getDiagram().vertexSet().stream()
+                                .filter(n -> n.getName().equals("X"))
+                                .findFirst()
+                                .orElseThrow();
+        assertNull(attr.getFk());
+    }
+
+    @Test
     void testGenerateRelationshipWithParticipants() {
         ErInput input =
                 new ErInput(
@@ -149,18 +222,47 @@ class ERDiagramStrategyTest {
         assertNotNull(rel);
         assertInstanceOf(Relationship.class, rel);
 
-        Node node1 =
-                graph.vertexSet().stream()
-                        .filter(n -> n.getName().equals("A"))
-                        .findFirst()
-                        .orElseThrow();
-        Node node2 =
-                graph.vertexSet().stream()
-                        .filter(n -> n.getName().equals("B"))
-                        .findFirst()
-                        .orElseThrow();
-        assertTrue(graph.containsEdge(node1, rel));
-        assertTrue(graph.containsEdge(node2, rel));
+        Relationship relationship = (Relationship) rel;
+        assertEquals(2, relationship.getParticipants().size());
+        assertTrue(
+                relationship.getParticipants().stream()
+                        .anyMatch(p -> p.getEntity().getName().equals("A")));
+        assertTrue(
+                relationship.getParticipants().stream()
+                        .anyMatch(p -> p.getEntity().getName().equals("B")));
+    }
+
+    @Test
+    void testGenerateRelationshipCardinalityStoredInParticipant() {
+        ErInput input =
+                new ErInput(
+                        List.of(
+                                new ErEntityDTO("e1", "A", null, false, List.of(), List.of()),
+                                new ErEntityDTO("e2", "B", null, false, List.of(), List.of())),
+                        List.of(
+                                new ErRelationshipDTO(
+                                        "r1",
+                                        "R",
+                                        null,
+                                        "Normal",
+                                        List.of(
+                                                new ErRelationshipParticipantDTO(
+                                                        "e1", "1", "N", null),
+                                                new ErRelationshipParticipantDTO(
+                                                        "e2", "1", "N", null)),
+                                        List.of())),
+                        List.of(),
+                        List.of());
+
+        Diagram diagram = strategy.generate(input);
+
+        Relationship rel =
+                (Relationship)
+                        diagram.getDiagram().vertexSet().stream()
+                                .filter(n -> n.getName().equals("R"))
+                                .findFirst()
+                                .orElseThrow();
+        assertTrue(rel.isNM());
     }
 
     @Test
@@ -203,6 +305,62 @@ class ERDiagramStrategyTest {
             count++;
         }
         assertEquals(2, count);
+    }
+
+    @Test
+    void testGenerateZeroParticipantsCreatesUndefined() {
+        ErInput input =
+                new ErInput(
+                        List.of(),
+                        List.of(
+                                new ErRelationshipDTO(
+                                        "r1",
+                                        "SuspiciousRel",
+                                        null,
+                                        "Normal",
+                                        List.of(),
+                                        List.of())),
+                        List.of(),
+                        List.of());
+
+        Diagram diagram = strategy.generate(input);
+
+        Node node =
+                diagram.getDiagram().vertexSet().stream()
+                        .filter(n -> n.getName().equals("SuspiciousRel"))
+                        .findFirst()
+                        .orElse(null);
+        assertNotNull(node);
+        assertInstanceOf(Undefined.class, node);
+    }
+
+    @Test
+    void testGenerateOneParticipantCreatesUndefined() {
+        ErInput input =
+                new ErInput(
+                        List.of(new ErEntityDTO("e1", "A", null, false, List.of(), List.of())),
+                        List.of(
+                                new ErRelationshipDTO(
+                                        "r1",
+                                        "SuspiciousRel",
+                                        null,
+                                        "Normal",
+                                        List.of(
+                                                new ErRelationshipParticipantDTO(
+                                                        "e1", "1", "N", null)),
+                                        List.of())),
+                        List.of(),
+                        List.of());
+
+        Diagram diagram = strategy.generate(input);
+
+        Node node =
+                diagram.getDiagram().vertexSet().stream()
+                        .filter(n -> n.getName().equals("SuspiciousRel"))
+                        .findFirst()
+                        .orElse(null);
+        assertNotNull(node);
+        assertInstanceOf(Undefined.class, node);
     }
 
     @Test
@@ -287,5 +445,23 @@ class ERDiagramStrategyTest {
         assertEquals(1, result.relationships().size());
         assertEquals("C", result.relationships().get(0).name());
         assertEquals(2, result.relationships().get(0).participants().size());
+    }
+
+    @Test
+    void testTransformUndefinedAddsQuestionMark() {
+        ErInput input =
+                new ErInput(
+                        List.of(),
+                        List.of(
+                                new ErRelationshipDTO(
+                                        "r1", "Unclear", null, "Normal", List.of(), List.of())),
+                        List.of(),
+                        List.of());
+
+        Diagram diagram = strategy.generate(input);
+        ErInput result = (ErInput) strategy.transform(diagram);
+
+        assertEquals(1, result.relationships().size());
+        assertTrue(result.relationships().get(0).name().endsWith("?"));
     }
 }

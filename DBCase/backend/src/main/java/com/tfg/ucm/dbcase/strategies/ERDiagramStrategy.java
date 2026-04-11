@@ -5,7 +5,9 @@ import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
+import com.tfg.ucm.dbcase.dto.Participant;
 import com.tfg.ucm.dbcase.dto.Relationship;
+import com.tfg.ucm.dbcase.dto.Undefined;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.ErAttributeDTO;
 import com.tfg.ucm.dbcase.dto.input.ErEntityDTO;
@@ -13,10 +15,12 @@ import com.tfg.ucm.dbcase.dto.input.ErInput;
 import com.tfg.ucm.dbcase.dto.input.ErRelationshipDTO;
 import com.tfg.ucm.dbcase.dto.input.ErRelationshipParticipantDTO;
 import com.tfg.ucm.dbcase.dto.input.Position;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.jgrapht.traverse.BreadthFirstIterator;
@@ -48,12 +52,37 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         }
 
         for (ErRelationshipDTO r : input.relationships()) {
-            Relationship rel = Relationship.builder().name(r.name()).build();
-            graph.addVertex(rel);
-            nodeById.put(r.id(), rel);
+            if (r.participants().size() < 2) {
+                Undefined undef = Undefined.builder().name(r.name()).attributes(List.of()).build();
+                graph.addVertex(undef);
+                nodeById.put(r.id(), undef);
+            } else {
+                List<Participant> participants =
+                        r.participants().stream()
+                                .map(
+                                        p -> {
+                                            Participant part = new Participant();
+                                            part.setEntity(nodeById.get(p.entityId()));
+                                            part.setRole(p.role());
+                                            part.setCardinality(p.cardinalityMax());
+                                            return part;
+                                        })
+                                .filter(p -> p.getEntity() != null)
+                                .toList();
+                Relationship rel =
+                        Relationship.builder()
+                                .name(r.name())
+                                .participants(participants)
+                                .attributes(List.of())
+                                .build();
+                graph.addVertex(rel);
+                nodeById.put(r.id(), rel);
+            }
         }
 
         for (ErAttributeDTO a : input.attributes()) {
+            Node parent = nodeById.get(a.parentId());
+            String fk = (parent instanceof Relationship) ? parent.getName() : null;
             Attribute attr =
                     Attribute.builder()
                             .name(a.name())
@@ -63,37 +92,16 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                             .noEmpty(a.isNotNull())
                             .unique(a.isUnique())
                             .size(a.size())
+                            .fk(fk)
                             .build();
             graph.addVertex(attr);
             nodeById.put(a.id(), attr);
 
-            Node parent = nodeById.get(a.parentId());
             if (parent != null) {
                 graph.addEdge(
                         parent,
                         attr,
                         Edge.builder().label("attr:" + a.parentId() + ":" + a.id()).build());
-            }
-        }
-
-        for (ErRelationshipDTO r : input.relationships()) {
-            Node rel = nodeById.get(r.id());
-            for (ErRelationshipParticipantDTO p : r.participants()) {
-                Node entity = nodeById.get(p.entityId());
-                if (entity != null && rel != null) {
-                    String label =
-                            "part:"
-                                    + p.entityId()
-                                    + ":"
-                                    + r.id()
-                                    + ":"
-                                    + p.cardinalityMin()
-                                    + ":"
-                                    + p.cardinalityMax()
-                                    + ":"
-                                    + p.role();
-                    graph.addEdge(entity, rel, Edge.builder().label(label).build());
-                }
             }
         }
 
@@ -140,20 +148,19 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                 pkIds));
 
             } else if (node instanceof Relationship rel) {
-                List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
-                for (Edge e : graph.incomingEdgesOf(rel)) {
-                    Node source = graph.getEdgeSource(e);
-                    if (source instanceof Entity) {
-                        String[] parts = e.getLabel().split(":");
-                        String min = parts.length > 3 ? parts[3] : "";
-                        String max = parts.length > 4 ? parts[4] : "";
-                        String role =
-                                parts.length > 5 && !parts[5].equals("null") ? parts[5] : null;
-                        participants.add(
-                                new ErRelationshipParticipantDTO(
-                                        idByName.get(source.getName()), min, max, role));
-                    }
-                }
+                List<ErRelationshipParticipantDTO> participants =
+                        rel.getParticipants() == null
+                                ? List.of()
+                                : rel.getParticipants().stream()
+                                .map(
+                                        p ->
+                                                new ErRelationshipParticipantDTO(
+                                                        idByName.get(
+                                                                p.getEntity().getName()),
+                                                        "",
+                                                        p.getCardinality(),
+                                                        p.getRole()))
+                                .toList();
                 relationships.add(
                         new ErRelationshipDTO(
                                 id,
@@ -163,9 +170,21 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                 participants,
                                 List.of()));
 
+            } else if (node instanceof Undefined undef) {
+                relationships.add(
+                        new ErRelationshipDTO(
+                                id,
+                                undef.getName() + "?",
+                                new Position(1, 1),
+                                "Normal",
+                                List.of(),
+                                List.of()));
+
             } else if (node instanceof Attribute attr) {
                 String parentId =
-                        graph.incomingEdgesOf(attr).stream()
+                        attr.getFk() != null
+                                ? attr.getFk()
+                                : graph.incomingEdgesOf(attr).stream()
                                 .map(graph::getEdgeSource)
                                 .filter(n -> !(n instanceof Attribute))
                                 .map(n -> idByName.get(n.getName()))
