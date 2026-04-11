@@ -1,10 +1,12 @@
 package com.tfg.ucm.dbcase.dto;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder(toBuilder = true)
+@NoArgsConstructor
+@SuperBuilder(toBuilder = true)
 public class Edge {
     private String label;
 }
