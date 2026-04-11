@@ -21,7 +21,7 @@ export const api = {
     saveSettings: (settings: UserSettings) => http.post('/user/settings', settings),
   },
   diagram: {
-    generate: (diagram: AnyDiagramInput, type: DiagramType, transformTo?: DiagramType) =>
+    generate: (diagram: AnyDiagramInput, type: DiagramType, transformTo: DiagramType) =>
       http.post('/diagram/generate', {
         type,
         diagram: { ...diagram, type },

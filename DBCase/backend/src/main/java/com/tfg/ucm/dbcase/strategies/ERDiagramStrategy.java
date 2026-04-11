@@ -12,6 +12,7 @@ import com.tfg.ucm.dbcase.dto.input.ErEntityDTO;
 import com.tfg.ucm.dbcase.dto.input.ErInput;
 import com.tfg.ucm.dbcase.dto.input.ErRelationshipDTO;
 import com.tfg.ucm.dbcase.dto.input.ErRelationshipParticipantDTO;
+import com.tfg.ucm.dbcase.dto.input.Position;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -131,7 +132,12 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 }
                 entities.add(
                         new ErEntityDTO(
-                                id, entity.getName(), null, entity.isWeak(), attrIds, pkIds));
+                                id,
+                                entity.getName(),
+                                new Position(1, 1),
+                                entity.isWeak(),
+                                attrIds,
+                                pkIds));
 
             } else if (node instanceof Relationship rel) {
                 List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
@@ -150,7 +156,12 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 }
                 relationships.add(
                         new ErRelationshipDTO(
-                                id, rel.getName(), null, "Normal", participants, List.of()));
+                                id,
+                                rel.getName(),
+                                new Position(1, 1),
+                                "Normal",
+                                participants,
+                                List.of()));
 
             } else if (node instanceof Attribute attr) {
                 String parentId =
@@ -164,7 +175,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         new ErAttributeDTO(
                                 id,
                                 attr.getName(),
-                                null,
+                                new Position(1, 1),
                                 parentId,
                                 attr.isPk(),
                                 attr.isCompose(),

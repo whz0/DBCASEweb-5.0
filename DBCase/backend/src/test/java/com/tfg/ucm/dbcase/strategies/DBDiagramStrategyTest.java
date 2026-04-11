@@ -74,7 +74,7 @@ class DBDiagramStrategyTest {
                         """
                                 CREATE TABLE A(
                                     B INTEGER PRIMARY KEY,
-                                    C VARCHAR UNIQUE NOT NULL,
+                                    C VARCHAR UNIQUE NOT NULL
                                 );
                                 """);
 
@@ -123,7 +123,7 @@ class DBDiagramStrategyTest {
                         """
                                 CREATE TABLE A(
                                     B INTEGER PRIMARY KEY,
-                                    C VARCHAR,
+                                    C VARCHAR
                                 );
                                 """);
 
@@ -199,7 +199,7 @@ class DBDiagramStrategyTest {
     }
 
     @Test
-    void testTransformGraphIntoSQL() throws Exception {
+    void testTransformGraphIntoSQL() {
 
         String sql = strategy.transform(diagram).toString();
 

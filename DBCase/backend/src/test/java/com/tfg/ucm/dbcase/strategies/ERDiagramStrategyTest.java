@@ -42,7 +42,7 @@ class ERDiagramStrategyTest {
     }
 
     @Test
-    void testGenerateWeakEntity() throws Exception {
+    void testGenerateWeakEntity() {
         ErInput input =
                 new ErInput(
                         List.of(new ErEntityDTO("e1", "B", null, true, List.of(), List.of())),
@@ -62,7 +62,7 @@ class ERDiagramStrategyTest {
     }
 
     @Test
-    void testGenerateAttributeLinkedToEntity() throws Exception {
+    void testGenerateAttributeLinkedToEntity() {
         ErInput input =
                 new ErInput(
                         List.of(new ErEntityDTO("e1", "A", null, false, List.of("B"), List.of())),
@@ -92,7 +92,7 @@ class ERDiagramStrategyTest {
     }
 
     @Test
-    void testGeneratePrimaryKeyAttribute() throws Exception {
+    void testGeneratePrimaryKeyAttribute() {
         ErInput input =
                 new ErInput(
                         List.of(
@@ -117,7 +117,7 @@ class ERDiagramStrategyTest {
     }
 
     @Test
-    void testGenerateRelationshipWithParticipants() throws Exception {
+    void testGenerateRelationshipWithParticipants() {
         ErInput input =
                 new ErInput(
                         List.of(
@@ -164,7 +164,7 @@ class ERDiagramStrategyTest {
     }
 
     @Test
-    void testGenerateBfsFromEntityReachesAttributes() throws Exception {
+    void testGenerateBfsFromEntityReachesAttributes() {
         ErInput input =
                 new ErInput(
                         List.of(
@@ -206,7 +206,7 @@ class ERDiagramStrategyTest {
     }
 
     @Test
-    void testTransformReturnsErInput() throws Exception {
+    void testTransformReturnsErInput() {
         ErInput input =
                 new ErInput(
                         List.of(new ErEntityDTO("e1", "A", null, false, List.of(), List.of())),
@@ -221,7 +221,7 @@ class ERDiagramStrategyTest {
     }
 
     @Test
-    void testRoundTripEntities() throws Exception {
+    void testRoundTripEntities() {
         ErInput input =
                 new ErInput(
                         List.of(new ErEntityDTO("e1", "A", null, false, List.of(), List.of())),
@@ -237,7 +237,7 @@ class ERDiagramStrategyTest {
     }
 
     @Test
-    void testRoundTripAttributes() throws Exception {
+    void testRoundTripAttributes() {
         ErInput input =
                 new ErInput(
                         List.of(
@@ -260,7 +260,7 @@ class ERDiagramStrategyTest {
     }
 
     @Test
-    void testRoundTripRelationship() throws Exception {
+    void testRoundTripRelationship() {
         ErInput input =
                 new ErInput(
                         List.of(

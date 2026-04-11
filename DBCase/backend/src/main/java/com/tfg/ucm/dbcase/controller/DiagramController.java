@@ -18,12 +18,10 @@ public class DiagramController {
 
     @PostMapping("/generate")
     public ResponseEntity<Object> generate(@RequestBody TransformRequest request) {
-        Object o = null;
         try {
-            o = diagramTransformationService.transformDiagram(request);
+            return ResponseEntity.ok(diagramTransformationService.transformDiagram(request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(o);
     }
 }

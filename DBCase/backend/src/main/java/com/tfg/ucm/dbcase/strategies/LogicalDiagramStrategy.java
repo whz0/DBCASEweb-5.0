@@ -62,8 +62,8 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
             StringBuilder attrList = new StringBuilder();
 
             Graphs.successorListOf(graph, startNode).stream()
-                    .filter(n -> n instanceof Attribute)
-                    .map(n -> (Attribute) n)
+                    .filter(Attribute.class::isInstance)
+                    .map(Attribute.class::cast)
                     .forEach(
                             attr -> {
                                 if (!attrList.isEmpty()) {
