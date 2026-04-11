@@ -9,9 +9,6 @@ import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.Relationship;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.PhysicalInput;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -43,14 +40,12 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
 
     @Override
     public Diagram generate(PhysicalInput diagram) throws Exception {
-
         Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
 
-        String[] statements = diagram.sql().split(";");
-        Iterator<String> i = Arrays.stream(statements).iterator();
-        while (i.hasNext()) {
-            String statement = i.next();
-            parseStatement(statement, result);
+        for (String statement : diagram.sql().split(";")) {
+            if (!statement.isBlank()) {
+                parseStatement(statement.trim(), result);
+            }
         }
 
         return Diagram.builder().diagram(result).build();
@@ -58,70 +53,74 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
 
     @Override
     public Object transform(Diagram diagram) {
-
         StringBuilder sqlBuilder = new StringBuilder();
         Graph<Node, Edge> graph = diagram.getDiagram();
-        Set<Node> visited = new HashSet<>();
 
-        List<Node> tableNodes =
+        List<Node> tables =
                 graph.vertexSet().stream()
                         .filter(n -> n instanceof Entity || n instanceof Relationship)
                         .toList();
 
-        for (Node startNode : tableNodes) {
-            if (visited.contains(startNode)) {
-                continue;
-            }
+        for (Node table : tables) {
+            StringBuilder columns = new StringBuilder();
+            StringBuilder fkConstraints = new StringBuilder();
 
-            StringBuilder currentTable = new StringBuilder();
-            currentTable.append("CREATE TABLE ").append(startNode.getName()).append("(\n");
-            visited.add(startNode);
-
-            BreadthFirstIterator<Node, Edge> bfs = new BreadthFirstIterator<>(graph, startNode);
+            BreadthFirstIterator<Node, Edge> bfs = new BreadthFirstIterator<>(graph, table);
             bfs.next();
 
             while (bfs.hasNext()) {
                 Node vertex = bfs.next();
-                if (visited.contains(vertex)) {
+                if (!(vertex instanceof Attribute attr)) {
                     continue;
                 }
-                visited.add(vertex);
 
-                if (vertex instanceof Entity || vertex instanceof Relationship) {
-                    break;
-                }
-
-                if (vertex instanceof Attribute attr) {
+                if (graph.containsEdge(attr, table)) {
                     String dataType =
-                            attr.getDataType() != null ? attr.getDataType().toString() : "?";
-                    String notNull = attr.isNoEmpty() ? " NOT NULL" : "";
-                    String unique = attr.isUnique() ? " UNIQUE" : "";
-
-                    String referencedTable =
-                            Graphs.successorListOf(graph, attr).stream()
-                                    .filter(n -> n instanceof Entity || n instanceof Relationship)
-                                    .map(Node::getName)
-                                    .findFirst()
-                                    .orElse(null);
-
-                    String constraint =
-                            referencedTable != null
-                                    ? " REFERENCES " + referencedTable
-                                    : attr.isPk() ? " PRIMARY KEY" : "";
-
-                    currentTable
-                            .append("  ")
+                            attr.getDataType() != null ? attr.getDataType().toString() : "VARCHAR";
+                    columns.append("  ")
                             .append(attr.getName())
                             .append(" ")
                             .append(dataType)
-                            .append(constraint)
-                            .append(notNull)
-                            .append(unique)
                             .append(",\n");
+                    Graphs.predecessorListOf(graph, attr).stream()
+                            .filter(n -> n instanceof Entity || n instanceof Relationship)
+                            .map(Node::getName)
+                            .findFirst()
+                            .ifPresent(
+                                    ref ->
+                                            fkConstraints
+                                                    .append("  FOREIGN KEY (")
+                                                    .append(attr.getName())
+                                                    .append(") REFERENCES ")
+                                                    .append(ref)
+                                                    .append("(")
+                                                    .append(attr.getName())
+                                                    .append("),\n"));
+                    continue;
                 }
+
+                String dataType =
+                        attr.getDataType() != null ? attr.getDataType().toString() : "VARCHAR";
+                String pk = attr.isPk() ? " PRIMARY KEY" : "";
+                String unique = attr.isUnique() ? " UNIQUE" : "";
+                String notNull = attr.isNoEmpty() ? " NOT NULL" : "";
+                columns.append("  ")
+                        .append(attr.getName())
+                        .append(" ")
+                        .append(dataType)
+                        .append(pk)
+                        .append(unique)
+                        .append(notNull)
+                        .append(",\n");
             }
 
-            sqlBuilder.append(currentTable).append(");\n\n");
+            sqlBuilder
+                    .append("CREATE TABLE ")
+                    .append(table.getName())
+                    .append("(\n")
+                    .append(columns)
+                    .append(fkConstraints)
+                    .append(");\n\n");
         }
 
         return sqlBuilder;
@@ -212,7 +211,6 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                     a.setDataType(domain);
                     a.setUnique(isUnique);
                     a.setNoEmpty(isNotNull);
-                    // ensure entity -> attribute edge exists
                     if (diagram.getAllEdges(entity, exists.get()).isEmpty()) {
                         diagram.addEdge(
                                 entity,
@@ -230,7 +228,6 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                 .noEmpty(isNotNull)
                                 .build();
                 diagram.addVertex(attribute);
-                // Always: entity -> attribute
                 diagram.addEdge(
                         entity,
                         attribute,
