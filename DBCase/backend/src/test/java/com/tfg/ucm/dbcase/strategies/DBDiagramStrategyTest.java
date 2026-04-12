@@ -199,6 +199,7 @@ class DBDiagramStrategyTest {
                         .orElseThrow();
 
         assertTrue(diagram.getDiagram().containsEdge(entity, attribute));
+        assertTrue(attribute.isPk());
         assertEquals("B", attribute.getReference());
     }
 

@@ -146,6 +146,8 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             String referencedTable;
             if (isFk && index instanceof ForeignKeyIndex fki && fki.getTable() != null) {
                 referencedTable = fki.getTable().getName();
+            } else if (isPk) {
+                referencedTable = entity.getName();
             } else {
                 referencedTable = null;
             }
