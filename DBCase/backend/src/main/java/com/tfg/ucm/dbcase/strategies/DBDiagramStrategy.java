@@ -1,18 +1,14 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import com.tfg.ucm.dbcase.dto.Attribute;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreate;
+
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
-import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
-import com.tfg.ucm.dbcase.dto.Participant;
-import com.tfg.ucm.dbcase.dto.Relationship;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.PhysicalInput;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,7 +20,8 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.ForeignKeyIndex;
 import net.sf.jsqlparser.statement.create.table.Index;
 import org.jgrapht.Graph;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.Graphs;
+import org.jgrapht.graph.Multigraph;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,7 +38,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
 
     @Override
     public Diagram generate(PhysicalInput diagram) throws Exception {
-        Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
+        Graph<Node, Edge> result = new Multigraph<>(Edge.class);
 
         for (String statement : diagram.sql().split(";")) {
             if (!statement.isBlank()) {
@@ -57,122 +54,64 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         StringBuilder sqlBuilder = new StringBuilder();
         Graph<Node, Edge> graph = diagram.getDiagram();
 
-        List<Node> nodes =
-                graph.vertexSet().stream()
-                        .filter(n -> n instanceof Entity || n instanceof Relationship)
-                        .toList();
-
-        Set<Node> visited = new HashSet<>();
+        List<Node> nodes = graph.vertexSet().stream().filter(n -> !n.isAttribute()).toList();
 
         for (Node node : nodes) {
-            if (visited.contains(node)) {
-                continue;
-            }
-
-            if (node instanceof Relationship rel && rel.isNM()) {
-                sqlBuilder.append(buildIntermediateTable(rel, graph));
-                visited.add(node);
-            } else if (!(node instanceof Relationship)) {
-                sqlBuilder.append(buildTable(node, graph, visited));
-            }
+            sqlBuilder.append(buildTable(node, graph));
         }
         return sqlBuilder;
     }
 
-    private String buildIntermediateTable(Relationship rel, Graph<Node, Edge> graph) {
+    private String buildTable(Node entity, Graph<Node, Edge> graph) {
+
         StringBuilder columns = new StringBuilder();
         StringBuilder constraints = new StringBuilder();
 
-        for (Participant p : rel.getParticipants()) {
-            Node entity = p.getEntity();
-            graph.vertexSet().stream()
-                    .filter(
-                            n ->
-                                    n instanceof Attribute
-                                            && ((Attribute) n).isPk()
-                                            && graph.containsEdge(entity, n))
-                    .map(n -> (Attribute) n)
-                    .forEach(
-                            pk -> {
+        Graphs.neighborListOf(graph, entity)
+                .forEach(
+                        (attr -> {
+                            if (attr.isAttribute()) {
                                 String dataType =
-                                        pk.getDataType() != null
-                                                ? pk.getDataType().toString()
+                                        attr.getDataType() != null
+                                                ? attr.getDataType().toString()
                                                 : "?";
+                                String pk = "";
+
+                                if (attr.isPk()) {
+                                    if (dataType.equals("?")) {
+                                        dataType = "INTEGER";
+                                    }
+                                    if (attr.getReference() != null
+                                            && !attr.getReference().equals(entity.getName())) {
+                                        pk = " ?";
+                                        constraints
+                                                .append("\tFOREIGN KEY (")
+                                                .append(attr.getName())
+                                                .append(") REFERENCES ")
+                                                .append(attr.getReference())
+                                                .append("(")
+                                                .append(attr.getName())
+                                                .append("),\n");
+                                    } else {
+                                        pk = " PRIMARY KEY";
+                                    }
+                                }
+                                String unique = attr.isUnique() ? " UNIQUE" : "";
+                                String notNull = attr.isNotNull() ? " NOT NULL" : "";
                                 columns.append("\t")
-                                        .append(pk.getName())
+                                        .append(attr.getName())
                                         .append(" ")
                                         .append(dataType)
+                                        .append(pk)
+                                        .append(unique)
+                                        .append(notNull)
                                         .append(",\n");
-                                constraints
-                                        .append("\tFOREIGN KEY (")
-                                        .append(pk.getName())
-                                        .append(") REFERENCES ")
-                                        .append(entity.getName())
-                                        .append("(")
-                                        .append(pk.getName())
-                                        .append("),\n");
-                            });
-        }
+                            }
+                        }));
 
-        if (rel.getAttributes() != null) {
-            for (Attribute attr : rel.getAttributes()) {
-                String dataType = attr.getDataType() != null ? attr.getDataType().toString() : "?";
-                columns.append("\t")
-                        .append(attr.getName())
-                        .append(" ")
-                        .append(dataType)
-                        .append(",\n");
-            }
-        }
-
-        String body = columns.toString() + constraints.toString();
-        if (body.endsWith(",\n")) {
-            body = body.substring(0, body.length() - 2) + "\n";
-        }
-        return "CREATE TABLE " + rel.getName() + "(\n" + body + ");\n\n";
-    }
-
-    private String buildTable(Node entity, Graph<Node, Edge> graph, Set<Node> visited) {
-        if (visited.contains(entity)) {
+        if (columns.isEmpty()) {
             return "";
         }
-        visited.add(entity);
-
-        StringBuilder columns = new StringBuilder();
-        StringBuilder constraints = new StringBuilder();
-
-        graph.vertexSet().stream()
-                .filter(n -> n instanceof Attribute && graph.containsEdge(entity, n))
-                .map(n -> (Attribute) n)
-                .forEach(
-                        attr -> {
-                            String dataType =
-                                    attr.getDataType() != null
-                                            ? attr.getDataType().toString()
-                                            : "?";
-                            String pk = attr.isPk() ? " PRIMARY KEY" : "";
-                            String unique = attr.isUnique() ? " UNIQUE" : "";
-                            String notNull = attr.isNoEmpty() ? " NOT NULL" : "";
-
-                            if (attr.getFk() != null) {
-                                constraints
-                                        .append("\tFOREIGN KEY (")
-                                        .append(attr.getName())
-                                        .append(") REFERENCES ")
-                                        .append(attr.getFk())
-                                        .append("(")
-                                        .append(attr.getName())
-                                        .append("),\n");
-                            }
-                            columns.append("\t")
-                                    .append(attr.getName())
-                                    .append(" ")
-                                    .append(dataType)
-                                    .append(pk)
-                                    .append(unique)
-                                    .append(notNull)
-                                    .append(",\n");
-                        });
 
         String body = columns.toString() + constraints.toString();
         if (body.endsWith(",\n")) {
@@ -186,7 +125,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             Statement statement = CCJSqlParserUtil.parse(sqlStr);
             if (statement instanceof CreateTable createTable) {
                 String entityName = createTable.getTable().getName();
-                Node entity = Entity.builder().name(entityName).build();
+                Node entity = Node.builder().name(entityName).build();
                 diagram.addVertex(entity);
                 if (createTable.getIndexes() != null) {
                     parseIndex(createTable.getIndexes(), entity, diagram);
@@ -204,46 +143,27 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             boolean isFk =
                     index instanceof ForeignKeyIndex
                             || index.getType().equalsIgnoreCase("foreign key");
-            String referencedTable = null;
+            String referencedTable;
             if (isFk && index instanceof ForeignKeyIndex fki && fki.getTable() != null) {
                 referencedTable = fki.getTable().getName();
+            } else {
+                referencedTable = null;
             }
-            final String finalRef = referencedTable;
             index.getColumns()
                     .forEach(
                             column -> {
                                 String name = column.getColumnName();
-                                Optional<Node> exists =
-                                        diagram.vertexSet().stream()
-                                                .filter(n -> n.getName().equals(name))
-                                                .findFirst();
-                                Node attribute =
-                                        exists.orElseGet(
-                                                () -> {
-                                                    Node a =
-                                                            Attribute.builder()
-                                                                    .name(name)
-                                                                    .pk(isPk)
-                                                                    .fk(finalRef)
-                                                                    .build();
-                                                    diagram.addVertex(a);
-                                                    return a;
-                                                });
-                                if (attribute instanceof Attribute a) {
-                                    a.setPk(isPk);
-                                    if (isFk && finalRef != null) {
-                                        a.setFk(finalRef);
-                                    }
-                                }
-                                Edge edge =
+                                Node attr = getOrCreate(name, diagram);
+                                attr.setAttribute(true);
+                                attr.setPk(isPk || isFk);
+                                attr.setReference(referencedTable);
+
+                                diagram.addEdge(
+                                        entity,
+                                        attr,
                                         Edge.builder()
-                                                .label("attribute" + entity.getName() + name)
-                                                .build();
-                                if (isPk) {
-                                    diagram.addEdge(entity, attribute, edge);
-                                } else if (isFk) {
-                                    diagram.addEdge(attribute, entity, edge);
-                                }
+                                                .label("attr" + entity.getName() + name)
+                                                .build());
                             });
         }
     }
@@ -269,34 +189,18 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                 domain = null;
             }
 
-            Optional<Node> exists =
-                    diagram.vertexSet().stream().filter(n -> n.getName().equals(name)).findFirst();
-            if (exists.isPresent()) {
-                if (exists.get() instanceof Attribute a) {
-                    a.setDataType(domain);
-                    a.setUnique(isUnique);
-                    a.setNoEmpty(isNotNull);
-                    if (diagram.getAllEdges(entity, exists.get()).isEmpty()) {
-                        diagram.addEdge(
-                                entity,
-                                exists.get(),
-                                Edge.builder().label("attr" + name + entity.getName()).build());
-                    }
-                }
-            } else {
-                Node attribute =
-                        Attribute.builder()
-                                .name(name)
-                                .dataType(domain)
-                                .pk(isPk)
-                                .unique(isUnique)
-                                .noEmpty(isNotNull)
-                                .build();
-                diagram.addVertex(attribute);
+            Node attr = getOrCreate(name, diagram);
+            attr.setAttribute(true);
+            attr.setDataType(domain);
+            attr.setPk(isPk);
+            attr.setNotNull(isNotNull);
+            attr.setUnique(isUnique);
+
+            if (diagram.getAllEdges(entity, attr).isEmpty()) {
                 diagram.addEdge(
                         entity,
-                        attribute,
-                        Edge.builder().label("attr" + name + entity.getName()).build());
+                        attr,
+                        Edge.builder().label("attr" + entity.getName() + name).build());
             }
         }
     }

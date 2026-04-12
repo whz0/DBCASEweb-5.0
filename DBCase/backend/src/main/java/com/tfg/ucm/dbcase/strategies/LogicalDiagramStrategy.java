@@ -1,25 +1,20 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import com.tfg.ucm.dbcase.dto.Attribute;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreate;
+
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
-import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
-import com.tfg.ucm.dbcase.dto.Participant;
-import com.tfg.ucm.dbcase.dto.Relationship;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
-
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
 import org.jgrapht.Graph;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.Multigraph;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -39,7 +34,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
     @Override
     public Diagram generate(LogicalInput diagram) {
 
-        Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
+        Graph<Node, Edge> result = new Multigraph<>(Edge.class);
 
         parseRestriction(diagram.restriction(), result);
         parseRelationship(diagram.relationship(), result);
@@ -57,15 +52,13 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
         Graph<Node, Edge> graph = diagram.getDiagram();
 
-        List<Node> tableNodes =
-                graph.vertexSet().stream().filter(n -> !(n instanceof Attribute)).toList();
+        List<Node> tableNodes = graph.vertexSet().stream().filter(n -> !n.isAttribute()).toList();
 
         for (Node startNode : tableNodes) {
             StringBuilder attrList = new StringBuilder();
 
             graph.vertexSet().stream()
-                    .filter(n -> n instanceof Attribute && graph.containsEdge(startNode, n))
-                    .map(Attribute.class::cast)
+                    .filter(n -> n.isAttribute() && graph.containsEdge(startNode, n))
                     .forEach(
                             attr -> {
                                 if (!attrList.isEmpty()) {
@@ -76,24 +69,26 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                                                 ? "__" + attr.getName() + "__"
                                                 : attr.getName());
 
-                                if (attr.isPk() && attr.getFk() != null) {
+                                if (attr.isPk() && attr.getReference() != null) {
                                     restrictionBuilder
-                                            .append(attr.getFk())
+                                            .append(startNode.getName())
                                             .append(".")
                                             .append(attr.getName())
                                             .append(" -> ")
-                                            .append(startNode.getName())
+                                            .append(attr.getReference())
                                             .append(".")
                                             .append(attr.getName())
                                             .append("\n");
                                 }
                             });
 
-            relationshipBuilder
-                    .append(startNode.getName())
-                    .append(" (")
-                    .append(attrList)
-                    .append(")\n");
+            if (!attrList.isEmpty()) {
+                relationshipBuilder
+                        .append(startNode.getName())
+                        .append(" (")
+                        .append(attrList)
+                        .append(")\n");
+            }
         }
 
         result.put("relationship", relationshipBuilder.toString());
@@ -110,14 +105,8 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 .forEach(
                         line -> {
                             String[] parts = line.split(" ", 2);
-                            String nodeName = parts[0].trim();
-                            boolean isRel =
-                                    diagram.vertexSet().stream()
-                                            .anyMatch(
-                                                    n ->
-                                                            n.getName().equals(nodeName)
-                                                                    && n instanceof Relationship);
-                            Node entity = getOrCreate(nodeName, isRel, diagram);
+                            String name = parts[0].trim();
+                            Node entity = getOrCreate(name, diagram);
                             String[] attributes = parts[1].replaceAll("[()]", "").split(",");
                             Stream.of(attributes)
                                     .forEach(attr -> addAttribute(entity, attr.trim(), diagram));
@@ -128,27 +117,16 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         Matcher matcher = PK_PATTERN.matcher(attribute);
         boolean pk = matcher.find();
         final String attrName = pk ? matcher.group(1) : attribute;
-        Optional<Node> exists =
-                diagram.vertexSet().stream().filter(a -> a.getName().equals(attrName)).findAny();
-        Node attr;
-        if (exists.isEmpty()) {
-            Domain type = pk ? Domain.INTEGER : null;
-            String fk = (pk && entity instanceof Relationship) ? entity.getName() : null;
-            attr = Attribute.builder().name(attrName).pk(pk).dataType(type).fk(fk).build();
-            diagram.addVertex(attr);
-        } else {
-            attr = exists.get();
-            if (pk
-                    && entity instanceof Relationship
-                    && attr instanceof Attribute a
-                    && a.getFk() == null) {
-                a.setFk(entity.getName());
-            }
-        }
+        Domain type = pk ? Domain.INTEGER : null;
+
+        Node attr = getOrCreate(attrName, diagram);
+
+        attr.setAttribute(true);
+        attr.setPk(pk);
+        attr.setDataType(type);
+
         diagram.addEdge(
-                entity,
-                attr,
-                Edge.builder().label("attribute" + attrName + entity.getName()).build());
+                entity, attr, Edge.builder().label("attr" + entity.getName() + attrName).build());
     }
 
     private void parseRestriction(String restriction, Graph<Node, Edge> diagram) {
@@ -158,61 +136,27 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 .forEach(
                         line -> {
                             String[] parts = line.split("->");
-                            String srcName = parts[0].split("\\.")[0].trim();
-                            String attrName = parts[0].split("\\.")[1].trim();
-                            String tgtName = parts[1].split("\\.")[0].trim();
-                            Node src = getOrCreate(srcName, true, diagram);
-                            Node tgt = getOrCreate(tgtName, false, diagram);
-                            if (src instanceof Relationship rel) {
-                                boolean alreadyIn =
-                                        rel.getParticipants().stream()
-                                                .anyMatch(p -> p.getEntity().equals(tgt));
-                                if (!alreadyIn) {
-                                    Participant p = new Participant();
-                                    p.setEntity(tgt);
-                                    rel.getParticipants().add(p);
-                                }
-                            }
+                            String[] srcParts = parts[0].split("\\.");
+                            String[] refParts = parts[1].split("\\.");
 
-                            diagram.vertexSet().stream()
-                                    .filter(
-                                            n ->
-                                                    n instanceof Attribute
-                                                            && n.getName().equals(attrName))
-                                    .map(n -> (Attribute) n)
-                                    .findFirst()
-                                    .ifPresent(
-                                            a -> {
-                                                if (a.getFk() == null) {
-                                                    a.setFk(srcName);
-                                                }
-                                            });
+                            String srcName = srcParts[0].trim();
+                            String attrName = srcParts[1].trim();
+                            String refName = refParts[0].trim();
+                            Node src = getOrCreate(srcName, diagram);
+
+                            Node attr = getOrCreate(attrName, diagram);
+
+                            attr.setAttribute(true);
+                            attr.setPk(true);
+                            attr.setDataType(Domain.INTEGER);
+                            attr.setReference(refName);
+
                             diagram.addEdge(
                                     src,
-                                    tgt,
-                                    Edge.builder().label("rel" + srcName + tgtName).build());
+                                    attr,
+                                    Edge.builder().label("attr" + srcName + attrName).build());
                         });
     }
 
-    private Node getOrCreate(String name, boolean isRelationship, Graph<Node, Edge> diagram) {
-        return diagram.vertexSet().stream()
-                .filter(n -> n.getName().equals(name))
-                .findFirst()
-                .orElseGet(
-                        () -> {
-                            Node n =
-                                    isRelationship
-                                            ? Relationship.builder()
-                                            .name(name)
-                                            .participants(new java.util.ArrayList<>())
-                                            .attributes(new java.util.ArrayList<>())
-                                            .build()
-                                            : Entity.builder().name(name).build();
-                            diagram.addVertex(n);
-                            return n;
-                        });
-    }
-
-    private void parseLossRestriction(String lossRestriction, Graph<Node, Edge> diagram) {
-    }
+    private void parseLossRestriction(String lossRestriction, Graph<Node, Edge> diagram) {}
 }

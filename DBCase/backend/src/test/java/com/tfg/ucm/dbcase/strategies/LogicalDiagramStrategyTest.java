@@ -5,22 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.tfg.ucm.dbcase.dto.Attribute;
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
-import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
-import com.tfg.ucm.dbcase.dto.Relationship;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
 import java.util.LinkedHashMap;
 import org.jgrapht.Graph;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.Multigraph;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-@Disabled("Pendiente de implementación")
 class LogicalDiagramStrategyTest {
 
     private LogicalDiagramStrategy strategy;
@@ -30,133 +25,118 @@ class LogicalDiagramStrategyTest {
     void setUp() {
         strategy = new LogicalDiagramStrategy();
 
-        Graph<Node, Edge> graph = new DirectedMultigraph<>(Edge.class);
+        Graph<Node, Edge> graph = new Multigraph<>(Edge.class);
 
-        Entity entity1 = Entity.builder().name("A").build();
+        Node entity1 = Node.builder().name("A").build();
         graph.addVertex(entity1);
 
-        Attribute attribute1 =
-                Attribute.builder().name("B").pk(true).dataType(Domain.INTEGER).build();
-        Attribute attribute2 =
-                Attribute.builder()
-                        .name("C")
-                        .unique(true)
-                        .noEmpty(true)
+        Node attribute1 =
+                Node.builder().name("b").isAttribute(true).isPk(true).reference("A").build();
+        Node attribute2 =
+                Node.builder()
+                        .name("c")
+                        .isAttribute(true)
+                        .isUnique(true)
+                        .isNotNull(true)
                         .dataType(Domain.VARCHAR)
                         .build();
 
         graph.addVertex(attribute1);
         graph.addVertex(attribute2);
-        graph.addEdge(entity1, attribute1);
-        graph.addEdge(entity1, attribute2);
+        graph.addEdge(
+                entity1,
+                attribute1,
+                Edge.builder().label("attr" + entity1.getName() + attribute1.getName()).build());
+        graph.addEdge(
+                entity1,
+                attribute2,
+                Edge.builder().label("attr" + entity1.getName() + attribute2.getName()).build());
 
-        Entity entity2 = Entity.builder().name("D").build();
+        Node entity2 = Node.builder().name("D").build();
         graph.addVertex(entity2);
 
-        Attribute attribute3 =
-                Attribute.builder().name("E").pk(true).dataType(Domain.INTEGER).fk("A").build();
+        Node attribute3 =
+                Node.builder()
+                        .name("e")
+                        .isAttribute(true)
+                        .isPk(true)
+                        .dataType(Domain.INTEGER)
+                        .reference("A")
+                        .build();
+        Node attribute4 = Node.builder().name("f").isAttribute(true).build();
+
         graph.addVertex(attribute3);
-        graph.addEdge(entity2, attribute3);
-        graph.addEdge(attribute3, entity1);
+        graph.addVertex(attribute4);
+        graph.addEdge(
+                entity2,
+                attribute3,
+                Edge.builder().label("attr" + entity2.getName() + attribute3.getName()).build());
+        graph.addEdge(
+                entity2,
+                attribute4,
+                Edge.builder().label("attr" + entity2.getName() + attribute4.getName()).build());
+        graph.addEdge(
+                entity1,
+                attribute3,
+                Edge.builder().label("attr" + entity1.getName() + attribute3.getName()).build());
 
         diagram = Diagram.builder().diagram(graph).build();
     }
 
     @Test
     void testGenerateSingleEntity() {
-        LogicalInput input = new LogicalInput("A (B, C)", "", "");
+        LogicalInput input = new LogicalInput("A (b, c)", "", "");
 
         Diagram diagram = strategy.generate(input);
 
         assertNotNull(diagram.getDiagram());
         assertEquals(
-                1,
-                diagram.getDiagram().vertexSet().stream().filter(n -> n instanceof Entity).count());
+                1, diagram.getDiagram().vertexSet().stream().filter(n -> !n.isAttribute()).count());
         assertEquals(
-                2,
-                diagram.getDiagram().vertexSet().stream()
-                        .filter(n -> n instanceof Attribute)
-                        .count());
+                2, diagram.getDiagram().vertexSet().stream().filter(Node::isAttribute).count());
         assertTrue(
                 diagram.getDiagram().vertexSet().stream()
-                        .anyMatch(n -> n instanceof Entity && n.getName().equals("A")));
+                        .anyMatch(n -> !n.isAttribute() && n.getName().equals("A")));
         assertTrue(
                 diagram.getDiagram().vertexSet().stream()
-                        .anyMatch(n -> n instanceof Attribute && n.getName().equals("B")));
+                        .anyMatch(n -> n.isAttribute() && n.getName().equals("b")));
     }
 
     @Test
     void testGeneratePkAttribute() {
-        LogicalInput input = new LogicalInput("A (__B__, C)", "", "");
+        LogicalInput input = new LogicalInput("A (__b__, c)", "", "");
 
         Diagram diagram = strategy.generate(input);
 
-        Attribute attribute =
-                (Attribute)
-                        diagram.getDiagram().vertexSet().stream()
-                                .filter(n -> n instanceof Attribute && n.getName().equals("B"))
-                                .findFirst()
-                                .orElseThrow();
+        Node attribute =
+                diagram.getDiagram().vertexSet().stream()
+                        .filter(n -> n.isAttribute() && n.getName().equals("b"))
+                        .findFirst()
+                        .orElseThrow();
         assertTrue(attribute.isPk());
     }
 
     @Test
-    void testGenerateRelationshipWithRestrictionInput() {
+    void testGenerateReferencesWithRestrictionInput() {
         LogicalInput input =
                 new LogicalInput(
                         """
-                                A (__D__, __E__)
-                                B (__D__)
-                                C (__E__)
+                                A (__b__, c)
+                                D (__b__, e)
                                 """,
                         """
-                                A.D -> B.D
-                                A.E -> C.E
+                                D.b -> A.b
                                 """,
                         "");
 
         Diagram diagram = strategy.generate(input);
 
-        assertTrue(
+        Node referenced =
                 diagram.getDiagram().vertexSet().stream()
-                        .anyMatch(n -> n instanceof Relationship && n.getName().equals("A")));
-        assertEquals(
-                2,
-                diagram.getDiagram().vertexSet().stream().filter(n -> n instanceof Entity).count());
-
-        Relationship rel =
-                (Relationship)
-                        diagram.getDiagram().vertexSet().stream()
-                                .filter(n -> n.getName().equals("A"))
-                                .findFirst()
-                                .orElseThrow();
-        assertEquals(2, rel.getParticipants().size());
-        assertTrue(
-                rel.getParticipants().stream().anyMatch(p -> p.getEntity().getName().equals("B")));
-        assertTrue(
-                rel.getParticipants().stream().anyMatch(p -> p.getEntity().getName().equals("C")));
-    }
-
-    @Test
-    void testGenerateAttributeFkFromRestriction() {
-        LogicalInput input =
-                new LogicalInput(
-                        """
-                                A (__D__)
-                                B (__D__)
-                                """,
-                        "A.D -> B.D",
-                        "");
-
-        Diagram diagram = strategy.generate(input);
-
-        Attribute attr =
-                (Attribute)
-                        diagram.getDiagram().vertexSet().stream()
-                                .filter(n -> n instanceof Attribute && n.getName().equals("D"))
-                                .findFirst()
-                                .orElseThrow();
-        assertEquals("A", attr.getFk());
+                        .filter(n -> n.isAttribute() && n.getName().equals("b"))
+                        .findFirst()
+                        .orElseThrow();
+        assertEquals("A", referenced.getReference());
     }
 
     @Test
@@ -183,24 +163,22 @@ class LogicalDiagramStrategyTest {
 
     @Test
     void testTransformRestrictionUsesAttrFk() {
-
         @SuppressWarnings("unchecked")
         String restriction =
                 ((LinkedHashMap<String, String>) strategy.transform(diagram)).get("restriction");
-        assertTrue(restriction.contains("A.E -> D.E"));
+        assertTrue(restriction.contains("D.e -> A.e"));
     }
 
     @Test
     void testPkAttributeDataTypeIsInteger() {
-        LogicalInput input = new LogicalInput("A (__B__)", "", "");
+        LogicalInput input = new LogicalInput("A (__b__)", "", "");
         Diagram d = strategy.generate(input);
 
-        Attribute pk =
-                (Attribute)
-                        d.getDiagram().vertexSet().stream()
-                                .filter(n -> n instanceof Attribute && n.getName().equals("B"))
-                                .findFirst()
-                                .orElseThrow();
+        Node pk =
+                d.getDiagram().vertexSet().stream()
+                        .filter(n -> n.isAttribute() && n.getName().equals("b"))
+                        .findFirst()
+                        .orElseThrow();
 
         assertEquals(Domain.INTEGER, pk.getDataType());
     }
@@ -210,24 +188,23 @@ class LogicalDiagramStrategyTest {
         LogicalInput input =
                 new LogicalInput(
                         """
-                                A (__C__)
-                                B (__C__)
+                                A (__c__)
+                                B (__c__)
                                 """,
                         "",
                         "");
         Diagram d = strategy.generate(input);
 
-        long count =
+        assertEquals(
+                1,
                 d.getDiagram().vertexSet().stream()
-                        .filter(n -> n instanceof Attribute && n.getName().equals("C"))
-                        .count();
-
-        assertEquals(1, count);
+                        .filter(n -> n.isAttribute() && n.getName().equals("c"))
+                        .count());
     }
 
     @Test
     void testRoundTripRelationship() {
-        LogicalInput input = new LogicalInput("A (__B__, C) ", "", "");
+        LogicalInput input = new LogicalInput("A (__b__, c) ", "", "");
         Diagram diagram = strategy.generate(input);
 
         @SuppressWarnings("unchecked")
@@ -235,8 +212,8 @@ class LogicalDiagramStrategyTest {
                 (LinkedHashMap<String, String>) strategy.transform(diagram);
 
         assertTrue(result.get("relationship").contains("A"));
-        assertTrue(result.get("relationship").contains("__B__"));
-        assertTrue(result.get("relationship").contains("C"));
+        assertTrue(result.get("relationship").contains("__b__"));
+        assertTrue(result.get("relationship").contains("c"));
     }
 
     @Test
@@ -244,13 +221,11 @@ class LogicalDiagramStrategyTest {
         LogicalInput input =
                 new LogicalInput(
                         """
-                                A (__D__, __E__)
-                                B (__D__)
-                                C (__E__)
+                                A (__b__, c)
+                                D (__b__, e)
                                 """,
                         """
-                                A.D -> B.D
-                                A.E -> C.E
+                                D.b -> A.b
                                 """,
                         "");
         Diagram diagram = strategy.generate(input);
@@ -259,7 +234,6 @@ class LogicalDiagramStrategyTest {
         LinkedHashMap<String, String> result =
                 (LinkedHashMap<String, String>) strategy.transform(diagram);
 
-        assertTrue(result.get("restriction").contains("A.D -> B.D"));
-        assertTrue(result.get("restriction").contains("A.E -> C.E"));
+        assertTrue(result.get("restriction").contains("D.b -> A.b"));
     }
 }
