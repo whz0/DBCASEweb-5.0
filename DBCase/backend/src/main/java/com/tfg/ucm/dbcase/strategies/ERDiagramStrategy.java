@@ -1,29 +1,24 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import com.tfg.ucm.dbcase.dto.Attribute;
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Edge;
-import com.tfg.ucm.dbcase.dto.Entity;
 import com.tfg.ucm.dbcase.dto.Node;
-import com.tfg.ucm.dbcase.dto.Participant;
-import com.tfg.ucm.dbcase.dto.Relationship;
-import com.tfg.ucm.dbcase.dto.Undefined;
+import com.tfg.ucm.dbcase.dto.erdiagram.ErAttributeDTO;
+import com.tfg.ucm.dbcase.dto.erdiagram.ErEntityDTO;
+import com.tfg.ucm.dbcase.dto.erdiagram.ErRelationshipDTO;
+import com.tfg.ucm.dbcase.dto.erdiagram.ErRelationshipParticipantDTO;
+import com.tfg.ucm.dbcase.dto.erdiagram.ErUndefinedDTO;
+import com.tfg.ucm.dbcase.dto.erdiagram.Position;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
-import com.tfg.ucm.dbcase.dto.input.ErAttributeDTO;
-import com.tfg.ucm.dbcase.dto.input.ErEntityDTO;
 import com.tfg.ucm.dbcase.dto.input.ErInput;
-import com.tfg.ucm.dbcase.dto.input.ErRelationshipDTO;
-import com.tfg.ucm.dbcase.dto.input.ErRelationshipParticipantDTO;
-import com.tfg.ucm.dbcase.dto.input.Position;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
-import org.jgrapht.traverse.BreadthFirstIterator;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,66 +37,51 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
     @Override
     public Diagram generate(ErInput input) {
         Graph<Node, Edge> graph = new DirectedMultigraph<>(Edge.class);
+        Map<String, Node> byId = new HashMap<>();
 
-        Map<String, Node> nodeById = new HashMap<>();
-
-        for (ErEntityDTO e : input.entities()) {
-            Entity entity = Entity.builder().name(e.name()).weak(e.isWeak()).build();
-            graph.addVertex(entity);
-            nodeById.put(e.id(), entity);
+        for (var e : input.entities()) {
+            Node n = Node.builder().name(e.name()).build();
+            graph.addVertex(n);
+            byId.put(e.id(), n);
         }
 
-        for (ErRelationshipDTO r : input.relationships()) {
-            if (r.participants().size() < 2) {
-                Undefined undef = Undefined.builder().name(r.name()).attributes(List.of()).build();
-                graph.addVertex(undef);
-                nodeById.put(r.id(), undef);
-            } else {
-                List<Participant> participants =
-                        r.participants().stream()
-                                .map(
-                                        p -> {
-                                            Participant part = new Participant();
-                                            part.setEntity(nodeById.get(p.entityId()));
-                                            part.setRole(p.role());
-                                            part.setCardinality(p.cardinalityMax());
-                                            return part;
-                                        })
-                                .filter(p -> p.getEntity() != null)
-                                .toList();
-                Relationship rel =
-                        Relationship.builder()
-                                .name(r.name())
-                                .participants(participants)
-                                .attributes(List.of())
-                                .build();
-                graph.addVertex(rel);
-                nodeById.put(r.id(), rel);
+        if (input.undefineds() != null) {
+            for (var u : input.undefineds()) {
+                Node n = Node.builder().name(u.name()).build();
+                graph.addVertex(n);
+                byId.put(u.id(), n);
             }
         }
 
-        for (ErAttributeDTO a : input.attributes()) {
-            Node parent = nodeById.get(a.parentId());
-            String fk = (parent instanceof Relationship) ? parent.getName() : null;
-            Attribute attr =
-                    Attribute.builder()
+        for (var r : input.relationships()) {
+            Node rel = Node.builder().name(r.name()).build();
+            graph.addVertex(rel);
+            byId.put(r.id(), rel);
+            for (var p : r.participants()) {
+                Node entity = byId.get(p.entityId());
+                if (entity != null) {
+                    String role = p.role() != null ? p.role() : "";
+                    String label =
+                            "rel:" + p.cardinalityMin() + ":" + p.cardinalityMax() + ":" + role;
+                    graph.addEdge(rel, entity, Edge.builder().label(label).build());
+                }
+            }
+        }
+
+        for (var a : input.attributes()) {
+            Node attr =
+                    Node.builder()
                             .name(a.name())
-                            .pk(a.isKey())
-                            .compose(a.isComposite())
-                            .multivalue(a.isMultivalued())
-                            .noEmpty(a.isNotNull())
-                            .unique(a.isUnique())
-                            .size(a.size())
-                            .fk(fk)
+                            .isAttribute(true)
+                            .isPk(a.isKey())
+                            .isNotNull(a.isNotNull())
+                            .isUnique(a.isUnique())
                             .build();
             graph.addVertex(attr);
-            nodeById.put(a.id(), attr);
-
+            byId.put(a.id(), attr);
+            Node parent = byId.get(a.parentId());
             if (parent != null) {
-                graph.addEdge(
-                        parent,
-                        attr,
-                        Edge.builder().label("attr:" + a.parentId() + ":" + a.id()).build());
+                graph.addEdge(parent, attr, Edge.builder().label("attr:" + a.id()).build());
             }
         }
 
@@ -115,98 +95,99 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         List<ErEntityDTO> entities = new ArrayList<>();
         List<ErRelationshipDTO> relationships = new ArrayList<>();
         List<ErAttributeDTO> attributes = new ArrayList<>();
+        List<ErUndefinedDTO> undefineds = new ArrayList<>();
 
-        Map<String, String> idByName = new HashMap<>();
+        Map<Node, String> idOf = new HashMap<>();
         int[] counter = {0};
-        graph.vertexSet().forEach(n -> idByName.put(n.getName(), "n" + counter[0]++));
+        graph.vertexSet().forEach(n -> idOf.put(n, "n" + counter[0]++));
 
-        for (Node node : graph.vertexSet()) {
-            String id = idByName.get(node.getName());
+        Set<Node> nonAttrs =
+                graph.vertexSet().stream()
+                        .filter(n -> !n.isAttribute())
+                        .collect(Collectors.toSet());
 
-            if (node instanceof Entity entity) {
-                List<String> attrIds = new ArrayList<>();
-                List<String> pkIds = new ArrayList<>();
-                BreadthFirstIterator<Node, Edge> bfs = new BreadthFirstIterator<>(graph, node);
-                bfs.next();
-                while (bfs.hasNext()) {
-                    Node n = bfs.next();
-                    if (n instanceof Attribute a) {
-                        String aid = idByName.get(a.getName());
-                        attrIds.add(aid);
-                        if (a.isPk()) {
-                            pkIds.add(aid);
-                        }
-                    }
-                }
-                entities.add(
-                        new ErEntityDTO(
-                                id,
-                                entity.getName(),
-                                new Position(1, 1),
-                                entity.isWeak(),
-                                attrIds,
-                                pkIds));
+        for (Node n : nonAttrs) {
+            String id = idOf.get(n);
 
-            } else if (node instanceof Relationship rel) {
+            List<Edge> relEdgesOut =
+                    graph.outgoingEdgesOf(n).stream()
+                            .filter(e -> e.getLabel() != null && e.getLabel().startsWith("rel:"))
+                            .toList();
+
+            List<Node> attrChildren =
+                    graph.outgoingEdgesOf(n).stream()
+                            .filter(e -> e.getLabel() != null && e.getLabel().startsWith("attr:"))
+                            .map(graph::getEdgeTarget)
+                            .toList();
+
+            List<String> attrIds = attrChildren.stream().map(idOf::get).toList();
+            List<String> pkIds = attrChildren.stream().filter(Node::isPk).map(idOf::get).toList();
+
+            boolean isTargetOfRel =
+                    graph.incomingEdgesOf(n).stream()
+                            .anyMatch(e -> e.getLabel() != null && e.getLabel().startsWith("rel:"));
+
+            if (!relEdgesOut.isEmpty()) {
                 List<ErRelationshipParticipantDTO> participants =
-                        rel.getParticipants() == null
-                                ? List.of()
-                                : rel.getParticipants().stream()
+                        relEdgesOut.stream()
                                 .map(
-                                        p ->
-                                                new ErRelationshipParticipantDTO(
-                                                        idByName.get(
-                                                                p.getEntity().getName()),
-                                                        "",
-                                                        p.getCardinality(),
-                                                        p.getRole()))
+                                        e -> {
+                                            Node target = graph.getEdgeTarget(e);
+                                            String[] parts = e.getLabel().split(":", -1);
+                                            String min = parts.length > 1 ? parts[1] : "";
+                                            String max = parts.length > 2 ? parts[2] : "";
+                                            String role =
+                                                    parts.length > 3 && !parts[3].isEmpty()
+                                                            ? parts[3]
+                                                            : null;
+                                            return new ErRelationshipParticipantDTO(
+                                                    idOf.get(target), min, max, role);
+                                        })
                                 .toList();
                 relationships.add(
                         new ErRelationshipDTO(
                                 id,
-                                rel.getName(),
+                                n.getName(),
                                 new Position(1, 1),
                                 "Normal",
                                 participants,
-                                List.of()));
-
-            } else if (node instanceof Undefined undef) {
-                relationships.add(
-                        new ErRelationshipDTO(
-                                id,
-                                undef.getName() + "?",
-                                new Position(1, 1),
-                                "Normal",
-                                List.of(),
-                                List.of()));
-
-            } else if (node instanceof Attribute attr) {
-                String parentId =
-                        attr.getFk() != null
-                                ? attr.getFk()
-                                : graph.incomingEdgesOf(attr).stream()
-                                .map(graph::getEdgeSource)
-                                .filter(n -> !(n instanceof Attribute))
-                                .map(n -> idByName.get(n.getName()))
-                                .findFirst()
-                                .orElse(null);
-                attributes.add(
-                        new ErAttributeDTO(
-                                id,
-                                attr.getName(),
-                                new Position(1, 1),
-                                parentId,
-                                attr.isPk(),
-                                attr.isCompose(),
-                                attr.isMultivalue(),
-                                attr.isNoEmpty(),
-                                attr.isUnique(),
-                                null,
-                                attr.getSize(),
-                                List.of()));
+                                attrIds));
+            } else if (isTargetOfRel || !attrChildren.isEmpty()) {
+                entities.add(
+                        new ErEntityDTO(
+                                id, n.getName(), new Position(1, 1), false, attrIds, pkIds));
+            } else {
+                undefineds.add(new ErUndefinedDTO(id, n.getName(), new Position(1, 1), List.of()));
             }
         }
 
-        return new ErInput(entities, relationships, attributes, List.of());
+        for (Node n : graph.vertexSet()) {
+            if (!n.isAttribute()) {
+                continue;
+            }
+            String id = idOf.get(n);
+            String parentId =
+                    graph.incomingEdgesOf(n).stream()
+                            .map(graph::getEdgeSource)
+                            .map(idOf::get)
+                            .findFirst()
+                            .orElse(null);
+            attributes.add(
+                    new ErAttributeDTO(
+                            id,
+                            n.getName(),
+                            new Position(1, 1),
+                            parentId,
+                            n.isPk(),
+                            false,
+                            false,
+                            n.isNotNull(),
+                            n.isUnique(),
+                            null,
+                            0,
+                            List.of()));
+        }
+
+        return new ErInput(entities, relationships, attributes, List.of(), undefineds);
     }
 }
