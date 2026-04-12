@@ -61,6 +61,7 @@ declare module 'vue' {
     Toolbar: typeof import('primevue/toolbar')['default']
     ToolBar: typeof import('./src/components/ToolBar.vue')['default']
     TransformDiagramDialog: typeof import('./src/components/dialogs/TransformDiagramDialog.vue')['default']
+    UndefinedNode: typeof import('./src/components/canvas/nodes/UndefinedNode.vue')['default']
   }
   export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']

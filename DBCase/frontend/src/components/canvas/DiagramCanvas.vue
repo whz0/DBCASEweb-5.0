@@ -107,6 +107,12 @@
           :attribute="attribute"
           @dragmove="handleAttributeDragMove"
         />
+        <UndefinedNode
+          v-for="undefinedEl in erSchemaStore.undefineds"
+          :key="undefinedEl.id"
+          :undefined-el="undefinedEl"
+          @dragmove="handleUndefinedDragMove"
+        />
       </v-layer>
     </v-stage>
     <ContentUnavailableView
@@ -154,6 +160,7 @@ import MiniMap from './MiniMap.vue'
 import AttributeNode from './nodes/AttributeNode.vue'
 import EntityNode from './nodes/EntityNode.vue'
 import RelationshipNode from './nodes/RelationshipNode.vue'
+import UndefinedNode from './nodes/UndefinedNode.vue'
 
 const erSchemaStore = useErSchemaStore()
 const dialogStore = useDialogStore()
@@ -165,7 +172,8 @@ const isDiagramEmpty = computed(() => {
   return (
     erSchemaStore.entities.length === 0 &&
     erSchemaStore.relationships.length === 0 &&
-    erSchemaStore.attributes.length === 0
+    erSchemaStore.attributes.length === 0 &&
+    erSchemaStore.undefineds.length === 0
   )
 })
 
@@ -262,6 +270,7 @@ const getContextMenuItems = () => {
   const isEntity = erSchemaStore.entities.some((e) => e.id === selectedId)
   const isRelationship = erSchemaStore.relationships.some((r) => r.id === selectedId)
   const isAttribute = erSchemaStore.attributes.some((a) => a.id === selectedId)
+  const isUndefined = erSchemaStore.undefineds.some((u) => u.id === selectedId)
 
   if (isEntity) {
     return [
@@ -331,6 +340,28 @@ const getContextMenuItems = () => {
         label: t('attribute.editAttribute'),
         icon: 'bi bi-pencil-square',
         command: () => dialogStore.open(DialogId.EditAttribute),
+      },
+      { separator: true },
+      {
+        label: t('common.delete'),
+        icon: 'bi bi-trash',
+        class: 'text-red-500',
+        command: () => erSchemaStore.deleteElement(selectedId),
+      },
+    ]
+  }
+
+  if (isUndefined) {
+    return [
+      {
+        label: t('entity.convertToEntity', 'Convertir a Entidad'),
+        icon: 'bi bi-square',
+        command: () => erSchemaStore.convertUndefinedToEntity(selectedId),
+      },
+      {
+        label: t('relationship.convertToRelationship', 'Convertir a Relación'),
+        icon: 'bi bi-diamond',
+        command: () => erSchemaStore.convertUndefinedToRelationship(selectedId),
       },
       { separator: true },
       {
@@ -490,8 +521,9 @@ const attributeConnections = computed(() => {
       (r: Relationship) => r.id === attribute.parentId,
     )
     const parentAttr = erSchemaStore.attributes.find((a: Attribute) => a.id === attribute.parentId)
+    const parentUndefined = erSchemaStore.undefineds.find((u) => u.id === attribute.parentId)
 
-    const parent = parentEntity || parentRelationship || parentAttr
+    const parent = parentEntity || parentRelationship || parentAttr || parentUndefined
     if (!parent) return
 
     const attributeShape = calculateAttributeRenderProps(attribute)
@@ -511,13 +543,22 @@ const attributeConnections = computed(() => {
         y: entityShape.y + entityShape.height / 2,
       }
       endPoint = getLineRectangleIntersection(attributeCenter, parentCenter, entityShape)
+    } else if (parentUndefined) {
+      const undefinedShape: EllipseShape = {
+        cx: parentUndefined.position.x,
+        cy: parentUndefined.position.y,
+        rx: 30,
+        ry: 30,
+      }
+      parentCenter = { x: undefinedShape.cx, y: undefinedShape.cy }
+      endPoint = getLineEllipseIntersection(attributeCenter, parentCenter, undefinedShape)
     } else {
       const parentAttrShape = calculateAttributeRenderProps(parentAttr as Attribute)
       parentCenter = { x: parentAttrShape.cx, y: parentAttrShape.cy }
       endPoint = getLineEllipseIntersection(attributeCenter, parentCenter, parentAttrShape)
     }
 
-    const startPoint = getLineEllipseIntersection(parentCenter, attributeCenter, attributeShape)
+    const startPoint = getLineEllipseIntersection(parentCenter!, attributeCenter, attributeShape)
 
     if (startPoint && endPoint) {
       connections.push({
@@ -541,6 +582,10 @@ const handleAttributeDragMove = (event: { id: string; x: number; y: number }) =>
 }
 const handleRelationshipDragMove = (event: { id: string; x: number; y: number }) => {
   erSchemaStore.updateRelationshipPosition(event.id, { x: event.x, y: event.y })
+}
+const handleUndefinedDragMove = (event: { id: string; x: number; y: number }) => {
+  const u = erSchemaStore.undefineds.find((u) => u.id === event.id)
+  if (u) u.position = { x: event.x, y: event.y }
 }
 
 function handleKeydown(e: KeyboardEvent) {

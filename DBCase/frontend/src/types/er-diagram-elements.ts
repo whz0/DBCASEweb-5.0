@@ -47,9 +47,14 @@ export interface Domain {
   values?: string[]
 }
 
+export interface Undefined extends DiagramElement {
+  attributes: string[]
+}
+
 export interface Snapshot {
   entities: Entity[]
   relationships: Relationship[]
   attributes: Attribute[]
   domains: Domain[]
+  undefineds?: Undefined[]
 }

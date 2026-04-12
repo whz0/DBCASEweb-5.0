@@ -13,6 +13,7 @@ import type {
   Position,
   Relationship,
   Snapshot,
+  Undefined,
 } from '@/types/er-diagram-elements'
 
 export const useErSchemaStore = defineStore('erSchema', () => {
@@ -20,6 +21,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
   const relationships = ref<Relationship[]>([])
   const attributes = ref<Attribute[]>([])
   const domains = ref<Domain[]>([])
+  const undefineds = ref<Undefined[]>([])
   const selectedElementId = ref<string | null>(null)
   const lastClickPosition = ref<Position>({ x: 100, y: 100 })
   const stageRef = ref<Stage | null>(null)
@@ -34,6 +36,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
         relationships: relationships.value,
         attributes: attributes.value,
         domains: domains.value,
+        undefineds: undefineds.value,
       }),
     )
   }
@@ -67,6 +70,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     relationships.value = snapshot.relationships || []
     attributes.value = snapshot.attributes || []
     domains.value = snapshot.domains || []
+    undefineds.value = snapshot.undefineds || []
     selectedElementId.value = null
   }
 
@@ -176,6 +180,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
       relationships.value = relationships.value.filter((r) => r.id !== id)
       attributes.value = attributes.value.filter((a) => a.id !== id)
       domains.value = domains.value.filter((d) => d.id !== id)
+      undefineds.value = undefineds.value.filter((u) => u.id !== id)
     }
 
     if (selectedElementId.value === id) {
@@ -393,11 +398,41 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     }
   }
 
+  function convertUndefinedToEntity(id: string) {
+    const u = undefineds.value.find((u) => u.id === id)
+    if (!u) return
+    saveHistory()
+    entities.value.push({
+      id: u.id,
+      name: u.name,
+      position: u.position,
+      attributes: u.attributes,
+      primaryKeys: [],
+    })
+    undefineds.value = undefineds.value.filter((u) => u.id !== id)
+  }
+
+  function convertUndefinedToRelationship(id: string) {
+    const u = undefineds.value.find((u) => u.id === id)
+    if (!u) return
+    saveHistory()
+    relationships.value.push({
+      id: u.id,
+      name: u.name,
+      position: u.position,
+      type: 'Normal',
+      participants: [],
+      attributes: u.attributes,
+    })
+    undefineds.value = undefineds.value.filter((u) => u.id !== id)
+  }
+
   function reset() {
     entities.value = []
     relationships.value = []
     attributes.value = []
     domains.value = []
+    undefineds.value = []
     selectedElementId.value = null
     lastClickPosition.value = { x: 100, y: 100 }
     past.value = []
@@ -409,6 +444,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     relationships,
     attributes,
     domains,
+    undefineds,
     selectedElementId,
     lastClickPosition,
     canUndo: computed(() => past.value.length > 0),
@@ -438,5 +474,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     stageRef,
     exportToPDF,
     reset,
+    convertUndefinedToEntity,
+    convertUndefinedToRelationship,
   }
 })
