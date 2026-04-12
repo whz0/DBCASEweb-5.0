@@ -1,15 +1,20 @@
 package com.tfg.ucm.dbcase.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 @Data
-@SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder(toBuilder = true)
 @NoArgsConstructor
+@AllArgsConstructor
 public class Node {
-    @EqualsAndHashCode.Include private String name;
-    private String color;
+    private String name;
+    private boolean isAttribute;
+    private boolean isPk;
+    private boolean isNotNull;
+    private boolean isUnique;
+    private Domain dataType;
+    private String reference;
 }
