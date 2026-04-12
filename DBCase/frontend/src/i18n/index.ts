@@ -166,6 +166,13 @@ const messages = {
       header: 'About Us',
       content:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      footer:
+        'Degree in Software Engineering (2025-2026) Faculty of Informatics. Complutense University of Madrid',
+      use: 'A tool for database design',
+      director: 'Project Director:',
+      mail: 'Email contact',
+      author: 'Project authors:',
+      projects: 'Project-based:',
     },
     help: {
       title: 'Help',
@@ -390,6 +397,13 @@ const messages = {
       header: 'Acerca de',
       content:
         'Ellos nosotros de ellos a lo largo más el más ellos quién tu cómo cuál esto. A lo largo algunos aquellos decir entre otro porque o. El, venir dos decir dar casi gustaría, usar porque, voluntad, pensar arriba, estos ninguno uno tomar decir venir a lo largo no ver. Venir el más tiempo, con, aquí dos su cómo no pero y, algunos él mi hecho hombre porque alrededor, de. Entre sobre también, en tiene a qué, si, debe su el más muy, mi ellos. Y casi ellos ella uno, tenía debajo ellos solo es ambos podría cosa cada ser. El más uno debajo no ver contar bien dos.',
+      footer:
+        'Grado en Ingeniería del Software (2025/2026) Facultad de Informática. Universidad Complutense de Madrid',
+      use: 'Una herramienta para el diseño de bases de datos',
+      director: 'Director del proyecto:',
+      mail: 'Correo de contacto',
+      author: 'Autores del proyecto:',
+      projects: 'Basado en los proyectos:',
     },
     help: {
       title: 'Ayuda',
