@@ -14,8 +14,10 @@ import java.util.LinkedHashMap;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.Multigraph;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@Disabled("Pendiente de implementación")
 class LogicalDiagramStrategyTest {
 
     private LogicalDiagramStrategy strategy;

@@ -1,6 +1,7 @@
 package com.tfg.ucm.dbcase.strategies;
 
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreate;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
 import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
 import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isForeignKey;
 
@@ -16,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
 import org.jgrapht.graph.Multigraph;
 import org.springframework.stereotype.Service;
 
@@ -53,35 +55,129 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
         Graph<Node, Edge> graph = diagram.getDiagram();
 
+        java.util.Map<Node, java.util.List<FkInjection>> injections = new java.util.HashMap<>();
+
         List<Node> tableNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
 
+        for (Node node : tableNodes) {
+            if (!NodeClassifier.isRelationship(node, graph)) {
+                continue;
+            }
+
+            NodeClassifier.RelationshipKind kind = NodeClassifier.classify(node, graph);
+            List<Edge> fkEdges = NodeClassifier.getFkEdges(node, graph);
+            if (fkEdges.size() != 2 || kind == NodeClassifier.RelationshipKind.NM) {
+                continue;
+            }
+
+            Edge edgeA = fkEdges.get(0);
+            Edge edgeB = fkEdges.get(1);
+            Node attrA = Graphs.getOppositeVertex(graph, edgeA, node);
+            Node attrB = Graphs.getOppositeVertex(graph, edgeB, node);
+
+            Node entityA =
+                    tableNodes.stream()
+                            .filter(n -> n.getName().equals(attrA.getReference()))
+                            .findFirst()
+                            .orElse(null);
+            Node entityB =
+                    tableNodes.stream()
+                            .filter(n -> n.getName().equals(attrB.getReference()))
+                            .findFirst()
+                            .orElse(null);
+            if (entityA == null || entityB == null) {
+                continue;
+            }
+
+            boolean totalA = "1".equals(edgeA.getCardinalityMin());
+            boolean totalB = "1".equals(edgeB.getCardinalityMin());
+
+            if (kind == NodeClassifier.RelationshipKind.ONE_TO_ONE) {
+                injections
+                        .computeIfAbsent(entityA, k -> new java.util.ArrayList<>())
+                        .add(
+                                new FkInjection(
+                                        NodeClassifier.getFkAttrName(edgeB),
+                                        entityB.getName(),
+                                        totalA || totalB));
+            } else {
+                Node nSideEntity =
+                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? entityB : entityA;
+                Node oneSideEntity =
+                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? entityA : entityB;
+                boolean totalNSide =
+                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? totalB : totalA;
+                injections
+                        .computeIfAbsent(nSideEntity, k -> new java.util.ArrayList<>())
+                        .add(
+                                new FkInjection(
+                                        NodeClassifier.getFkAttrName(
+                                                kind == NodeClassifier.RelationshipKind.ONE_TO_N
+                                                        ? edgeA
+                                                        : edgeB),
+                                        oneSideEntity.getName(),
+                                        totalNSide));
+            }
+        }
+
         for (Node startNode : tableNodes) {
+            if (NodeClassifier.isRelationship(startNode, graph)) {
+                NodeClassifier.RelationshipKind kind = NodeClassifier.classify(startNode, graph);
+                if (kind != NodeClassifier.RelationshipKind.NM) {
+                    continue;
+                }
+            }
+
             StringBuilder attrList = new StringBuilder();
 
             graph.vertexSet().stream()
                     .filter(n -> isAttribute(n) && graph.containsEdge(startNode, n))
                     .forEach(
                             attr -> {
+                                String displayName =
+                                        attr.isFk()
+                                                ? graph.getAllEdges(startNode, attr).stream()
+                                                        .map(e -> NodeClassifier.getFkAttrName(e))
+                                                        .filter(n -> n != null)
+                                                        .findFirst()
+                                                        .orElse(attr.getName())
+                                                : attr.getName();
                                 if (!attrList.isEmpty()) {
                                     attrList.append(", ");
                                 }
                                 attrList.append(
-                                        attr.isPk()
-                                                ? "__" + attr.getName() + "__"
-                                                : attr.getName());
-
+                                        attr.isPk() && !attr.isFk()
+                                                ? "__" + displayName + "__"
+                                                : displayName);
                                 if (isForeignKey(attr, startNode)) {
                                     restrictionBuilder
                                             .append(startNode.getName())
                                             .append(".")
-                                            .append(attr.getName())
+                                            .append(displayName)
                                             .append(" -> ")
                                             .append(attr.getReference())
                                             .append(".")
-                                            .append(attr.getName())
+                                            .append(displayName)
                                             .append("\n");
                                 }
                             });
+
+            List<FkInjection> fks = injections.getOrDefault(startNode, List.of());
+            for (FkInjection fk : fks) {
+                if (!attrList.isEmpty()) {
+                    attrList.append(", ");
+                }
+                attrList.append(fk.attrName());
+                restrictionBuilder
+                        .append(startNode.getName())
+                        .append(".")
+                        .append(fk.attrName())
+                        .append(" -> ")
+                        .append(fk.referencedTable())
+                        .append(".")
+                        .append(fk.attrName())
+                        .append("\n");
+            }
 
             if (!attrList.isEmpty()) {
                 relationshipBuilder
@@ -97,6 +193,8 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         result.put("lossRestriction", "");
         return result;
     }
+
+    private record FkInjection(String attrName, String referencedTable, boolean isTotal) {}
 
     private void parseRelationship(String relationship, Graph<Node, Edge> diagram) {
         relationship
@@ -119,10 +217,14 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         final String attrName = pk ? matcher.group(1) : attribute;
         Domain type = pk ? Domain.INTEGER : null;
 
-        Node attr = getOrCreate(attrName, diagram);
+        Node attr = getOrCreateAttr(attrName, entity, diagram);
 
         attr.setAttribute(true);
         attr.setPk(pk);
+        if (pk) {
+            attr.setFk(false);
+            attr.setReference(null);
+        }
         attr.setDataType(type);
 
         diagram.addEdge(
@@ -144,10 +246,11 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                             String refName = refParts[0].trim();
                             Node src = getOrCreate(srcName, diagram);
 
-                            Node attr = getOrCreate(attrName, diagram);
+                            Node attr = getOrCreateAttr(attrName, src, diagram);
 
                             attr.setAttribute(true);
-                            attr.setPk(true);
+                            attr.setPk(false);
+                            attr.setFk(true);
                             attr.setDataType(Domain.INTEGER);
                             attr.setReference(refName);
 

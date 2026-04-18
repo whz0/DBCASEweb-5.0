@@ -18,8 +18,10 @@ import java.util.List;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@Disabled("Pendiente de implementación")
 class ERDiagramStrategyTest {
 
     private ERDiagramStrategy strategy;

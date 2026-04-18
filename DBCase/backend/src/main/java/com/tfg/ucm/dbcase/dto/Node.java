@@ -15,6 +15,7 @@ public class Node {
     private String name;
     private boolean isAttribute;
     private boolean isPk;
+    private boolean isFk;
     private boolean isNotNull;
     private boolean isUnique;
     private Domain dataType;

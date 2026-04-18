@@ -1,8 +1,7 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreate;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
 import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
-import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isForeignKey;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
@@ -56,64 +55,159 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         StringBuilder sqlBuilder = new StringBuilder();
         Graph<Node, Edge> graph = diagram.getDiagram();
 
-        List<Node> nodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
+        java.util.Map<Node, java.util.List<FkInjection>> injections = new java.util.HashMap<>();
+        List<Node> allNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
 
-        for (Node node : nodes) {
-            sqlBuilder.append(buildTable(node, graph));
+        for (Node node : allNodes) {
+            if (!NodeClassifier.isRelationship(node, graph)) {
+                continue;
+            }
+            NodeClassifier.RelationshipKind kind = NodeClassifier.classify(node, graph);
+            List<Edge> fkEdges = NodeClassifier.getFkEdges(node, graph);
+            if (fkEdges.size() != 2 || kind == NodeClassifier.RelationshipKind.NM) {
+                continue;
+            }
+
+            Edge edgeA = fkEdges.get(0);
+            Edge edgeB = fkEdges.get(1);
+            Node attrA = Graphs.getOppositeVertex(graph, edgeA, node);
+            Node attrB = Graphs.getOppositeVertex(graph, edgeB, node);
+            Node entityA =
+                    allNodes.stream()
+                            .filter(n -> n.getName().equals(attrA.getReference()))
+                            .findFirst()
+                            .orElse(null);
+            Node entityB =
+                    allNodes.stream()
+                            .filter(n -> n.getName().equals(attrB.getReference()))
+                            .findFirst()
+                            .orElse(null);
+            if (entityA == null || entityB == null) {
+                continue;
+            }
+
+            boolean totalA = "1".equals(edgeA.getCardinalityMin());
+            boolean totalB = "1".equals(edgeB.getCardinalityMin());
+
+            if (kind == NodeClassifier.RelationshipKind.ONE_TO_ONE) {
+                injections
+                        .computeIfAbsent(entityA, k -> new java.util.ArrayList<>())
+                        .add(
+                                new FkInjection(
+                                        NodeClassifier.getFkAttrName(edgeB),
+                                        entityB.getName(),
+                                        totalA || totalB));
+            } else {
+                Node nSideEntity =
+                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? entityB : entityA;
+                Node oneSideEntity =
+                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? entityA : entityB;
+                boolean totalNSide =
+                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? totalB : totalA;
+                injections
+                        .computeIfAbsent(nSideEntity, k -> new java.util.ArrayList<>())
+                        .add(
+                                new FkInjection(
+                                        NodeClassifier.getFkAttrName(
+                                                kind == NodeClassifier.RelationshipKind.ONE_TO_N
+                                                        ? edgeA
+                                                        : edgeB),
+                                        oneSideEntity.getName(),
+                                        totalNSide));
+            }
+        }
+
+        for (Node node : allNodes) {
+            if (NodeClassifier.isRelationship(node, graph)
+                    && NodeClassifier.classify(node, graph) != NodeClassifier.RelationshipKind.NM) {
+                continue;
+            }
+            sqlBuilder.append(buildTable(node, graph, injections.getOrDefault(node, List.of())));
         }
         return sqlBuilder;
     }
 
-    private String buildTable(Node entity, Graph<Node, Edge> graph) {
+    private record FkInjection(String attrName, String referencedTable, boolean isTotal) {}
 
+    private String buildTable(Node entity, Graph<Node, Edge> graph, List<FkInjection> injectedFks) {
         StringBuilder columns = new StringBuilder();
         StringBuilder constraints = new StringBuilder();
 
         Graphs.neighborListOf(graph, entity)
                 .forEach(
-                        (attr -> {
-                            if (attr.isAttribute()) {
-                                String dataType =
-                                        attr.getDataType() != null
-                                                ? attr.getDataType().toString()
-                                                : "?";
-                                String pk = "";
+                        attr -> {
+                            if (!attr.isAttribute()) {
+                                return;
+                            }
+                            String dataType =
+                                    attr.getDataType() != null
+                                            ? attr.getDataType().toString()
+                                            : "?";
 
-                                if (attr.isPk()) {
-                                    if (dataType.equals("?")) {
-                                        dataType = "INTEGER";
-                                    }
-                                    if (isForeignKey(attr, entity)) {
-                                        pk = " ?";
-                                        constraints
-                                                .append("\tFOREIGN KEY (")
-                                                .append(attr.getName())
-                                                .append(") REFERENCES ")
-                                                .append(attr.getReference())
-                                                .append("(")
-                                                .append(attr.getName())
-                                                .append("),\n");
-                                    } else {
-                                        pk = " PRIMARY KEY";
-                                    }
-                                }
-                                String unique = attr.isUnique() ? " UNIQUE" : "";
+                            if (attr.isFk()) {
+                                String fkName =
+                                        graph.getAllEdges(entity, attr).stream()
+                                                .map(NodeClassifier::getFkAttrName)
+                                                .filter(n -> n != null)
+                                                .findFirst()
+                                                .orElse(attr.getName());
                                 String notNull = attr.isNotNull() ? " NOT NULL" : "";
+                                columns.append("	")
+                                        .append(fkName)
+                                        .append(" INTEGER")
+                                        .append(notNull)
+                                        .append(",\n");
+                                constraints
+                                        .append("	FOREIGN KEY (")
+                                        .append(fkName)
+                                        .append(") REFERENCES ")
+                                        .append(attr.getReference())
+                                        .append("(")
+                                        .append(fkName)
+                                        .append("),\n");
+                            } else if (attr.isPk()) {
+                                if (dataType.equals("?")) {
+                                    dataType = "INTEGER";
+                                }
                                 columns.append("\t")
                                         .append(attr.getName())
                                         .append(" ")
                                         .append(dataType)
-                                        .append(pk)
-                                        .append(unique)
-                                        .append(notNull)
+                                        .append(" PRIMARY KEY")
+                                        .append(attr.isUnique() ? " UNIQUE" : "")
+                                        .append(attr.isNotNull() ? " NOT NULL" : "")
+                                        .append(",\n");
+                            } else {
+                                columns.append("\t")
+                                        .append(attr.getName())
+                                        .append(" ")
+                                        .append(dataType)
+                                        .append(attr.isUnique() ? " UNIQUE" : "")
+                                        .append(attr.isNotNull() ? " NOT NULL" : "")
                                         .append(",\n");
                             }
-                        }));
+                        });
+
+        for (FkInjection fk : injectedFks) {
+            String notNull = fk.isTotal() ? " NOT NULL" : "";
+            columns.append("\t")
+                    .append(fk.attrName())
+                    .append(" INTEGER")
+                    .append(notNull)
+                    .append(",\n");
+            constraints
+                    .append("\tFOREIGN KEY (")
+                    .append(fk.attrName())
+                    .append(") REFERENCES ")
+                    .append(fk.referencedTable())
+                    .append("(")
+                    .append(fk.attrName())
+                    .append("),\n");
+        }
 
         if (columns.isEmpty()) {
             return "";
         }
-
         String body = columns.toString() + constraints.toString();
         if (body.endsWith(",\n")) {
             body = body.substring(0, body.length() - 2) + "\n";
@@ -156,9 +250,10 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                     .forEach(
                             column -> {
                                 String name = column.getColumnName();
-                                Node attr = getOrCreate(name, diagram);
+                                Node attr = getOrCreateAttr(name, entity, diagram);
                                 attr.setAttribute(true);
-                                attr.setPk(isPk || isFk);
+                                attr.setPk(isPk);
+                                attr.setFk(isFk);
                                 attr.setReference(referencedTable);
 
                                 diagram.addEdge(
@@ -192,7 +287,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                 domain = null;
             }
 
-            Node attr = getOrCreate(name, diagram);
+            Node attr = getOrCreateAttr(name, entity, diagram);
             attr.setAttribute(true);
             attr.setDataType(domain);
             if (isPk) {

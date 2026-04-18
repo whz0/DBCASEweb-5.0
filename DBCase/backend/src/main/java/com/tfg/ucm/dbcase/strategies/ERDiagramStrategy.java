@@ -1,5 +1,7 @@
 package com.tfg.ucm.dbcase.strategies;
 
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
+
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
@@ -19,7 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.Multigraph;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,7 +39,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
     @Override
     public Diagram generate(ErInput input) {
-        Graph<Node, Edge> graph = new DirectedMultigraph<>(Edge.class);
+        Graph<Node, Edge> graph = new Multigraph<>(Edge.class);
         Map<String, Node> byId = new HashMap<>();
 
         for (var e : input.entities()) {
@@ -53,20 +55,17 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         }
 
         for (var a : input.attributes()) {
-            Node attr =
-                    Node.builder()
-                            .name(a.name())
-                            .isAttribute(true)
-                            .isPk(a.isKey())
-                            .isNotNull(a.isNotNull())
-                            .isUnique(a.isUnique())
-                            .build();
-            graph.addVertex(attr);
-            byId.put(a.id(), attr);
             Node parent = byId.get(a.parentId());
-            if (parent != null) {
-                graph.addEdge(parent, attr, Edge.builder().label("attr" + a.id()).build());
+            if (parent == null) {
+                continue;
             }
+            Node attr = getOrCreateAttr(a.name(), parent, graph);
+            attr.setAttribute(true);
+            attr.setPk(a.isKey());
+            attr.setNotNull(a.isNotNull());
+            attr.setUnique(a.isUnique());
+            byId.put(a.id(), attr);
+            graph.addEdge(parent, attr, Edge.builder().label("attr:" + a.id()).build());
         }
 
         for (var r : input.relationships()) {
@@ -79,21 +78,25 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 if (entity == null) {
                     continue;
                 }
-
-                graph.vertexSet().stream()
-                        .filter(n -> n.isAttribute() && n.isPk() && graph.containsEdge(entity, n))
+                Graphs.neighborListOf(graph, entity).stream()
+                        .filter(n -> n.isAttribute() && n.isPk())
                         .forEach(
                                 pkAttr -> {
-                                    pkAttr.setReference(entity.getName());
+                                    Node fkNode = getOrCreateAttr(pkAttr.getName(), rel, graph);
+                                    fkNode.setAttribute(true);
+                                    fkNode.setFk(true);
+                                    fkNode.setReference(entity.getName());
                                     graph.addEdge(
                                             rel,
-                                            pkAttr,
+                                            fkNode,
                                             Edge.builder()
                                                     .label(
                                                             "fk:"
                                                                     + rel.getName()
                                                                     + ":"
                                                                     + pkAttr.getName())
+                                                    .cardinalityMin(p.cardinalityMin())
+                                                    .cardinalityMax(p.cardinalityMax())
                                                     .build());
                                 });
             }
@@ -130,7 +133,10 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
             List<Node> ownAttrs =
                     Graphs.neighborListOf(graph, node).stream()
-                            .filter(a -> NodeClassifier.isAttribute(a) && !(isRel && a.isPk()))
+                            .filter(
+                                    a ->
+                                            NodeClassifier.isAttribute(a)
+                                                    && !NodeClassifier.isForeignKey(a, node))
                             .toList();
 
             List<String> attrIds = new ArrayList<>();
@@ -162,12 +168,9 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
 
             if (isRel) {
-                List<Node> pkAttrs =
+                List<ErRelationshipParticipantDTO> participants =
                         Graphs.neighborListOf(graph, node).stream()
                                 .filter(a -> NodeClassifier.isForeignKey(a, node))
-                                .toList();
-                List<ErRelationshipParticipantDTO> participants =
-                        pkAttrs.stream()
                                 .map(
                                         a ->
                                                 new ErRelationshipParticipantDTO(

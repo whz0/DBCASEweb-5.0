@@ -9,4 +9,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 public class Edge {
     private String label;
+    private String cardinalityMin;
+    private String cardinalityMax;
 }
