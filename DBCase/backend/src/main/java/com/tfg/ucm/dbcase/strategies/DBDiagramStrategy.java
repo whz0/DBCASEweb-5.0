@@ -194,7 +194,9 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             Node attr = getOrCreate(name, diagram);
             attr.setAttribute(true);
             attr.setDataType(domain);
-            attr.setPk(isPk);
+            if (isPk) {
+                attr.setPk(true);
+            }
             attr.setNotNull(isNotNull);
             attr.setUnique(isUnique);
 

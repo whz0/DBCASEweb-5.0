@@ -61,23 +61,31 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                     .filter(n -> n.isAttribute() && graph.containsEdge(startNode, n))
                     .forEach(
                             attr -> {
+                                String displayName =
+                                        graph.getAllEdges(startNode, attr).stream()
+                                                .map(Edge::getLabel)
+                                                .filter(l -> l != null && l.startsWith("fk:"))
+                                                .map(l -> l.substring(l.lastIndexOf(':') + 1))
+                                                .findFirst()
+                                                .orElse(attr.getName());
+
                                 if (!attrList.isEmpty()) {
                                     attrList.append(", ");
                                 }
                                 attrList.append(
-                                        attr.isPk()
-                                                ? "__" + attr.getName() + "__"
-                                                : attr.getName());
+                                        attr.isPk() ? "__" + displayName + "__" : displayName);
 
-                                if (attr.isPk() && attr.getReference() != null) {
+                                if (attr.isPk()
+                                        && attr.getReference() != null
+                                        && !attr.getReference().equals(startNode.getName())) {
                                     restrictionBuilder
                                             .append(startNode.getName())
                                             .append(".")
-                                            .append(attr.getName())
+                                            .append(displayName)
                                             .append(" -> ")
                                             .append(attr.getReference())
                                             .append(".")
-                                            .append(attr.getName())
+                                            .append(displayName)
                                             .append("\n");
                                 }
                             });
