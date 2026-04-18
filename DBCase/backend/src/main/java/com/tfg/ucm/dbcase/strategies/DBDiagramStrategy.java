@@ -1,6 +1,8 @@
 package com.tfg.ucm.dbcase.strategies;
 
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreate;
+import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
+import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isForeignKey;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
@@ -54,7 +56,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         StringBuilder sqlBuilder = new StringBuilder();
         Graph<Node, Edge> graph = diagram.getDiagram();
 
-        List<Node> nodes = graph.vertexSet().stream().filter(n -> !n.isAttribute()).toList();
+        List<Node> nodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
 
         for (Node node : nodes) {
             sqlBuilder.append(buildTable(node, graph));
@@ -81,8 +83,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                     if (dataType.equals("?")) {
                                         dataType = "INTEGER";
                                     }
-                                    if (attr.getReference() != null
-                                            && !attr.getReference().equals(entity.getName())) {
+                                    if (isForeignKey(attr, entity)) {
                                         pk = " ?";
                                         constraints
                                                 .append("\tFOREIGN KEY (")

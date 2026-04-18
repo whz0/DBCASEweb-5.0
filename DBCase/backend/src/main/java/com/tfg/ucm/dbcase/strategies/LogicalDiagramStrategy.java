@@ -1,6 +1,8 @@
 package com.tfg.ucm.dbcase.strategies;
 
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreate;
+import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
+import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isForeignKey;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
@@ -45,47 +47,38 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
     @Override
     public Object transform(Diagram diagram) {
-
         LinkedHashMap<String, String> result = new LinkedHashMap<>();
         StringBuilder relationshipBuilder = new StringBuilder();
         StringBuilder restrictionBuilder = new StringBuilder();
 
         Graph<Node, Edge> graph = diagram.getDiagram();
 
-        List<Node> tableNodes = graph.vertexSet().stream().filter(n -> !n.isAttribute()).toList();
+        List<Node> tableNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
 
         for (Node startNode : tableNodes) {
             StringBuilder attrList = new StringBuilder();
 
             graph.vertexSet().stream()
-                    .filter(n -> n.isAttribute() && graph.containsEdge(startNode, n))
+                    .filter(n -> isAttribute(n) && graph.containsEdge(startNode, n))
                     .forEach(
                             attr -> {
-                                String displayName =
-                                        graph.getAllEdges(startNode, attr).stream()
-                                                .map(Edge::getLabel)
-                                                .filter(l -> l != null && l.startsWith("fk:"))
-                                                .map(l -> l.substring(l.lastIndexOf(':') + 1))
-                                                .findFirst()
-                                                .orElse(attr.getName());
-
                                 if (!attrList.isEmpty()) {
                                     attrList.append(", ");
                                 }
                                 attrList.append(
-                                        attr.isPk() ? "__" + displayName + "__" : displayName);
+                                        attr.isPk()
+                                                ? "__" + attr.getName() + "__"
+                                                : attr.getName());
 
-                                if (attr.isPk()
-                                        && attr.getReference() != null
-                                        && !attr.getReference().equals(startNode.getName())) {
+                                if (isForeignKey(attr, startNode)) {
                                     restrictionBuilder
                                             .append(startNode.getName())
                                             .append(".")
-                                            .append(displayName)
+                                            .append(attr.getName())
                                             .append(" -> ")
                                             .append(attr.getReference())
                                             .append(".")
-                                            .append(displayName)
+                                            .append(attr.getName())
                                             .append("\n");
                                 }
                             });
@@ -102,7 +95,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         result.put("relationship", relationshipBuilder.toString());
         result.put("restriction", restrictionBuilder.toString());
         result.put("lossRestriction", "");
-
         return result;
     }
 

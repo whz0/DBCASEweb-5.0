@@ -112,7 +112,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         Set<Node> nodes =
                 graph.vertexSet().stream()
-                        .filter(n -> !n.isAttribute())
+                        .filter(n -> !NodeClassifier.isAttribute(n))
                         .collect(Collectors.toSet());
 
         Map<String, String> nodeToId = new HashMap<>();
@@ -126,24 +126,11 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             Position pos = new Position(col * 300 + 100, row * 250 + 100);
             idx[0]++;
 
-            List<Node> pkAttrs =
-                    Graphs.neighborListOf(graph, node).stream()
-                            .filter(a -> a.isAttribute() && a.isPk())
-                            .toList();
-
-            long externalPks =
-                    pkAttrs.stream()
-                            .filter(
-                                    a ->
-                                            a.getReference() != null
-                                                    && !a.getReference().equals(node.getName()))
-                            .count();
-
-            boolean isRelationship = !pkAttrs.isEmpty() && externalPks == pkAttrs.size();
+            boolean isRel = NodeClassifier.isRelationship(node, graph);
 
             List<Node> ownAttrs =
                     Graphs.neighborListOf(graph, node).stream()
-                            .filter(a -> a.isAttribute() && !(isRelationship && a.isPk()))
+                            .filter(a -> NodeClassifier.isAttribute(a) && !(isRel && a.isPk()))
                             .toList();
 
             List<String> attrIds = new ArrayList<>();
@@ -174,10 +161,13 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                 List.of()));
             }
 
-            if (isRelationship) {
+            if (isRel) {
+                List<Node> pkAttrs =
+                        Graphs.neighborListOf(graph, node).stream()
+                                .filter(a -> NodeClassifier.isForeignKey(a, node))
+                                .toList();
                 List<ErRelationshipParticipantDTO> participants =
                         pkAttrs.stream()
-                                .filter(a -> a.getReference() != null)
                                 .map(
                                         a ->
                                                 new ErRelationshipParticipantDTO(
