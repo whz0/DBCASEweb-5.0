@@ -82,10 +82,14 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         .filter(n -> n.isAttribute() && n.isPk())
                         .forEach(
                                 pkAttr -> {
-                                    Node fkNode = getOrCreateAttr(pkAttr.getName(), rel, graph);
-                                    fkNode.setAttribute(true);
-                                    fkNode.setFk(true);
-                                    fkNode.setReference(entity.getName());
+                                    Node fkNode =
+                                            Node.builder()
+                                                    .name(UUID.randomUUID().toString())
+                                                    .isAttribute(true)
+                                                    .isFk(true)
+                                                    .reference(entity.getName())
+                                                    .build();
+                                    graph.addVertex(fkNode);
                                     graph.addEdge(
                                             rel,
                                             fkNode,
@@ -124,69 +128,158 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         int[] idx = {0};
         for (Node node : nodes) {
             String id = nodeToId.get(node.getName());
-            int col = idx[0] % 4;
-            int row = idx[0] / 4;
-            Position pos = new Position(col * 300 + 100, row * 250 + 100);
+            Position pos = new Position((idx[0] % 4) * 300 + 100, (idx[0] / 4) * 250 + 100);
             idx[0]++;
 
-            boolean isRel = NodeClassifier.isRelationship(node, graph);
-
-            List<Node> ownAttrs =
-                    Graphs.neighborListOf(graph, node).stream()
-                            .filter(
-                                    a ->
-                                            NodeClassifier.isAttribute(a)
-                                                    && !NodeClassifier.isForeignKey(a, node))
-                            .toList();
-
-            List<String> attrIds = new ArrayList<>();
-            List<String> pkIds = new ArrayList<>();
-
-            for (int i = 0; i < ownAttrs.size(); i++) {
-                Node attr = ownAttrs.get(i);
-                String attrId = UUID.randomUUID().toString();
-                Position attrPos =
-                        new Position(pos.x() + (i - ownAttrs.size() / 2) * 120, pos.y() + 130);
-                attrIds.add(attrId);
-                if (attr.isPk()) {
-                    pkIds.add(attrId);
-                }
-                attributes.add(
-                        new ErAttributeDTO(
-                                attrId,
-                                attr.getName(),
-                                attrPos,
-                                id,
-                                attr.isPk(),
-                                false,
-                                false,
-                                attr.isNotNull(),
-                                attr.isUnique(),
-                                null,
-                                0,
-                                List.of()));
-            }
-
-            if (isRel) {
-                List<ErRelationshipParticipantDTO> participants =
-                        Graphs.neighborListOf(graph, node).stream()
-                                .filter(a -> NodeClassifier.isForeignKey(a, node))
-                                .map(
-                                        a ->
-                                                new ErRelationshipParticipantDTO(
-                                                        nodeToId.get(a.getReference()),
-                                                        "0",
-                                                        "N",
-                                                        null))
-                                .toList();
-                relationships.add(
-                        new ErRelationshipDTO(
-                                id, node.getName(), pos, "Normal", participants, attrIds));
+            if (NodeClassifier.isRelationship(node, graph)) {
+                buildRelationship(node, id, pos, graph, nodeToId, relationships, attributes);
             } else {
-                entities.add(new ErEntityDTO(id, node.getName(), pos, false, attrIds, pkIds));
+                buildEntity(node, id, pos, graph, nodeToId, entities, relationships, attributes);
             }
         }
 
         return new ErInput(entities, relationships, attributes, List.of(), List.of());
+    }
+
+    private void buildEntity(
+            Node node,
+            String id,
+            Position pos,
+            Graph<Node, Edge> graph,
+            Map<String, String> nodeToId,
+            List<ErEntityDTO> entities,
+            List<ErRelationshipDTO> relationships,
+            List<ErAttributeDTO> attributes) {
+        List<Node> ownAttrs =
+                Graphs.neighborListOf(graph, node).stream()
+                        .filter(
+                                a ->
+                                        NodeClassifier.isAttribute(a)
+                                                && !NodeClassifier.isForeignKey(a, node))
+                        .toList();
+        List<String> attrIds = new ArrayList<>();
+        List<String> pkIds = new ArrayList<>();
+        for (int i = 0; i < ownAttrs.size(); i++) {
+            Node attr = ownAttrs.get(i);
+            String attrId = UUID.randomUUID().toString();
+            Position attrPos =
+                    new Position(pos.x() + (i - (double) ownAttrs.size() / 2) * 120, pos.y() + 130);
+            attrIds.add(attrId);
+            if (attr.isPk()) {
+                pkIds.add(attrId);
+            }
+            attributes.add(
+                    new ErAttributeDTO(
+                            attrId,
+                            attr.getName(),
+                            attrPos,
+                            id,
+                            attr.isPk(),
+                            false,
+                            false,
+                            attr.isNotNull(),
+                            attr.isUnique(),
+                            null,
+                            0,
+                            List.of()));
+        }
+        entities.add(new ErEntityDTO(id, node.getName(), pos, false, attrIds, pkIds));
+
+        Graphs.neighborListOf(graph, node).stream()
+                .filter(a -> NodeClassifier.isForeignKey(a, node) && !a.isPk())
+                .forEach(
+                        fkAttr -> {
+                            String refId = nodeToId.get(fkAttr.getReference());
+                            if (refId == null) {
+                                return;
+                            }
+                            String relName = node.getName() + fkAttr.getReference();
+                            List<ErRelationshipParticipantDTO> participants =
+                                    List.of(
+                                            new ErRelationshipParticipantDTO(id, "1", "1", null),
+                                            new ErRelationshipParticipantDTO(
+                                                    refId, "1", "1", null));
+                            relationships.add(
+                                    new ErRelationshipDTO(
+                                            UUID.randomUUID().toString(),
+                                            relName,
+                                            pos,
+                                            "Normal",
+                                            participants,
+                                            List.of()));
+                        });
+    }
+
+    private void buildRelationship(
+            Node node,
+            String id,
+            Position pos,
+            Graph<Node, Edge> graph,
+            Map<String, String> nodeToId,
+            List<ErRelationshipDTO> relationships,
+            List<ErAttributeDTO> attributes) {
+        List<Node> fkNodes =
+                Graphs.neighborListOf(graph, node).stream()
+                        .filter(a -> NodeClassifier.isForeignKey(a, node))
+                        .toList();
+        NodeClassifier.RelationshipKind kind = NodeClassifier.classify(node, graph);
+
+        List<Node> ownAttrs =
+                Graphs.neighborListOf(graph, node).stream()
+                        .filter(
+                                a ->
+                                        NodeClassifier.isAttribute(a)
+                                                && !NodeClassifier.isForeignKey(a, node))
+                        .toList();
+        List<String> attrIds = new ArrayList<>();
+        for (int i = 0; i < ownAttrs.size(); i++) {
+            Node attr = ownAttrs.get(i);
+            String attrId = UUID.randomUUID().toString();
+            Position attrPos =
+                    new Position(pos.x() + (i - (double) ownAttrs.size() / 2) * 120, pos.y() + 130);
+            attrIds.add(attrId);
+            attributes.add(
+                    new ErAttributeDTO(
+                            attrId,
+                            attr.getName(),
+                            attrPos,
+                            id,
+                            false,
+                            false,
+                            false,
+                            attr.isNotNull(),
+                            attr.isUnique(),
+                            null,
+                            0,
+                            List.of()));
+        }
+
+        if (kind == NodeClassifier.RelationshipKind.ONE_TO_ONE && fkNodes.size() == 2) {
+            String nameA = fkNodes.get(0).getReference();
+            String nameB = fkNodes.get(1).getReference();
+            List<ErRelationshipParticipantDTO> participants =
+                    List.of(
+                            new ErRelationshipParticipantDTO(nodeToId.get(nameA), "1", "1", null),
+                            new ErRelationshipParticipantDTO(nodeToId.get(nameB), "1", "1", null));
+            relationships.add(
+                    new ErRelationshipDTO(
+                            UUID.randomUUID().toString(),
+                            nameA + nameB,
+                            pos,
+                            "Normal",
+                            participants,
+                            attrIds));
+        } else {
+            List<ErRelationshipParticipantDTO> participants =
+                    fkNodes.stream()
+                            .map(
+                                    a ->
+                                            new ErRelationshipParticipantDTO(
+                                                    nodeToId.get(a.getReference()), "0", "N", null))
+                            .toList();
+            relationships.add(
+                    new ErRelationshipDTO(
+                            id, node.getName(), pos, "Normal", participants, attrIds));
+        }
     }
 }

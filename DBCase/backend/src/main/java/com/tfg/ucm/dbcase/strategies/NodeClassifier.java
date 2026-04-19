@@ -8,6 +8,32 @@ import org.jgrapht.Graphs;
 
 public class NodeClassifier {
 
+    public static NodeType classifyA(Node node, Graph<Node, Edge> graph) {
+
+        if (isAttribute(node)) {
+            return NodeType.ATTRIBUTE;
+        } else {
+            return classifyNonAttribute(node, graph);
+        }
+    }
+
+    public static NodeType classifyNonAttribute(Node node, Graph<Node, Edge> graph) {
+
+        if (isRelationship(node, graph)) {
+            return classifyRelationship(node, graph);
+        } else {
+            return classifyEntity(node, graph);
+        }
+    }
+
+    public static NodeType classifyRelationship(Node node, Graph<Node, Edge> graph) {
+        return NodeType.RELATIONSHIP;
+    }
+
+    public static NodeType classifyEntity(Node node, Graph<Node, Edge> graph) {
+        return NodeType.ENTITY;
+    }
+
     public static boolean isAttribute(Node node) {
         return node.isAttribute();
     }
@@ -46,7 +72,6 @@ public class NodeClassifier {
                 && !attr.getReference().equals(owner.getName());
     }
 
-    /** Extracts the original attribute name from a FK edge label "fk:RelName:attrName". */
     public static String getFkAttrName(Edge edge) {
         String label = edge.getLabel();
         if (label != null && label.startsWith("fk:")) {

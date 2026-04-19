@@ -10,6 +10,7 @@ import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.PhysicalInput;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,84 +53,23 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
 
     @Override
     public Object transform(Diagram diagram) {
-        StringBuilder sqlBuilder = new StringBuilder();
         Graph<Node, Edge> graph = diagram.getDiagram();
-
-        java.util.Map<Node, java.util.List<FkInjection>> injections = new java.util.HashMap<>();
         List<Node> allNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
+        var injections = Auxiliary.resolveFkInjections(allNodes, graph);
 
-        for (Node node : allNodes) {
-            if (!NodeClassifier.isRelationship(node, graph)) {
-                continue;
-            }
-            NodeClassifier.RelationshipKind kind = NodeClassifier.classify(node, graph);
-            List<Edge> fkEdges = NodeClassifier.getFkEdges(node, graph);
-            if (fkEdges.size() != 2 || kind == NodeClassifier.RelationshipKind.NM) {
-                continue;
-            }
-
-            Edge edgeA = fkEdges.get(0);
-            Edge edgeB = fkEdges.get(1);
-            Node attrA = Graphs.getOppositeVertex(graph, edgeA, node);
-            Node attrB = Graphs.getOppositeVertex(graph, edgeB, node);
-            Node entityA =
-                    allNodes.stream()
-                            .filter(n -> n.getName().equals(attrA.getReference()))
-                            .findFirst()
-                            .orElse(null);
-            Node entityB =
-                    allNodes.stream()
-                            .filter(n -> n.getName().equals(attrB.getReference()))
-                            .findFirst()
-                            .orElse(null);
-            if (entityA == null || entityB == null) {
-                continue;
-            }
-
-            boolean totalA = "1".equals(edgeA.getCardinalityMin());
-            boolean totalB = "1".equals(edgeB.getCardinalityMin());
-
-            if (kind == NodeClassifier.RelationshipKind.ONE_TO_ONE) {
-                injections
-                        .computeIfAbsent(entityA, k -> new java.util.ArrayList<>())
-                        .add(
-                                new FkInjection(
-                                        NodeClassifier.getFkAttrName(edgeB),
-                                        entityB.getName(),
-                                        totalA || totalB));
-            } else {
-                Node nSideEntity =
-                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? entityB : entityA;
-                Node oneSideEntity =
-                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? entityA : entityB;
-                boolean totalNSide =
-                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? totalB : totalA;
-                injections
-                        .computeIfAbsent(nSideEntity, k -> new java.util.ArrayList<>())
-                        .add(
-                                new FkInjection(
-                                        NodeClassifier.getFkAttrName(
-                                                kind == NodeClassifier.RelationshipKind.ONE_TO_N
-                                                        ? edgeA
-                                                        : edgeB),
-                                        oneSideEntity.getName(),
-                                        totalNSide));
-            }
-        }
-
+        StringBuilder sql = new StringBuilder();
         for (Node node : allNodes) {
             if (NodeClassifier.isRelationship(node, graph)
                     && NodeClassifier.classify(node, graph) != NodeClassifier.RelationshipKind.NM) {
                 continue;
             }
-            sqlBuilder.append(buildTable(node, graph, injections.getOrDefault(node, List.of())));
+            sql.append(buildTable(node, graph, injections.getOrDefault(node, List.of())));
         }
-        return sqlBuilder;
+        return sql;
     }
 
-    private record FkInjection(String attrName, String referencedTable, boolean isTotal) {}
-
-    private String buildTable(Node entity, Graph<Node, Edge> graph, List<FkInjection> injectedFks) {
+    private String buildTable(
+            Node entity, Graph<Node, Edge> graph, List<Auxiliary.FkInjection> injectedFks) {
         StringBuilder columns = new StringBuilder();
         StringBuilder constraints = new StringBuilder();
 
@@ -148,7 +88,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                 String fkName =
                                         graph.getAllEdges(entity, attr).stream()
                                                 .map(NodeClassifier::getFkAttrName)
-                                                .filter(n -> n != null)
+                                                .filter(Objects::nonNull)
                                                 .findFirst()
                                                 .orElse(attr.getName());
                                 String notNull = attr.isNotNull() ? " NOT NULL" : "";
@@ -188,7 +128,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                             }
                         });
 
-        for (FkInjection fk : injectedFks) {
+        for (Auxiliary.FkInjection fk : injectedFks) {
             String notNull = fk.isTotal() ? " NOT NULL" : "";
             columns.append("\t")
                     .append(fk.attrName())

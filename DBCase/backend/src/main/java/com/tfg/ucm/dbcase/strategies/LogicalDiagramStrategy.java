@@ -11,13 +11,11 @@ import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.jgrapht.Graph;
-import org.jgrapht.Graphs;
 import org.jgrapht.graph.Multigraph;
 import org.springframework.stereotype.Service;
 
@@ -49,152 +47,94 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
     @Override
     public Object transform(Diagram diagram) {
-        LinkedHashMap<String, String> result = new LinkedHashMap<>();
-        StringBuilder relationshipBuilder = new StringBuilder();
-        StringBuilder restrictionBuilder = new StringBuilder();
-
         Graph<Node, Edge> graph = diagram.getDiagram();
-
-        java.util.Map<Node, java.util.List<FkInjection>> injections = new java.util.HashMap<>();
-
         List<Node> tableNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
+        var injections = Auxiliary.resolveFkInjections(tableNodes, graph);
 
-        for (Node node : tableNodes) {
-            if (!NodeClassifier.isRelationship(node, graph)) {
+        StringBuilder relationships = new StringBuilder();
+        StringBuilder restrictions = new StringBuilder();
+
+        for (Node table : tableNodes) {
+            if (shouldSkip(table, graph)) {
                 continue;
             }
-
-            NodeClassifier.RelationshipKind kind = NodeClassifier.classify(node, graph);
-            List<Edge> fkEdges = NodeClassifier.getFkEdges(node, graph);
-            if (fkEdges.size() != 2 || kind == NodeClassifier.RelationshipKind.NM) {
-                continue;
-            }
-
-            Edge edgeA = fkEdges.get(0);
-            Edge edgeB = fkEdges.get(1);
-            Node attrA = Graphs.getOppositeVertex(graph, edgeA, node);
-            Node attrB = Graphs.getOppositeVertex(graph, edgeB, node);
-
-            Node entityA =
-                    tableNodes.stream()
-                            .filter(n -> n.getName().equals(attrA.getReference()))
-                            .findFirst()
-                            .orElse(null);
-            Node entityB =
-                    tableNodes.stream()
-                            .filter(n -> n.getName().equals(attrB.getReference()))
-                            .findFirst()
-                            .orElse(null);
-            if (entityA == null || entityB == null) {
-                continue;
-            }
-
-            boolean totalA = "1".equals(edgeA.getCardinalityMin());
-            boolean totalB = "1".equals(edgeB.getCardinalityMin());
-
-            if (kind == NodeClassifier.RelationshipKind.ONE_TO_ONE) {
-                injections
-                        .computeIfAbsent(entityA, k -> new java.util.ArrayList<>())
-                        .add(
-                                new FkInjection(
-                                        NodeClassifier.getFkAttrName(edgeB),
-                                        entityB.getName(),
-                                        totalA || totalB));
-            } else {
-                Node nSideEntity =
-                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? entityB : entityA;
-                Node oneSideEntity =
-                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? entityA : entityB;
-                boolean totalNSide =
-                        (kind == NodeClassifier.RelationshipKind.ONE_TO_N) ? totalB : totalA;
-                injections
-                        .computeIfAbsent(nSideEntity, k -> new java.util.ArrayList<>())
-                        .add(
-                                new FkInjection(
-                                        NodeClassifier.getFkAttrName(
-                                                kind == NodeClassifier.RelationshipKind.ONE_TO_N
-                                                        ? edgeA
-                                                        : edgeB),
-                                        oneSideEntity.getName(),
-                                        totalNSide));
-            }
+            relationships.append(
+                    buildTableEntry(
+                            table, graph, injections.getOrDefault(table, List.of()), restrictions));
         }
 
-        for (Node startNode : tableNodes) {
-            if (NodeClassifier.isRelationship(startNode, graph)) {
-                NodeClassifier.RelationshipKind kind = NodeClassifier.classify(startNode, graph);
-                if (kind != NodeClassifier.RelationshipKind.NM) {
-                    continue;
-                }
-            }
-
-            StringBuilder attrList = new StringBuilder();
-
-            graph.vertexSet().stream()
-                    .filter(n -> isAttribute(n) && graph.containsEdge(startNode, n))
-                    .forEach(
-                            attr -> {
-                                String displayName =
-                                        attr.isFk()
-                                                ? graph.getAllEdges(startNode, attr).stream()
-                                                        .map(e -> NodeClassifier.getFkAttrName(e))
-                                                        .filter(n -> n != null)
-                                                        .findFirst()
-                                                        .orElse(attr.getName())
-                                                : attr.getName();
-                                if (!attrList.isEmpty()) {
-                                    attrList.append(", ");
-                                }
-                                attrList.append(
-                                        attr.isPk() && !attr.isFk()
-                                                ? "__" + displayName + "__"
-                                                : displayName);
-                                if (isForeignKey(attr, startNode)) {
-                                    restrictionBuilder
-                                            .append(startNode.getName())
-                                            .append(".")
-                                            .append(displayName)
-                                            .append(" -> ")
-                                            .append(attr.getReference())
-                                            .append(".")
-                                            .append(displayName)
-                                            .append("\n");
-                                }
-                            });
-
-            List<FkInjection> fks = injections.getOrDefault(startNode, List.of());
-            for (FkInjection fk : fks) {
-                if (!attrList.isEmpty()) {
-                    attrList.append(", ");
-                }
-                attrList.append(fk.attrName());
-                restrictionBuilder
-                        .append(startNode.getName())
-                        .append(".")
-                        .append(fk.attrName())
-                        .append(" -> ")
-                        .append(fk.referencedTable())
-                        .append(".")
-                        .append(fk.attrName())
-                        .append("\n");
-            }
-
-            if (!attrList.isEmpty()) {
-                relationshipBuilder
-                        .append(startNode.getName())
-                        .append(" (")
-                        .append(attrList)
-                        .append(")\n");
-            }
-        }
-
-        result.put("relationship", relationshipBuilder.toString());
-        result.put("restriction", restrictionBuilder.toString());
-        result.put("lossRestriction", "");
-        return result;
+        return new java.util.LinkedHashMap<>(
+                java.util.Map.of(
+                        "relationship", relationships.toString(),
+                        "restriction", restrictions.toString(),
+                        "lossRestriction", ""));
     }
 
-    private record FkInjection(String attrName, String referencedTable, boolean isTotal) {}
+    private boolean shouldSkip(Node node, Graph<Node, Edge> graph) {
+        return NodeClassifier.isRelationship(node, graph)
+                && NodeClassifier.classify(node, graph) != NodeClassifier.RelationshipKind.NM;
+    }
+
+    private String buildTableEntry(
+            Node table,
+            Graph<Node, Edge> graph,
+            List<Auxiliary.FkInjection> fks,
+            StringBuilder restrictions) {
+        StringBuilder attrList = new StringBuilder();
+
+        graph.vertexSet().stream()
+                .filter(n -> isAttribute(n) && graph.containsEdge(table, n))
+                .forEach(attr -> appendAttr(attr, table, graph, attrList, restrictions));
+
+        for (var fk : fks) {
+            if (!attrList.isEmpty()) {
+                attrList.append(", ");
+            }
+            attrList.append(fk.attrName());
+            restrictions
+                    .append(table.getName())
+                    .append(".")
+                    .append(fk.attrName())
+                    .append(" -> ")
+                    .append(fk.referencedTable())
+                    .append(".")
+                    .append(fk.attrName())
+                    .append("\n");
+        }
+
+        return attrList.isEmpty() ? "" : table.getName() + " (" + attrList + ")\n";
+    }
+
+    private void appendAttr(
+            Node attr,
+            Node table,
+            Graph<Node, Edge> graph,
+            StringBuilder attrList,
+            StringBuilder restrictions) {
+        String name =
+                attr.isFk()
+                        ? graph.getAllEdges(table, attr).stream()
+                                .map(NodeClassifier::getFkAttrName)
+                                .filter(java.util.Objects::nonNull)
+                                .findFirst()
+                                .orElse(attr.getName())
+                        : attr.getName();
+        if (!attrList.isEmpty()) {
+            attrList.append(", ");
+        }
+        attrList.append(attr.isPk() && !attr.isFk() ? "__" + name + "__" : name);
+        if (isForeignKey(attr, table)) {
+            restrictions
+                    .append(table.getName())
+                    .append(".")
+                    .append(name)
+                    .append(" -> ")
+                    .append(attr.getReference())
+                    .append(".")
+                    .append(name)
+                    .append("\n");
+        }
+    }
 
     private void parseRelationship(String relationship, Graph<Node, Edge> diagram) {
         relationship
