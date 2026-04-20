@@ -10,8 +10,10 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = "name")
+@EqualsAndHashCode(of = "uuid")
 public class Node {
+
+    private String uuid;
     private String name;
     private boolean isAttribute;
     private boolean isPk;
@@ -19,5 +21,6 @@ public class Node {
     private boolean isNotNull;
     private boolean isUnique;
     private Domain dataType;
+    private String length;
     private String reference;
 }
