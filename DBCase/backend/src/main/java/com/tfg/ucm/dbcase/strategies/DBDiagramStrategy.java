@@ -1,6 +1,6 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.*;
 import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
@@ -23,7 +23,7 @@ import net.sf.jsqlparser.statement.create.table.ForeignKeyIndex;
 import net.sf.jsqlparser.statement.create.table.Index;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
-import org.jgrapht.graph.Multigraph;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -40,7 +40,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
 
     @Override
     public Diagram generate(PhysicalInput diagram) throws Exception {
-        Graph<Node, Edge> result = new Multigraph<>(Edge.class);
+        Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
 
         for (String statement : diagram.sql().split(";")) {
             if (!statement.isBlank()) {
@@ -178,30 +178,19 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             boolean isFk =
                     index instanceof ForeignKeyIndex
                             || index.getType().equalsIgnoreCase("foreign key");
-            String referencedTable;
-            if (isFk && index instanceof ForeignKeyIndex fki && fki.getTable() != null) {
-                referencedTable = fki.getTable().getName();
-            } else if (isPk) {
-                referencedTable = entity.getName();
-            } else {
-                referencedTable = null;
-            }
             index.getColumns()
                     .forEach(
                             column -> {
                                 String name = column.getColumnName();
                                 Node attr = getOrCreateAttr(name, entity, diagram);
-                                attr.setAttribute(true);
-                                attr.setPk(isPk);
-                                attr.setFk(isFk);
-                                attr.setReference(referencedTable);
-
-                                diagram.addEdge(
-                                        entity,
-                                        attr,
-                                        Edge.builder()
-                                                .label("attr" + entity.getName() + name)
-                                                .build());
+                                if(isFk && index instanceof ForeignKeyIndex fki) {
+                                    String tableName = fki.getTable().getName();
+                                    Node node = getOrCreateNode(tableName, diagram);
+                                    addForeignAttr(attr, node, tableName, diagram);
+                                }
+                                else if(isPk) {
+                                    addPrimaryAttr(attr, entity, diagram);
+                                }
                             });
         }
     }
@@ -228,19 +217,14 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             }
 
             Node attr = getOrCreateAttr(name, entity, diagram);
-            attr.setAttribute(true);
             attr.setDataType(domain);
-            if (isPk) {
-                attr.setPk(true);
-            }
             attr.setNotNull(isNotNull);
             attr.setUnique(isUnique);
-
-            if (diagram.getAllEdges(entity, attr).isEmpty()) {
-                diagram.addEdge(
-                        entity,
-                        attr,
-                        Edge.builder().label("attr" + entity.getName() + name).build());
+            if (isPk) {
+                addPrimaryAttr(attr, entity, diagram);
+            }
+            else {
+                addEdge(entity, attr, diagram);
             }
         }
     }

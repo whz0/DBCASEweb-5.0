@@ -1,7 +1,6 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreate;
-import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.*;
 import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
 import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isForeignKey;
 
@@ -11,12 +10,15 @@ import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
+
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.jgrapht.Graph;
-import org.jgrapht.graph.Multigraph;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,11 +38,11 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
     @Override
     public Diagram generate(LogicalInput diagram) {
 
-        Graph<Node, Edge> result = new Multigraph<>(Edge.class);
+        Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
 
         parseRestriction(diagram.restriction(), result);
+        parseRestriction(diagram.lossRestriction(), result);
         parseRelationship(diagram.relationship(), result);
-        parseLossRestriction(diagram.lossRestriction(), result);
 
         return Diagram.builder().diagram(result).build();
     }
@@ -63,8 +65,8 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                             table, graph, injections.getOrDefault(table, List.of()), restrictions));
         }
 
-        return new java.util.LinkedHashMap<>(
-                java.util.Map.of(
+        return new LinkedHashMap<>(
+               Map.of(
                         "relationship", relationships.toString(),
                         "restriction", restrictions.toString(),
                         "lossRestriction", ""));
@@ -144,7 +146,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                         line -> {
                             String[] parts = line.split(" ", 2);
                             String name = parts[0].trim();
-                            Node entity = getOrCreate(name, diagram);
+                            Node entity = getOrCreateNode(name, diagram);
                             String[] attributes = parts[1].replaceAll("[()]", "").split(",");
                             Stream.of(attributes)
                                     .forEach(attr -> addAttribute(entity, attr.trim(), diagram));
@@ -154,21 +156,16 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
     private void addAttribute(Node entity, String attribute, Graph<Node, Edge> diagram) {
         Matcher matcher = PK_PATTERN.matcher(attribute);
         boolean pk = matcher.find();
-        final String attrName = pk ? matcher.group(1) : attribute;
-        Domain type = pk ? Domain.INTEGER : null;
+        String attrName = pk ? matcher.group(1) : attribute;
 
         Node attr = getOrCreateAttr(attrName, entity, diagram);
 
-        attr.setAttribute(true);
-        attr.setPk(pk);
-        if (pk) {
-            attr.setFk(false);
-            attr.setReference(null);
+        if(pk) {
+            Auxiliary.addPrimaryAttr(attr, entity, diagram);
         }
-        attr.setDataType(type);
-
-        diagram.addEdge(
-                entity, attr, Edge.builder().label("attr" + entity.getName() + attrName).build());
+        else {
+            Auxiliary.addEdge(entity, attr, diagram);;
+        }
     }
 
     private void parseRestriction(String restriction, Graph<Node, Edge> diagram) {
@@ -182,24 +179,17 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                             String[] refParts = parts[1].split("\\.");
 
                             String srcName = srcParts[0].trim();
-                            String attrName = srcParts[1].trim();
+                            String srcAttrName = srcParts[1].trim();
                             String refName = refParts[0].trim();
-                            Node src = getOrCreate(srcName, diagram);
+                            String refAttrName = refParts[1].trim();
+                            Node src = getOrCreateNode(srcName, diagram);
+                            Node ref = getOrCreateNode(srcName, diagram);
+                            Node attrSrc = getOrCreateAttr(srcAttrName, src, diagram);
+                            Node attrRef = getOrCreateAttr(refAttrName, src, diagram);
 
-                            Node attr = getOrCreateAttr(attrName, src, diagram);
-
-                            attr.setAttribute(true);
-                            attr.setPk(false);
-                            attr.setFk(true);
-                            attr.setDataType(Domain.INTEGER);
-                            attr.setReference(refName);
-
-                            diagram.addEdge(
-                                    src,
-                                    attr,
-                                    Edge.builder().label("attr" + srcName + attrName).build());
+                            Auxiliary.addForeignAttr(attrSrc, src, refName, diagram);
+                            Auxiliary.addPrimaryAttr(attrRef, ref, diagram);
+                            Auxiliary.addEdge(attrRef, attrSrc, diagram);
                         });
     }
-
-    private void parseLossRestriction(String lossRestriction, Graph<Node, Edge> diagram) {}
 }

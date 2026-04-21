@@ -1,7 +1,5 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
-
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
@@ -21,8 +19,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
-import org.jgrapht.graph.Multigraph;
+import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
+
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.*;
 
 @Service
 public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
@@ -39,74 +39,105 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
     @Override
     public Diagram generate(ErInput input) {
-        Graph<Node, Edge> graph = new Multigraph<>(Edge.class);
-        Map<String, Node> byId = new HashMap<>();
+        Graph<Node, Edge> graph = new DirectedMultigraph<>(Edge.class);
+        Map<String, ErRelationshipDTO> relationshipDTOMap = new HashMap<>();
+        Map<String, ErEntityDTO> entityDTOMap = new HashMap<>();
+        Map<String, ErAttributeDTO> attributeDTOMap = new HashMap<>();
 
-        for (var e : input.entities()) {
-            Node n = Node.builder().name(e.name()).build();
-            graph.addVertex(n);
-            byId.put(e.id(), n);
+        for(ErRelationshipDTO r : input.relationships()) {
+            relationshipDTOMap.put(r.id(), r);
         }
 
-        for (var r : input.relationships()) {
-            Node rel = Node.builder().name(r.name()).build();
-            graph.addVertex(rel);
-            byId.put(r.id(), rel);
+        for(ErEntityDTO e : input.entities()) {
+            entityDTOMap.put(e.id(), e);
         }
 
-        for (var a : input.attributes()) {
-            Node parent = byId.get(a.parentId());
-            if (parent == null) {
-                continue;
-            }
-            Node attr = getOrCreateAttr(a.name(), parent, graph);
-            attr.setAttribute(true);
-            attr.setPk(a.isKey());
-            attr.setNotNull(a.isNotNull());
-            attr.setUnique(a.isUnique());
-            byId.put(a.id(), attr);
-            graph.addEdge(parent, attr, Edge.builder().label("attr:" + a.id()).build());
+        for(ErAttributeDTO a : input.attributes()) {
+            attributeDTOMap.put(a.id(), a);
         }
 
-        for (var r : input.relationships()) {
-            Node rel = byId.get(r.id());
-            if (rel == null) {
-                continue;
-            }
-            for (var p : r.participants()) {
-                Node entity = byId.get(p.entityId());
-                if (entity == null) {
-                    continue;
+        for (ErRelationshipDTO erRel : input.relationships()) {
+            Map<String, String> listN = new HashMap<>();
+            Map<String, String> listOne = new HashMap<>();
+            for (ErRelationshipParticipantDTO erPart : erRel.participants()) {
+
+                ErEntityDTO entity = entityDTOMap.get(erPart.entityId());
+                // Si el número de relaciones N es igual que el número de
+                // participantes entonces habrá que crear tabla intermedia
+                if(erPart.cardinalityMax().equals("N")) {
+                    mapAttribute(listN, entity.primaryKeys(), entity.name());
                 }
-                Graphs.neighborListOf(graph, entity).stream()
-                        .filter(n -> n.isAttribute() && n.isPk())
-                        .forEach(
-                                pkAttr -> {
-                                    Node fkNode =
-                                            Node.builder()
-                                                    .name(UUID.randomUUID().toString())
-                                                    .isAttribute(true)
-                                                    .isFk(true)
-                                                    .reference(entity.getName())
-                                                    .build();
-                                    graph.addVertex(fkNode);
-                                    graph.addEdge(
-                                            rel,
-                                            fkNode,
-                                            Edge.builder()
-                                                    .label(
-                                                            "fk:"
-                                                                    + rel.getName()
-                                                                    + ":"
-                                                                    + pkAttr.getName())
-                                                    .cardinalityMin(p.cardinalityMin())
-                                                    .cardinalityMax(p.cardinalityMax())
-                                                    .build());
-                                });
+                else {
+                    mapAttribute(listOne, entity.primaryKeys(), entity.name());
+                    for(String attrName : listOne.keySet()) {
+                        Node entityRef = getOrCreateNode(listOne.get(attrName), graph);
+                        Node attrRef = getOrCreateAttr(attrName, entityRef, graph);
+                        Node entitySrc = getOrCreateNode(entity.name(), graph);
+                        Node attrSrc = getOrCreateAttr(attrName, entitySrc, graph);
+                        addEdge(attrRef, attrSrc, graph);
+                    }
+                }
+                processEntity(entityDTOMap.get(erPart.entityId()), input.attributes(), graph);
+            }
+            if(listN.size() == erRel.participants().size() || !erRel.attributes().isEmpty()) {
+                processRelationship(erRel, input.attributes(), graph);
             }
         }
 
         return Diagram.builder().diagram(graph).build();
+    }
+
+    private void mapAttribute(Map<String, String> map, List<String> pks,
+                              String entity) {
+        for(String pk : pks) {
+            map.put(pk, entity);
+        }
+    }
+
+    private void processEntity(ErEntityDTO erEnt,
+                                     List<ErAttributeDTO> erAttributes,Graph<Node, Edge> graph){
+
+        Node enity = getOrCreateNode(erEnt.name(), graph);
+
+        for(String attrName : erEnt.attributes()) {
+            ErAttributeDTO erAttr = erAttributes.stream().filter(a -> a.name().equals(attrName))
+                    .findFirst().orElse(null);
+
+            if(erAttr != null) {
+                Node attr = getOrCreateAttr(attrName, enity, graph);
+
+                if(erAttr.isKey()) {
+                    addPrimaryAttr(attr, enity, graph);
+                }
+                else {
+                    addEdge(enity, attr, graph);
+                }
+            }
+        }
+
+    }
+
+    private void processRelationship(ErRelationshipDTO erRel,
+                                     List<ErAttributeDTO> erAttributes,Graph<Node, Edge> graph){
+
+        Node rel = getOrCreateNode(erRel.name(), graph);
+
+        for(String attrName : erRel.attributes()) {
+            ErAttributeDTO erAttr = erAttributes.stream().filter(a -> a.name().equals(attrName))
+                    .findFirst().orElse(null);
+
+            if(erAttr != null) {
+                Node attr = getOrCreateAttr(attrName, rel, graph);
+
+                if(erAttr.isKey()) {
+                    addPrimaryAttr(attr, rel, graph);
+                }
+                else {
+                    addEdge(rel, attr, graph);
+                }
+            }
+        }
+
     }
 
     @Override
@@ -128,7 +159,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         int[] idx = {0};
         for (Node node : nodes) {
             String id = nodeToId.get(node.getName());
-            Position pos = new Position((idx[0] % 4) * 300 + 100, (idx[0] / 4) * 250 + 100);
+            Position pos = new Position((idx[0] % 4) * 300 + 100, ((double) idx[0] / 4) * 250 + 100);
             idx[0]++;
 
             if (NodeClassifier.isRelationship(node, graph)) {
