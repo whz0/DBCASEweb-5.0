@@ -13,7 +13,7 @@ import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
 const { t } = useI18n()
 const toast = useToast()
 const panelStore = useGeneratePanelStore()
-const { save, transform } = useDiagramStore()
+const { transform } = useDiagramStore()
 const diagramStore = useDiagramStore()
 const erSchemaStore = useErSchemaStore()
 
@@ -35,9 +35,13 @@ const toastMessage = (message: string, severity: 'error' | 'warn' | 'info' | 'su
 watch(
   () => diagramStore.dbResult,
   (val) => {
-    if (val) code.value = val
+    if (val && val !== code.value) code.value = val
   },
 )
+
+watch(code, (newCode) => {
+  diagramStore.dbResult = newCode
+})
 
 const editorOptions = {
   fontSize: 14,
@@ -47,18 +51,16 @@ const editorOptions = {
 
 const validate = () => {
   const parser = parsers[selectLanguage.value as keyof typeof parsers]
+  if (!parser) return true
   return parser.validate(code.value).map((e) => e.message)
-}
-
-const handleSave = () => {
-  save(toastMessage)
 }
 
 const showTransform = ref(false)
 
 const handleTransform = async (value: DiagramType) => {
   showTransform.value = false
-  if (!validate()) return
+  const validationErrors = validate()
+  if (Array.isArray(validationErrors) && validationErrors.length > 0) return
 
   const diagram = {
     sql: code.value,
@@ -90,13 +92,6 @@ const handleTransform = async (value: DiagramType) => {
       <h1>{{ t('panels.physical') }}</h1>
     </div>
     <div>
-      <Button
-        severity="secondary"
-        class="bi bi-save"
-        @click="handleSave"
-        v-tooltip.bottom="t('common.save')"
-        text
-      />
       <Button
         severity="secondary"
         class="bi bi-arrow-left-right"

@@ -2,20 +2,32 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useDiagramStore } from '@/stores/diagramStore'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
 const erSchemaStore = useErSchemaStore()
+const diagramStore = useDiagramStore()
 const filename = ref('')
-const selectedFormat = ref<'dbw' | 'pdf'>('dbw')
+const selectedFormat = ref<'dbw' | 'pdf' | 'sql' | 'txt'>('dbw')
 
 const visible = computed(() => dialogStore.isOpen(DialogId.SaveSchema))
 const closeModal = () => {
   dialogStore.close(DialogId.SaveSchema)
   filename.value = ''
   selectedFormat.value = 'dbw'
+}
+
+const downloadFile = (content: string, extension: string) => {
+  const blob = new Blob([content], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${filename.value.trim()}.${extension}`
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 const saveAsDBW = () => {
@@ -25,27 +37,64 @@ const saveAsDBW = () => {
   }
 
   const json = JSON.stringify(schemaData, null, 2)
-  const blob = new Blob([json], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${filename.value.trim()}.dbw`
-  link.click()
-
-  URL.revokeObjectURL(url)
+  downloadFile(json, 'dbw')
 }
 
 const saveAsPDF = () => {
   erSchemaStore.exportToPDF(filename.value.trim())
 }
 
+const saveAsSQL = () => {
+  const sql = diagramStore.dbResult || ''
+  downloadFile(sql, 'sql')
+}
+
+const saveAsTXT = () => {
+  const logical = diagramStore.logicalResult
+  if (!logical) {
+    downloadFile('', 'txt')
+    return
+  }
+
+  const map = new Map(Object.entries(logical))
+  const relationship = map.get('relationship') ?? ''
+  const restriction = map.get('restriction') ?? ''
+  const lossRestriction = map.get('lossRestriction') ?? ''
+
+  const content = `${t('schema.relationship')}:\n${relationship}\n\n${t('schema.restriction')}:\n${restriction}\n\n${t('schema.lostRestriction')}:\n${lossRestriction}`
+  downloadFile(content, 'txt')
+}
+
+const canConfirm = computed(() => {
+  if (!filename.value.trim()) return false
+
+  if (selectedFormat.value === 'sql') {
+    return !!diagramStore.dbResult && diagramStore.dbResult.trim() !== ''
+  }
+
+  if (selectedFormat.value === 'txt') {
+    if (!diagramStore.logicalResult) return false
+    return Object.values(diagramStore.logicalResult).some((v) => v && v.trim() !== '')
+  }
+
+  return true
+})
+
 const confirm = () => {
-  if (filename.value.trim()) {
-    if (selectedFormat.value === 'dbw') {
-      saveAsDBW()
-    } else {
-      saveAsPDF()
+  if (canConfirm.value) {
+    switch (selectedFormat.value) {
+      case 'dbw':
+        saveAsDBW()
+        break
+      case 'pdf':
+        saveAsPDF()
+        break
+      case 'sql':
+        saveAsSQL()
+        break
+      case 'txt':
+        saveAsTXT()
+        break
     }
     closeModal()
   }
@@ -66,11 +115,33 @@ const saveOptions = computed(() => [
       selectedFormat.value = 'pdf'
     },
   },
+  {
+    label: t('schema.sql'),
+    icon: 'bi bi-filetype-sql',
+    disabled: !diagramStore.dbResult,
+    command: () => {
+      selectedFormat.value = 'sql'
+    },
+  },
+  {
+    label: t('schema.text'),
+    icon: 'bi bi-file-earmark-text',
+    disabled: !diagramStore.logicalResult,
+    command: () => {
+      selectedFormat.value = 'txt'
+    },
+  },
 ])
 
 const confirmLabel = computed(() => {
   const base = t('common.confirm')
-  return selectedFormat.value === 'dbw' ? `${base} (.dbw)` : `${base} (PDF)`
+  const formats = {
+    dbw: '(.dbw)',
+    pdf: '(PDF)',
+    sql: '(.sql)',
+    txt: '(.txt)',
+  }
+  return `${base} ${formats[selectedFormat.value]}`
 })
 </script>
 
@@ -109,7 +180,7 @@ const confirmLabel = computed(() => {
       <SplitButton
         :label="confirmLabel"
         icon="bi bi-check-lg"
-        :disabled="!filename.trim()"
+        :disabled="!canConfirm"
         @click="confirm"
         :model="saveOptions"
       />

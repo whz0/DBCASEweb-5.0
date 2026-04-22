@@ -124,6 +124,8 @@ const messages = {
       selectedFile: 'Selected File',
       format: 'File Format',
       pdf: 'PDF Document (.pdf)',
+      sql: 'SQL Script (.sql)',
+      text: 'Text Document (.txt)',
       emptyDiagramTitle: 'Empty Diagram',
       emptyDiagramMessage:
         'Start modeling by adding entities or relationships to your conceptual schema.',
@@ -355,6 +357,8 @@ const messages = {
       selectedFile: 'Archivo Seleccionado',
       format: 'Formato de archivo',
       pdf: 'Documento PDF (.pdf)',
+      sql: 'Script SQL (.sql)',
+      text: 'Documento de Texto (.txt)',
       emptyDiagramTitle: 'Diagrama vacío',
       emptyDiagramMessage:
         'Comienza a modelar añadiendo entidades o relaciones a tu esquema conceptual.',
