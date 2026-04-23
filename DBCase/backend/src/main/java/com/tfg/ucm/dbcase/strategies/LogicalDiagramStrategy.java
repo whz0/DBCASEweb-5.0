@@ -18,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
 
@@ -50,19 +51,13 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
     @Override
     public Object transform(Diagram diagram) {
         Graph<Node, Edge> graph = diagram.getDiagram();
-        List<Node> tableNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
-        var injections = Auxiliary.resolveFkInjections(tableNodes, graph);
+        List<Node> allNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
 
         StringBuilder relationships = new StringBuilder();
         StringBuilder restrictions = new StringBuilder();
 
-        for (Node table : tableNodes) {
-            if (shouldSkip(table, graph)) {
-                continue;
-            }
-            relationships.append(
-                    buildTableEntry(
-                            table, graph, injections.getOrDefault(table, List.of()), restrictions));
+        for (Node node : allNodes) {
+            relationships.append(buildEntry(node, graph, restrictions));
         }
 
         return new LinkedHashMap<>(
@@ -72,39 +67,38 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                         "lossRestriction", ""));
     }
 
-    private boolean shouldSkip(Node node, Graph<Node, Edge> graph) {
-        return NodeClassifier.isRelationship(node, graph)
-                && NodeClassifier.classify(node, graph) != NodeClassifier.RelationshipKind.NM;
-    }
-
-    private String buildTableEntry(
-            Node table,
+    private String buildEntry(
+            Node node,
             Graph<Node, Edge> graph,
-            List<Auxiliary.FkInjection> fks,
             StringBuilder restrictions) {
         StringBuilder attrList = new StringBuilder();
 
         graph.vertexSet().stream()
-                .filter(n -> isAttribute(n) && graph.containsEdge(table, n))
-                .forEach(attr -> appendAttr(attr, table, graph, attrList, restrictions));
+                .filter(n -> isAttribute(n) && graph.containsEdge(node, n))
+                .forEach(attr -> appendAttr(attr, node, graph, attrList, restrictions));
 
-        for (var fk : fks) {
+        List<Node> fks = graph.vertexSet().stream().filter(Node::isFk).toList();
+
+        for (Node fk : fks) {
             if (!attrList.isEmpty()) {
                 attrList.append(", ");
             }
-            attrList.append(fk.attrName());
+            attrList.append(fk.getName());
+
+            Node attrRef = Graphs.successorListOf(graph, fk).get(0);
+
             restrictions
-                    .append(table.getName())
+                    .append(node.getName())
                     .append(".")
-                    .append(fk.attrName())
+                    .append(fk.getName())
                     .append(" -> ")
-                    .append(fk.referencedTable())
+                    .append(fk.getReference())
                     .append(".")
-                    .append(fk.attrName())
+                    .append(attrRef.getName())
                     .append("\n");
         }
 
-        return attrList.isEmpty() ? "" : table.getName() + " (" + attrList + ")\n";
+        return attrList.isEmpty() ? "" : node.getName() + " (" + attrList + ")\n";
     }
 
     private void appendAttr(
@@ -189,7 +183,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
                             Auxiliary.addForeignAttr(attrSrc, src, refName, diagram);
                             Auxiliary.addPrimaryAttr(attrRef, ref, diagram);
-                            Auxiliary.addEdge(attrRef, attrSrc, diagram);
+                            Auxiliary.addEdge(attrSrc, attrRef, diagram);
                         });
     }
 }

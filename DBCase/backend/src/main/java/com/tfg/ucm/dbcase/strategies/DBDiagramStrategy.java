@@ -55,21 +55,16 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
     public Object transform(Diagram diagram) {
         Graph<Node, Edge> graph = diagram.getDiagram();
         List<Node> allNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
-        var injections = Auxiliary.resolveFkInjections(allNodes, graph);
 
         StringBuilder sql = new StringBuilder();
         for (Node node : allNodes) {
-            if (NodeClassifier.isRelationship(node, graph)
-                    && NodeClassifier.classify(node, graph) != NodeClassifier.RelationshipKind.NM) {
-                continue;
-            }
-            sql.append(buildTable(node, graph, injections.getOrDefault(node, List.of())));
+            sql.append(buildTable(node, graph));
         }
         return sql;
     }
 
     private String buildTable(
-            Node entity, Graph<Node, Edge> graph, List<Auxiliary.FkInjection> injectedFks) {
+            Node entity, Graph<Node, Edge> graph) {
         StringBuilder columns = new StringBuilder();
         StringBuilder constraints = new StringBuilder();
 
@@ -85,25 +80,25 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                             : "?";
 
                             if (attr.isFk()) {
-                                String fkName =
-                                        graph.getAllEdges(entity, attr).stream()
-                                                .map(NodeClassifier::getFkAttrName)
-                                                .filter(Objects::nonNull)
-                                                .findFirst()
-                                                .orElse(attr.getName());
+                                String fkName = attr.getName();
                                 String notNull = attr.isNotNull() ? " NOT NULL" : "";
-                                columns.append("	")
+                                String isPk = attr.isPk() ? " PRIMARY KEY" : "";
+
+                                columns.append("\t")
                                         .append(fkName)
                                         .append(" INTEGER")
+                                        .append(isPk)
                                         .append(notNull)
                                         .append(",\n");
+
+                                Node attrRef = Graphs.successorListOf(graph, attr).get(0);
                                 constraints
-                                        .append("	FOREIGN KEY (")
+                                        .append("\tFOREIGN KEY (")
                                         .append(fkName)
                                         .append(") REFERENCES ")
                                         .append(attr.getReference())
                                         .append("(")
-                                        .append(fkName)
+                                        .append(attrRef.getName())
                                         .append("),\n");
                             } else if (attr.isPk()) {
                                 if (dataType.equals("?")) {
@@ -114,8 +109,6 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                         .append(" ")
                                         .append(dataType)
                                         .append(" PRIMARY KEY")
-                                        .append(attr.isUnique() ? " UNIQUE" : "")
-                                        .append(attr.isNotNull() ? " NOT NULL" : "")
                                         .append(",\n");
                             } else {
                                 columns.append("\t")
@@ -127,23 +120,6 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                         .append(",\n");
                             }
                         });
-
-        for (Auxiliary.FkInjection fk : injectedFks) {
-            String notNull = fk.isTotal() ? " NOT NULL" : "";
-            columns.append("\t")
-                    .append(fk.attrName())
-                    .append(" INTEGER")
-                    .append(notNull)
-                    .append(",\n");
-            constraints
-                    .append("\tFOREIGN KEY (")
-                    .append(fk.attrName())
-                    .append(") REFERENCES ")
-                    .append(fk.referencedTable())
-                    .append("(")
-                    .append(fk.attrName())
-                    .append("),\n");
-        }
 
         if (columns.isEmpty()) {
             return "";
@@ -186,6 +162,19 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                 if(isFk && index instanceof ForeignKeyIndex fki) {
                                     String tableName = fki.getTable().getName();
                                     Node node = getOrCreateNode(tableName, diagram);
+                                    List<String> ref = fki.getReferencedColumnNames();
+                                    List<String> src = fki.getColumnsNames();
+
+                                    int i = src.indexOf(name);
+
+                                    if(i != -1) {
+                                        String refAttrName = ref.get(i);
+                                        Node refTable = getOrCreateNode(tableName, diagram);
+                                        Node refAttr = getOrCreateAttr(refAttrName, refTable, diagram);
+                                        addEdge(refTable, refAttr, diagram);
+                                        addEdge(attr, refAttr, diagram);
+                                    }
+
                                     addForeignAttr(attr, node, tableName, diagram);
                                 }
                                 else if(isPk) {

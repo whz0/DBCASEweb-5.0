@@ -74,7 +74,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         Node attrRef = getOrCreateAttr(attrName, entityRef, graph);
                         Node entitySrc = getOrCreateNode(entity.name(), graph);
                         Node attrSrc = getOrCreateAttr(attrName, entitySrc, graph);
-                        addEdge(attrRef, attrSrc, graph);
+                        addEdge(attrSrc, attrRef, graph);
                     }
                 }
                 processEntity(entityDTOMap.get(erPart.entityId()), input.attributes(), graph);
