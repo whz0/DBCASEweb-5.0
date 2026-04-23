@@ -5,7 +5,6 @@ import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
 import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isForeignKey;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
-import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;

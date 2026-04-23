@@ -3,6 +3,9 @@ package com.tfg.ucm.dbcase.strategies;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 
@@ -26,6 +29,16 @@ public class NodeClassifier {
         }
     }
 
+    public static NodeType hasEdgesWithPk(){
+
+        return null;
+    }
+
+    public static NodeType hasEdgesWithFk(){
+
+        return null;
+    }
+
     public static NodeType classifyRelationship(Node node, Graph<Node, Edge> graph) {
         return NodeType.RELATIONSHIP;
     }
@@ -42,23 +55,15 @@ public class NodeClassifier {
         if (node.isAttribute()) {
             return false;
         }
-        var fkAttrs =
-                Graphs.neighborListOf(graph, node).stream()
-                        .filter(
-                                a ->
-                                        a.isAttribute()
-                                                && a.isFk()
-                                                && a.getReference() != null
-                                                && !a.getReference().equals(node.getName()))
-                        .toList();
-        if (fkAttrs.isEmpty()) {
+
+        Set<Node> fks = Graphs.neighborSetOf(graph, node).stream().filter(Node::isFk).collect(Collectors.toSet());
+        Set<Node> pks = Graphs.neighborSetOf(graph, node).stream().filter(Node::isPk).collect(Collectors.toSet());
+
+        if (fks.isEmpty()) {
             return false;
         }
-        long ownPks =
-                Graphs.neighborListOf(graph, node).stream()
-                        .filter(a -> a.isAttribute() && a.isPk() && !a.isFk())
-                        .count();
-        return ownPks == 0;
+
+        return fks.equals(pks);
     }
 
     public static boolean isEntity(Node node, Graph<Node, Edge> graph) {
@@ -91,38 +96,5 @@ public class NodeClassifier {
                                     && !other.getReference().equals(rel.getName());
                         })
                 .toList();
-    }
-
-    public static RelationshipKind classify(Node rel, Graph<Node, Edge> graph) {
-        List<Edge> fkEdges = getFkEdges(rel, graph);
-        if (fkEdges.size() != 2) {
-            return RelationshipKind.NM;
-        }
-
-        Edge edgeA = fkEdges.get(0);
-        Edge edgeB = fkEdges.get(1);
-        String maxA = edgeA.getCardinalityMax();
-        String maxB = edgeB.getCardinalityMax();
-
-        boolean aIsOne = "1".equals(maxA);
-        boolean bIsOne = "1".equals(maxB);
-
-        if (aIsOne && bIsOne) {
-            return RelationshipKind.ONE_TO_ONE;
-        }
-        if (aIsOne) {
-            return RelationshipKind.ONE_TO_N;
-        }
-        if (bIsOne) {
-            return RelationshipKind.N_TO_ONE;
-        }
-        return RelationshipKind.NM;
-    }
-
-    public enum RelationshipKind {
-        ONE_TO_ONE,
-        ONE_TO_N,
-        N_TO_ONE,
-        NM
     }
 }
