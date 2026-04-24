@@ -125,11 +125,11 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         Map<String, String> nodeToId = new HashMap<>();
         nodes.forEach(n -> nodeToId.put(n.getName(), UUID.randomUUID().toString()));
 
-        int[] idx = {0};
-        for (Node node : nodes) {
+        int idx = 0;
+        for (final Node node : nodes) {
             String id = nodeToId.get(node.getName());
-            Position pos = new Position((idx[0] % 4) * 300 + 100, (idx[0] / 4) * 250 + 100);
-            idx[0]++;
+            Position pos = new Position((idx % 4) * 300 + 100, ((double) idx / 4) * 250 + 100);
+            idx++;
 
             if (NodeClassifier.isRelationship(node, graph)) {
                 buildRelationship(node, id, pos, graph, nodeToId, relationships, attributes);

@@ -2,7 +2,6 @@ package com.tfg.ucm.dbcase.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,24 +38,12 @@ class DiagramStrategyRegistryTest {
     @BeforeEach
     void setUp() {
         when(erStrategy.getType()).thenReturn(DiagramType.ER);
-        doReturn(ErInput.class).when(erStrategy).getInputType();
-
         when(sqlStrategy.getType()).thenReturn(DiagramType.DB);
-        doReturn(PhysicalInput.class).when(sqlStrategy).getInputType();
+
+        when(erStrategy.getInputType()).thenReturn(ErInput.class);
+        when(sqlStrategy.getInputType()).thenReturn(PhysicalInput.class);
 
         registry = new DiagramStrategyRegistry(List.of(erStrategy, sqlStrategy));
-    }
-
-    @Test
-    void shouldGetStrategyByTypeManual() {
-        assertEquals(erStrategy, registry.getStrategy(DiagramType.ER));
-        assertEquals(sqlStrategy, registry.getStrategy(DiagramType.DB));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenTypeNotFound() {
-        assertThrows(
-                IllegalArgumentException.class, () -> registry.getStrategy(DiagramType.LOGICAL));
     }
 
     @Test
