@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -22,7 +23,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private static final String GOOGLE = "google";
     private static final String GITHUB = "github";
-    private static final String BASE_SUCCESS_URL = "http://localhost:5173/oauth2/success";
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     private static final Map<String, String> PROVIDERS =
             Map.of(
@@ -56,7 +59,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         cookieService.addHttpOnlyCookie("auth_token", token, 60 * 60 * 15, response);
 
         final String targetUrl =
-                UriComponentsBuilder.fromUriString(BASE_SUCCESS_URL)
+                UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/success")
                         .queryParam("provider", provider)
                         .build()
                         .toUriString();

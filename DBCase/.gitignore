@@ -41,5 +41,6 @@ build/
 ./backend/src/main/resources/public/static/
 
 .env
-
+.env.production
+keystore.p12
 /node_modules/
