@@ -13,7 +13,7 @@ export enum DiagramType {
 
 export const useDiagramStore = defineStore('diagram', () => {
   const erResult = ref<Snapshot | null>(null)
-  const logicalResult = ref<Map<string, string> | null>(null)
+  const logicalResult = ref<Record<string, string> | null>(null)
   const dbResult = ref<string | null>(null)
 
   async function save(

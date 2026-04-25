@@ -18,7 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    public static final Long MAX_NUMBER_REQUESTS = 100L;
+    static final Long MAX_NUMBER_REQUESTS = 100L;
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     private Bucket createNewBucket() {

@@ -1,6 +1,10 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import static com.tfg.ucm.dbcase.strategies.Auxiliary.*;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.addEdge;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.addForeignAttr;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.addPrimaryAttr;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateNode;
 import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
@@ -47,6 +51,8 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             }
         }
 
+        result.edgeSet().forEach(System.out::println);
+
         return Diagram.builder().diagram(result).build();
     }
 
@@ -62,8 +68,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         return sql;
     }
 
-    private String buildTable(
-            Node entity, Graph<Node, Edge> graph) {
+    private String buildTable(Node entity, Graph<Node, Edge> graph) {
         StringBuilder columns = new StringBuilder();
         StringBuilder constraints = new StringBuilder();
 
@@ -134,8 +139,8 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         try {
             Statement statement = CCJSqlParserUtil.parse(sqlStr);
             if (statement instanceof CreateTable createTable) {
-                String entityName = createTable.getTable().getName();
-                Node entity = Node.builder().name(entityName).build();
+                String nodeName = createTable.getTable().getName();
+                Node entity = getOrCreateNode(nodeName, diagram);
                 diagram.addVertex(entity);
                 if (createTable.getIndexes() != null) {
                     parseIndex(createTable.getIndexes(), entity, diagram);
@@ -147,7 +152,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         }
     }
 
-    private void parseIndex(List<Index> indexes, Node entity, Graph<Node, Edge> diagram) {
+    private void parseIndex(List<Index> indexes, Node node, Graph<Node, Edge> diagram) {
         for (Index index : indexes) {
             boolean isPk = index.getType().equalsIgnoreCase("primary key");
             boolean isFk =
@@ -157,27 +162,26 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                     .forEach(
                             column -> {
                                 String name = column.getColumnName();
-                                Node attr = getOrCreateAttr(name, entity, diagram);
-                                if(isFk && index instanceof ForeignKeyIndex fki) {
+                                Node attr = getOrCreateAttr(name, node, diagram);
+                                if (isFk && index instanceof ForeignKeyIndex fki) {
                                     String tableName = fki.getTable().getName();
-                                    Node node = getOrCreateNode(tableName, diagram);
+
                                     List<String> ref = fki.getReferencedColumnNames();
                                     List<String> src = fki.getColumnsNames();
 
                                     int i = src.indexOf(name);
 
-                                    if(i != -1) {
+                                    if (i != -1) {
                                         String refAttrName = ref.get(i);
                                         Node refTable = getOrCreateNode(tableName, diagram);
-                                        Node refAttr = getOrCreateAttr(refAttrName, refTable, diagram);
-                                        addEdge(refTable, refAttr, diagram);
+                                        Node refAttr =
+                                                getOrCreateAttr(refAttrName, refTable, diagram);
                                         addEdge(attr, refAttr, diagram);
                                     }
 
                                     addForeignAttr(attr, node, tableName, diagram);
-                                }
-                                else if(isPk) {
-                                    addPrimaryAttr(attr, entity, diagram);
+                                } else if (isPk) {
+                                    addPrimaryAttr(attr, node, diagram);
                                 }
                             });
         }
@@ -210,8 +214,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             attr.setUnique(isUnique);
             if (isPk) {
                 addPrimaryAttr(attr, entity, diagram);
-            }
-            else {
+            } else {
                 addEdge(entity, attr, diagram);
             }
         }

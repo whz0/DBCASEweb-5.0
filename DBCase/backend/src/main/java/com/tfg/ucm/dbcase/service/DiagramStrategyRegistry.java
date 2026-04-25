@@ -22,7 +22,7 @@ public class DiagramStrategyRegistry {
                         .collect(Collectors.toMap(DiagramStrategy::getType, Function.identity()));
     }
 
-    public DiagramStrategy<?> getStrategy(DiagramType type) {
+    private DiagramStrategy<?> getStrategy(DiagramType type) {
         return Optional.ofNullable(strategies.get(type))
                 .orElseThrow(
                         () -> new IllegalArgumentException("Unsupported diagram type: " + type));

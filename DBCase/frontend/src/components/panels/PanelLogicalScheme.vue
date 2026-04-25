@@ -14,7 +14,7 @@ const toast = useToast()
 const panelStore = useGeneratePanelStore()
 const diagramStore = useDiagramStore()
 const erSchemaStore = useErSchemaStore()
-const { save, transform } = useDiagramStore()
+const { transform } = useDiagramStore()
 
 const relationship = ref('')
 const restriction = ref('')
@@ -27,17 +27,20 @@ watch(
   (value) => {
     if (!value) return
 
-    const map = new Map(Object.entries(value))
-
-    relationship.value = map.get('relationship') ?? ''
-    restriction.value = map.get('restriction') ?? ''
-    lossRestriction.value = map.get('lossRestriction') ?? ''
+    if (relationship.value !== value.relationship) relationship.value = value.relationship ?? ''
+    if (restriction.value !== value.restriction) restriction.value = value.restriction ?? ''
+    if (lossRestriction.value !== value.lossRestriction)
+      lossRestriction.value = value.lossRestriction ?? ''
   },
 )
 
-const handleSave = () => {
-  save(toastMessage)
-}
+watch([relationship, restriction, lossRestriction], () => {
+  diagramStore.logicalResult = {
+    relationship: relationship.value,
+    restriction: restriction.value,
+    lossRestriction: lossRestriction.value,
+  }
+})
 
 const showTransform = ref(false)
 
@@ -67,13 +70,6 @@ const handleTransform = async (value: DiagramType) => {
       <h1>{{ t('panels.logical') }}</h1>
     </div>
     <div>
-      <Button
-        severity="secondary"
-        class="bi bi-save"
-        @click="handleSave"
-        v-tooltip.bottom="t('common.save')"
-        text
-      />
       <Button
         severity="secondary"
         class="bi bi-arrow-left-right"

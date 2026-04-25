@@ -1,9 +1,14 @@
 app:
   frontend:
-    url: http://localhost:5137
+    url: https://localhost:5173
 
 server:
-  port: 8080
+  port: 8443
+  ssl:
+    key-store: ${SSL_KEY_STORE:classpath:keystore.p12}
+    key-store-password: ${SSL_KEY_STORE_PASSWORD:dbcase_ssl}
+    key-store-type: PKCS12
+    key-alias: ${SSL_KEY_ALIAS:dbcase}
 
 spring:
   application:
@@ -28,6 +33,6 @@ spring:
 jwt:
   secret: "SsXhO9cPI5berPvVYKr9ylOF1q0Z9snw/EzEhfwN0VY="
 
-logging:
-  level:
-    org.springframework.web: DEBUG
+#logging:
+#  level:
+#    org.springframework.web: DEBUG

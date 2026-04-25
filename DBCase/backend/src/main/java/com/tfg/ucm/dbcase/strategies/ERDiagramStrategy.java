@@ -1,5 +1,10 @@
 package com.tfg.ucm.dbcase.strategies;
 
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.addEdge;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.addPrimaryAttr;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateNode;
+
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
@@ -16,13 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.springframework.stereotype.Service;
-
-import static com.tfg.ucm.dbcase.strategies.Auxiliary.*;
 
 @Service
 public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
@@ -83,24 +85,28 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
         }
 
+        graph.edgeSet().forEach(System.out::println);
+
         return Diagram.builder().diagram(graph).build();
     }
 
-    private void mapAttribute(Map<String, String> map, List<String> pks,
-                              String entity) {
+    private void mapAttribute(Map<String, String> map, List<String> pks, String entity) {
         for (String pk : pks) {
             map.put(pk, entity);
         }
     }
 
-    private void processEntity(ErEntityDTO erEnt,
-                               List<ErAttributeDTO> erAttributes, Graph<Node, Edge> graph) {
+    private void processEntity(
+            ErEntityDTO erEnt, List<ErAttributeDTO> erAttributes, Graph<Node, Edge> graph) {
 
         Node entity = getOrCreateNode(erEnt.name(), graph);
 
         for (String attrName : erEnt.attributes()) {
-            ErAttributeDTO erAttr = erAttributes.stream().filter(a -> a.name().equals(attrName))
-                    .findFirst().orElse(null);
+            ErAttributeDTO erAttr =
+                    erAttributes.stream()
+                            .filter(a -> a.name().equals(attrName))
+                            .findFirst()
+                            .orElse(null);
 
             if (erAttr != null) {
                 Node attr = getOrCreateAttr(attrName, entity, graph);
@@ -112,17 +118,19 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 }
             }
         }
-
     }
 
-    private void processRelationship(ErRelationshipDTO erRel,
-                                     List<ErAttributeDTO> erAttributes, Graph<Node, Edge> graph) {
+    private void processRelationship(
+            ErRelationshipDTO erRel, List<ErAttributeDTO> erAttributes, Graph<Node, Edge> graph) {
 
         Node rel = getOrCreateNode(erRel.name(), graph);
 
         for (String attrName : erRel.attributes()) {
-            ErAttributeDTO erAttr = erAttributes.stream().filter(a -> a.name().equals(attrName))
-                    .findFirst().orElse(null);
+            ErAttributeDTO erAttr =
+                    erAttributes.stream()
+                            .filter(a -> a.name().equals(attrName))
+                            .findFirst()
+                            .orElse(null);
 
             if (erAttr != null) {
                 Node attr = getOrCreateAttr(attrName, rel, graph);
@@ -134,7 +142,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 }
             }
         }
-
     }
 
     @Override
@@ -153,8 +160,10 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         HashMap<String, Node> mapByName = new HashMap<>();
         nodes.forEach(n -> mapByName.put(n.getName(), n));
 
-        Set<Node> relationshipNodes = nodes.stream()
-                .filter((n) -> NodeClassifier.isRelationship(n, graph)).collect(Collectors.toSet());
+        Set<Node> relationshipNodes =
+                nodes.stream()
+                        .filter((n) -> NodeClassifier.isRelationship(n, graph))
+                        .collect(Collectors.toSet());
 
         int i = 10, j = 10;
         for (Node rel : relationshipNodes) {
@@ -182,12 +191,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         for (Node attr : attrs) {
             addingAttribute(node, attr, around, attributes, ownAttributes, ownPks);
         }
-        entities.add(new ErEntityDTO(node.getUuid(),
-                node.getName(),
-                pos,
-                false,
-                ownAttributes,
-                ownPks));
+        entities.add(
+                new ErEntityDTO(node.getUuid(), node.getName(), pos, false, ownAttributes, ownPks));
     }
 
     private void buildRelationship(
@@ -213,36 +218,40 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                     if (n.isAttribute()) {
                         addingAttribute(node, n, pos, attributes, ownAttrs, List.of());
                     } else if (NodeClassifier.isRelationship(ref, graph)) {
-                        buildRelationship(n, pos, graph, mapByName, relationships, entities, attributes);
+                        buildRelationship(
+                                n, pos, graph, mapByName, relationships, entities, attributes);
                     } else {
                         buildEntity(n, pos, graph, mapByName, entities, relationships, attributes);
                     }
                 }
             }
-            relationships.add(new ErRelationshipDTO(node.getUuid(),
-                    node.getName(),
-                    pos,
-                    "String",
-                    participants,
-                    ownAttrs));
+            relationships.add(
+                    new ErRelationshipDTO(
+                            node.getUuid(), node.getName(), pos, "String", participants, ownAttrs));
         }
     }
 
-    private void addingAttribute(Node node, Node attr, Position pos, List<ErAttributeDTO> attributes,
-                                 List<String> ownAttributes,
-                                 List<String> ownPks) {
-        attributes.add(new ErAttributeDTO(attr.getUuid(),
-                attr.getName(),
-                pos,
-                node.getUuid(),
-                attr.isPk(),
-                false,
-                false,
-                attr.isNotNull(),
-                attr.isUnique(),
-                "String",
-                10,
-                List.of()));
+    private void addingAttribute(
+            Node node,
+            Node attr,
+            Position pos,
+            List<ErAttributeDTO> attributes,
+            List<String> ownAttributes,
+            List<String> ownPks) {
+        attributes.add(
+                new ErAttributeDTO(
+                        attr.getUuid(),
+                        attr.getName(),
+                        pos,
+                        node.getUuid(),
+                        attr.isPk(),
+                        false,
+                        false,
+                        attr.isNotNull(),
+                        attr.isUnique(),
+                        "String",
+                        10,
+                        List.of()));
         if (attr.isPk()) {
             ownPks.add(attr.getUuid());
         } else {

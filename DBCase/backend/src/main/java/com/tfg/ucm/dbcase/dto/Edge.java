@@ -8,10 +8,9 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(of = "uuid")
+@EqualsAndHashCode(of = "label")
 public class Edge {
 
-    private String uuid;
     private String label;
     private String cardinalityMin;
     private String cardinalityMax;

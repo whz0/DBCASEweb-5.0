@@ -5,7 +5,6 @@ import com.tfg.ucm.dbcase.dto.Node;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 
@@ -29,12 +28,12 @@ public class NodeClassifier {
         }
     }
 
-    public static NodeType hasEdgesWithPk(){
+    public static NodeType hasEdgesWithPk() {
 
         return null;
     }
 
-    public static NodeType hasEdgesWithFk(){
+    public static NodeType hasEdgesWithFk() {
 
         return null;
     }
@@ -56,8 +55,14 @@ public class NodeClassifier {
             return false;
         }
 
-        Set<Node> fks = Graphs.neighborSetOf(graph, node).stream().filter(Node::isFk).collect(Collectors.toSet());
-        Set<Node> pks = Graphs.neighborSetOf(graph, node).stream().filter(Node::isPk).collect(Collectors.toSet());
+        Set<Node> fks =
+                Graphs.neighborSetOf(graph, node).stream()
+                        .filter(Node::isFk)
+                        .collect(Collectors.toSet());
+        Set<Node> pks =
+                Graphs.neighborSetOf(graph, node).stream()
+                        .filter(Node::isPk)
+                        .collect(Collectors.toSet());
 
         if (fks.isEmpty()) {
             return false;

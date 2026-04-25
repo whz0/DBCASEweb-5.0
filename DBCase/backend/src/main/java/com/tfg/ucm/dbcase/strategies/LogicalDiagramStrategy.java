@@ -1,20 +1,20 @@
 package com.tfg.ucm.dbcase.strategies;
 
-import static com.tfg.ucm.dbcase.strategies.Auxiliary.*;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateNode;
 import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
-import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isForeignKey;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
-
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
@@ -44,91 +44,73 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         parseRestriction(diagram.lossRestriction(), result);
         parseRelationship(diagram.relationship(), result);
 
+        result.edgeSet().forEach(System.out::println);
+
         return Diagram.builder().diagram(result).build();
     }
 
     @Override
     public Object transform(Diagram diagram) {
         Graph<Node, Edge> graph = diagram.getDiagram();
-        List<Node> allNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
+        Set<Node> allNodes =
+                graph.vertexSet().stream().filter(n -> !isAttribute(n)).collect(Collectors.toSet());
 
         StringBuilder relationships = new StringBuilder();
         StringBuilder restrictions = new StringBuilder();
 
         for (Node node : allNodes) {
-            relationships.append(buildEntry(node, graph, restrictions));
+            String attrList = buildEntry(node, graph, restrictions);
+            relationships.append(node.getName()).append(" (").append(attrList).append(")\n");
         }
 
         return new LinkedHashMap<>(
-               Map.of(
+                Map.of(
                         "relationship", relationships.toString(),
                         "restriction", restrictions.toString(),
                         "lossRestriction", ""));
     }
 
-    private String buildEntry(
-            Node node,
-            Graph<Node, Edge> graph,
-            StringBuilder restrictions) {
+    private String buildEntry(Node node, Graph<Node, Edge> graph, StringBuilder restrictions) {
         StringBuilder attrList = new StringBuilder();
 
-        graph.vertexSet().stream()
-                .filter(n -> isAttribute(n) && graph.containsEdge(node, n))
-                .forEach(attr -> appendAttr(attr, node, graph, attrList, restrictions));
+        System.out.println(node.getName());
+        Graphs.neighborListOf(graph, node).forEach(System.out::println);
 
-        List<Node> fks = graph.vertexSet().stream().filter(Node::isFk).toList();
-
-        for (Node fk : fks) {
-            if (!attrList.isEmpty()) {
-                attrList.append(", ");
-            }
-            attrList.append(fk.getName());
-
-            Node attrRef = Graphs.successorListOf(graph, fk).get(0);
-
-            restrictions
-                    .append(node.getName())
-                    .append(".")
-                    .append(fk.getName())
-                    .append(" -> ")
-                    .append(fk.getReference())
-                    .append(".")
-                    .append(attrRef.getName())
-                    .append("\n");
-        }
-
-        return attrList.isEmpty() ? "" : node.getName() + " (" + attrList + ")\n";
+        Graphs.neighborListOf(graph, node)
+                .forEach(
+                        attr -> {
+                            if (attr.isFk()) {
+                                appendRestriction(attr, node, graph, restrictions);
+                            }
+                            if (!attrList.isEmpty()) {
+                                attrList.append(", ");
+                            }
+                            attrList.append(
+                                    attr.isPk() ? "__" + attr.getName() + "__" : attr.getName());
+                        });
+        return attrList.toString();
     }
 
-    private void appendAttr(
-            Node attr,
-            Node table,
-            Graph<Node, Edge> graph,
-            StringBuilder attrList,
-            StringBuilder restrictions) {
-        String name =
-                attr.isFk()
-                        ? graph.getAllEdges(table, attr).stream()
-                                .map(NodeClassifier::getFkAttrName)
-                                .filter(java.util.Objects::nonNull)
-                                .findFirst()
-                                .orElse(attr.getName())
-                        : attr.getName();
-        if (!attrList.isEmpty()) {
-            attrList.append(", ");
-        }
-        attrList.append(attr.isPk() && !attr.isFk() ? "__" + name + "__" : name);
-        if (isForeignKey(attr, table)) {
-            restrictions
-                    .append(table.getName())
-                    .append(".")
-                    .append(name)
-                    .append(" -> ")
-                    .append(attr.getReference())
-                    .append(".")
-                    .append(name)
-                    .append("\n");
-        }
+    private void appendRestriction(
+            Node attr, Node node, Graph<Node, Edge> graph, StringBuilder restrictions) {
+
+        Node refNode =
+                graph.vertexSet().stream()
+                        .filter(n -> n.getName().equals(attr.getReference()))
+                        .findFirst()
+                        .orElse(null);
+        Node refAttr = Graphs.successorListOf(graph, attr).get(0);
+
+        assert refNode != null;
+        restrictions
+                .append(node.getName())
+                .append(".")
+                .append(attr.getName())
+                .append(" -> ")
+                .append(refNode.getName())
+                .append(".")
+                .append(refAttr.getName())
+                .append("\n");
     }
 
     private void parseRelationship(String relationship, Graph<Node, Edge> diagram) {
@@ -153,11 +135,10 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
         Node attr = getOrCreateAttr(attrName, entity, diagram);
 
-        if(pk) {
+        if (pk) {
             Auxiliary.addPrimaryAttr(attr, entity, diagram);
-        }
-        else {
-            Auxiliary.addEdge(entity, attr, diagram);;
+        } else {
+            Auxiliary.addEdge(entity, attr, diagram);
         }
     }
 
@@ -176,7 +157,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                             String refName = refParts[0].trim();
                             String refAttrName = refParts[1].trim();
                             Node src = getOrCreateNode(srcName, diagram);
-                            Node ref = getOrCreateNode(srcName, diagram);
+                            Node ref = getOrCreateNode(refName, diagram);
                             Node attrSrc = getOrCreateAttr(srcAttrName, src, diagram);
                             Node attrRef = getOrCreateAttr(refAttrName, src, diagram);
 

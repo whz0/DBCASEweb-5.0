@@ -9,7 +9,7 @@ const { t } = useI18n()
 const dialogStore = useDialogStore()
 const { setLayout } = useLayout()
 
-const layouts = [
+const layouts: { label: string; value: 'horizontal' | 'vertical'; icon: string }[] = [
   { label: t('layout.horizontal'), value: 'horizontal', icon: 'bi bi-layout-split' },
   { label: t('layout.vertical'), value: 'vertical', icon: 'bi bi-layout-three-columns' },
 ]
@@ -40,7 +40,7 @@ const selectLayout = (layout: 'horizontal' | 'vertical') => {
           :key="layout.value"
           :icon="layout.icon"
           :label="layout.label"
-          @click="selectLayout(layout.value as any)"
+          @click="selectLayout(layout.value)"
           severity="secondary"
           outlined
           class="flex-1"

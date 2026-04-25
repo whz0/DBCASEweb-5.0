@@ -4,7 +4,7 @@ import { DiagramType } from '@/stores/diagramStore'
 import type { AnyDiagramInput, UserSettings } from '@/types/api'
 
 const http = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 })
 
@@ -27,5 +27,16 @@ export const api = {
         diagram: { ...diagram, type },
         transformTo,
       }),
+  },
+  database: {
+    execute: (payload: {
+      dbType: string
+      host: string
+      port: number
+      dbName: string
+      username: string
+      password: string
+      sql: string
+    }) => http.post('/database/execute', payload),
   },
 }
