@@ -63,14 +63,10 @@ const handleEditorDidMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
 watch(
   () => diagramStore.dbResult,
   (val) => {
-<<<<<<< Updated upstream
-    if (val && val !== code.value) code.value = val
-=======
     if (val) {
       code.value = val
       highlightQuestionLines()
     }
->>>>>>> Stashed changes
   },
 )
 

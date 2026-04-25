@@ -41,8 +41,8 @@ if (store.entities.length === 0 && store.relationships.length === 0) {
     id: '1',
     name: 'Person',
     position: { x: 50, y: 100 },
-    attributes: ['a1'],
-    primaryKeys: ['a1'],
+    attributes: [],
+    primaryKeys: [],
   })
   store.addEntity({
     id: '2',

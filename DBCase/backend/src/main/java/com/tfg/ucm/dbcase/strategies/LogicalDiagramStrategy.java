@@ -59,11 +59,8 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
         for (Node node : allNodes) {
             String attrList = buildEntry(node, graph, restrictions);
-            if(!attrList.isEmpty()) {
-                relationships.append(node.getName())
-                        .append(" (")
-                        .append(attrList)
-                        .append(")\n");
+            if (!attrList.isEmpty()) {
+                relationships.append(node.getName()).append(" (").append(attrList).append(")\n");
             }
         }
 
