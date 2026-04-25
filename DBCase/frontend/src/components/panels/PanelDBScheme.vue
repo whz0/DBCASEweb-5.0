@@ -36,7 +36,7 @@ const toastMessage = (message: string, severity: 'error' | 'warn' | 'info' | 'su
   toast.add({ severity, detail: message, life: 3000 })
 
 let editorInstance: MonacoEditor.IStandaloneCodeEditor | null = null
-let decorations: string[] = []
+let decorationsCollection: MonacoEditor.IEditorDecorationsCollection | null = null
 
 const highlightQuestionLines = () => {
   if (!editorInstance || !code.value) return
@@ -52,7 +52,11 @@ const highlightQuestionLines = () => {
       return acc
     }, [])
 
-  decorations = editorInstance.createDecorationsCollection(decorations, newDecorations)
+  if (decorationsCollection) {
+    decorationsCollection.set(newDecorations)
+  } else {
+    decorationsCollection = editorInstance.createDecorationsCollection(newDecorations)
+  }
 }
 
 const handleEditorDidMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
@@ -80,9 +84,9 @@ const editorOptions = {
   automaticLayout: true,
 }
 
-const validate = () => {
+const validate = (): string[] => {
   const parser = parsers[selectLanguage.value as keyof typeof parsers]
-  if (!parser) return true
+  if (!parser) return []
   return parser.validate(code.value).map((e) => e.message)
 }
 
@@ -140,7 +144,7 @@ const handleDeploy = async () => {
     toastMessage('SQL deployed successfully', 'success')
     showDeployDialog.value = false
   } catch (e) {
-    toastMessage(e || 'Deployment failed', 'error')
+    toastMessage(e instanceof Error ? e.message : 'Deployment failed', 'error')
   } finally {
     deploying.value = false
   }
