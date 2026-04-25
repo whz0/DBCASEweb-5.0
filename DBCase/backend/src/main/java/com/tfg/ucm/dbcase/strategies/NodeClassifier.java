@@ -12,7 +12,7 @@ public class NodeClassifier {
 
     public static NodeType classifyA(Node node, Graph<Node, Edge> graph) {
 
-        if (isAttribute(node)) {
+        if (node.isAttribute()) {
             return NodeType.ATTRIBUTE;
         } else {
             return classifyNonAttribute(node, graph);
@@ -44,10 +44,6 @@ public class NodeClassifier {
 
     public static NodeType classifyEntity(Node node, Graph<Node, Edge> graph) {
         return NodeType.ENTITY;
-    }
-
-    public static boolean isAttribute(Node node) {
-        return node.isAttribute();
     }
 
     public static boolean isRelationship(Node node, Graph<Node, Edge> graph) {

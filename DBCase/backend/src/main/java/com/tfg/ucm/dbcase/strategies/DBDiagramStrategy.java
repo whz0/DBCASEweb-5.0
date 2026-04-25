@@ -5,7 +5,6 @@ import static com.tfg.ucm.dbcase.strategies.Auxiliary.addForeignAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.addPrimaryAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateNode;
-import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
@@ -51,15 +50,13 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             }
         }
 
-        result.edgeSet().forEach(System.out::println);
-
         return Diagram.builder().diagram(result).build();
     }
 
     @Override
     public Object transform(Diagram diagram) {
         Graph<Node, Edge> graph = diagram.getDiagram();
-        List<Node> allNodes = graph.vertexSet().stream().filter(n -> !isAttribute(n)).toList();
+        List<Node> allNodes = graph.vertexSet().stream().filter(n -> !n.isAttribute()).toList();
 
         StringBuilder sql = new StringBuilder();
         for (Node node : allNodes) {

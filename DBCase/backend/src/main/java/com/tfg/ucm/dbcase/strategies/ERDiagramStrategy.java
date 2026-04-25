@@ -1,6 +1,7 @@
 package com.tfg.ucm.dbcase.strategies;
 
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.addEdge;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.addForeignAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.addPrimaryAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateNode;
@@ -78,14 +79,13 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         addEdge(attrSrc, attrRef, graph);
                     }
                 }
-                processEntity(entityDTOMap.get(erPart.entityId()), input.attributes(), graph);
+                processEntity(
+                        listOne, entityDTOMap.get(erPart.entityId()), input.attributes(), graph);
             }
             if (listN.size() == erRel.participants().size() || !erRel.attributes().isEmpty()) {
-                processRelationship(erRel, input.attributes(), graph);
+                processRelationship(listN, erRel, input.attributes(), graph);
             }
         }
-
-        graph.edgeSet().forEach(System.out::println);
 
         return Diagram.builder().diagram(graph).build();
     }
@@ -97,9 +97,18 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
     }
 
     private void processEntity(
-            ErEntityDTO erEnt, List<ErAttributeDTO> erAttributes, Graph<Node, Edge> graph) {
+            Map<String, String> pks,
+            ErEntityDTO erEnt,
+            List<ErAttributeDTO> erAttributes,
+            Graph<Node, Edge> graph) {
 
         Node entity = getOrCreateNode(erEnt.name(), graph);
+
+        for (String pk : pks.keySet()) {
+            Node primaryKey = getOrCreateAttr(pk, entity, graph);
+            addForeignAttr(primaryKey, entity, pks.get(pk), graph);
+            primaryKey.setPk(true);
+        }
 
         for (String attrName : erEnt.attributes()) {
             ErAttributeDTO erAttr =
@@ -121,9 +130,18 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
     }
 
     private void processRelationship(
-            ErRelationshipDTO erRel, List<ErAttributeDTO> erAttributes, Graph<Node, Edge> graph) {
+            Map<String, String> pks,
+            ErRelationshipDTO erRel,
+            List<ErAttributeDTO> erAttributes,
+            Graph<Node, Edge> graph) {
 
         Node rel = getOrCreateNode(erRel.name(), graph);
+
+        for (String pk : pks.keySet()) {
+            Node primaryKey = getOrCreateAttr(pk, rel, graph);
+            addForeignAttr(primaryKey, rel, pks.get(pk), graph);
+            primaryKey.setPk(true);
+        }
 
         for (String attrName : erRel.attributes()) {
             ErAttributeDTO erAttr =

@@ -2,7 +2,6 @@ package com.tfg.ucm.dbcase.strategies;
 
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateNode;
-import static com.tfg.ucm.dbcase.strategies.NodeClassifier.isAttribute;
 
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Edge;
@@ -44,8 +43,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         parseRestriction(diagram.lossRestriction(), result);
         parseRelationship(diagram.relationship(), result);
 
-        result.edgeSet().forEach(System.out::println);
-
         return Diagram.builder().diagram(result).build();
     }
 
@@ -53,14 +50,21 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
     public Object transform(Diagram diagram) {
         Graph<Node, Edge> graph = diagram.getDiagram();
         Set<Node> allNodes =
-                graph.vertexSet().stream().filter(n -> !isAttribute(n)).collect(Collectors.toSet());
+                graph.vertexSet().stream()
+                        .filter(n -> !n.isAttribute())
+                        .collect(Collectors.toSet());
 
         StringBuilder relationships = new StringBuilder();
         StringBuilder restrictions = new StringBuilder();
 
         for (Node node : allNodes) {
             String attrList = buildEntry(node, graph, restrictions);
-            relationships.append(node.getName()).append(" (").append(attrList).append(")\n");
+            if(!attrList.isEmpty()) {
+                relationships.append(node.getName())
+                        .append(" (")
+                        .append(attrList)
+                        .append(")\n");
+            }
         }
 
         return new LinkedHashMap<>(
@@ -72,9 +76,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
     private String buildEntry(Node node, Graph<Node, Edge> graph, StringBuilder restrictions) {
         StringBuilder attrList = new StringBuilder();
-
-        System.out.println(node.getName());
-        Graphs.neighborListOf(graph, node).forEach(System.out::println);
 
         Graphs.neighborListOf(graph, node)
                 .forEach(
