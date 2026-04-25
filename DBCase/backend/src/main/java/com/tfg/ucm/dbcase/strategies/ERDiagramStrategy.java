@@ -67,10 +67,18 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 ErEntityDTO entity = entityDTOMap.get(erPart.entityId());
                 // Si el número de relaciones N es igual que el número de
                 // participantes entonces habrá que crear tabla intermedia
+                List<String> pkNames =
+                        entity.primaryKeys().stream()
+                                .map(
+                                        id ->
+                                                attributeDTOMap.containsKey(id)
+                                                        ? attributeDTOMap.get(id).name()
+                                                        : id)
+                                .toList();
                 if (erPart.cardinalityMax().equals("N")) {
-                    mapAttribute(listN, entity.primaryKeys(), entity.name());
+                    mapAttribute(listN, pkNames, entity.name());
                 } else {
-                    mapAttribute(listOne, entity.primaryKeys(), entity.name());
+                    mapAttribute(listOne, pkNames, entity.name());
                     for (String attrName : listOne.keySet()) {
                         Node entityRef = getOrCreateNode(listOne.get(attrName), graph);
                         Node attrRef = getOrCreateAttr(attrName, entityRef, graph);
@@ -168,6 +176,11 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         for (Node rel : relationshipNodes) {
             Position pos = new Position(i += 10, j += 10);
             buildRelationship(rel, pos, graph, mapByName, relationships, entities, attributes);
+        }
+
+        for (Node remaining : mapByName.values()) {
+            Position pos = new Position(i += 10, j += 10);
+            buildEntity(remaining, pos, graph, mapByName, entities, relationships, attributes);
         }
 
         return new ErInput(entities, relationships, attributes, List.of(), List.of());

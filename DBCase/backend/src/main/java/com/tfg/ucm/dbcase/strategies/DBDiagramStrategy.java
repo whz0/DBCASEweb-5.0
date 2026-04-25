@@ -92,7 +92,11 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                         .append(notNull)
                                         .append(",\n");
 
-                                Node attrRef = Graphs.successorListOf(graph, attr).get(0);
+                                List<Node> successors = Graphs.successorListOf(graph, attr);
+                                if (successors.isEmpty()) {
+                                    return;
+                                }
+                                Node attrRef = successors.getFirst();
                                 constraints
                                         .append("\tFOREIGN KEY (")
                                         .append(fkName)
