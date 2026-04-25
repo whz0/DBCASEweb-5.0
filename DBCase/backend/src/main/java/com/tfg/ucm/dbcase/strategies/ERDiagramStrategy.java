@@ -101,32 +101,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             ErEntityDTO erEnt,
             List<ErAttributeDTO> erAttributes,
             Graph<Node, Edge> graph) {
-
-        Node entity = getOrCreateNode(erEnt.name(), graph);
-
-        for (String pk : pks.keySet()) {
-            Node primaryKey = getOrCreateAttr(pk, entity, graph);
-            addForeignAttr(primaryKey, entity, pks.get(pk), graph);
-            primaryKey.setPk(true);
-        }
-
-        for (String attrName : erEnt.attributes()) {
-            ErAttributeDTO erAttr =
-                    erAttributes.stream()
-                            .filter(a -> a.name().equals(attrName))
-                            .findFirst()
-                            .orElse(null);
-
-            if (erAttr != null) {
-                Node attr = getOrCreateAttr(attrName, entity, graph);
-
-                if (erAttr.isKey()) {
-                    addPrimaryAttr(attr, entity, graph);
-                } else {
-                    addEdge(entity, attr, graph);
-                }
-            }
-        }
+        processNode(
+                getOrCreateNode(erEnt.name(), graph), pks, erEnt.attributes(), erAttributes, graph);
     }
 
     private void processRelationship(
@@ -134,31 +110,36 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             ErRelationshipDTO erRel,
             List<ErAttributeDTO> erAttributes,
             Graph<Node, Edge> graph) {
+        processNode(
+                getOrCreateNode(erRel.name(), graph), pks, erRel.attributes(), erAttributes, graph);
+    }
 
-        Node rel = getOrCreateNode(erRel.name(), graph);
+    private void processNode(
+            Node node,
+            Map<String, String> pks,
+            List<String> attrIds,
+            List<ErAttributeDTO> erAttributes,
+            Graph<Node, Edge> graph) {
 
         for (String pk : pks.keySet()) {
-            Node primaryKey = getOrCreateAttr(pk, rel, graph);
-            addForeignAttr(primaryKey, rel, pks.get(pk), graph);
+            Node primaryKey = getOrCreateAttr(pk, node, graph);
+            addForeignAttr(primaryKey, node, pks.get(pk), graph);
             primaryKey.setPk(true);
         }
 
-        for (String attrName : erRel.attributes()) {
-            ErAttributeDTO erAttr =
-                    erAttributes.stream()
-                            .filter(a -> a.name().equals(attrName))
-                            .findFirst()
-                            .orElse(null);
-
-            if (erAttr != null) {
-                Node attr = getOrCreateAttr(attrName, rel, graph);
-
-                if (erAttr.isKey()) {
-                    addPrimaryAttr(attr, rel, graph);
-                } else {
-                    addEdge(rel, attr, graph);
-                }
-            }
+        for (String attrId : attrIds) {
+            erAttributes.stream()
+                    .filter(a -> a.id().equals(attrId))
+                    .findFirst()
+                    .ifPresent(
+                            erAttr -> {
+                                Node attr = getOrCreateAttr(erAttr.name(), node, graph);
+                                if (erAttr.isKey()) {
+                                    addPrimaryAttr(attr, node, graph);
+                                } else {
+                                    addEdge(node, attr, graph);
+                                }
+                            });
         }
     }
 

@@ -308,11 +308,20 @@ export const useErSchemaStore = defineStore('erSchema', () => {
       attributes.value[index] = { ...existing, ...data }
     } else {
       saveHistory()
+      const newId = crypto.randomUUID()
       attributes.value.push({
-        id: crypto.randomUUID(),
+        id: newId,
         position: { ...lastClickPosition.value },
         ...data,
       })
+      const parentEntity = entities.value.find((e) => e.id === data.parentId)
+      if (parentEntity) {
+        parentEntity.attributes.push(newId)
+        if (data.isKey) parentEntity.primaryKeys.push(newId)
+      } else {
+        const parentRel = relationships.value.find((r) => r.id === data.parentId)
+        if (parentRel) parentRel.attributes.push(newId)
+      }
     }
   }
 
