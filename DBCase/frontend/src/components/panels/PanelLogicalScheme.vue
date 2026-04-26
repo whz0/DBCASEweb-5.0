@@ -29,33 +29,42 @@ watch(
     if (!value) return
     if (relationship.value !== (value.relationship ?? ''))
       relationship.value = fromApiFormat(value.relationship ?? '')
-    if (restriction.value !== (value.restriction ?? '')) restriction.value = value.restriction ?? ''
+    if (restriction.value !== (value.restriction ?? ''))
+      restriction.value = fromApiFormat(value.restriction ?? '')
     if (lostRestriction.value !== (value.lostRestriction ?? ''))
-      lostRestriction.value = value.lostRestriction ?? ''
+      lostRestriction.value = fromApiFormat(value.lostRestriction ?? '')
   },
 )
 
 watch([relationship, restriction, lostRestriction], () => {
   diagramStore.logicalResult = {
-    relationship: relationship.value,
-    restriction: restriction.value,
-    lossRestriction: lostRestriction.value,
+    relationship: toApiFormat(relationship.value),
+    restriction: toApiFormat(restriction.value),
+    lossRestriction: toApiFormat(lostRestriction.value),
   }
 })
 
 const showTransform = ref(false)
 
-const toApiFormat = (html: string) => html.replace(/<u>(.*?)<\/u>/gi, '__$1__')
+const toApiFormat = (html: string) => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<u>(.*?)<\/u>/gi, '__$1__')
+    .replace(/<[^>]+>/g, '')
+}
 
-const fromApiFormat = (text: string) => text.replace(/__([^_]+)__/g, '<u>$1</u>')
+const fromApiFormat = (text: string) => {
+  return text.replace(/__([^_]*)__/g, '<u>$1</u>').replace(/\n/g, '<br>')
+}
 
 const handleTransform = async (value: DiagramType) => {
   showTransform.value = false
 
   const diagram = {
     relationship: toApiFormat(relationship.value),
-    restriction: restriction.value,
-    lossRestriction: lostRestriction.value,
+    restriction: toApiFormat(restriction.value),
+    lossRestriction: toApiFormat(lostRestriction.value),
   }
 
   const data = await transform(diagram, DiagramType.logical, value, toastMessage)
