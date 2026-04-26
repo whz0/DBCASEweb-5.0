@@ -9,6 +9,7 @@ import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -97,7 +98,11 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                         .filter(n -> n.getName().equals(attr.getReference()))
                         .findFirst()
                         .orElse(null);
-        Node refAttr = Graphs.successorListOf(graph, attr).get(0);
+        List<Node> successors = Graphs.successorListOf(graph, attr);
+        if (successors.isEmpty()) {
+            return;
+        }
+        Node refAttr = successors.getFirst();
 
         assert refNode != null;
         restrictions
