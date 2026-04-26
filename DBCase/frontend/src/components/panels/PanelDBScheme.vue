@@ -4,11 +4,11 @@ import type { editor as MonacoEditor } from 'monaco-editor'
 import { Range } from 'monaco-editor'
 import CodeEditor from 'monaco-editor-vue3'
 import { useToast } from 'primevue'
-import { reactive, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import AccessDatabaseDialog from '@/components/dialogs/AccessDatabaseDialog.vue'
 import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
-import { api } from '@/plugins/axios'
 import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
@@ -74,10 +74,6 @@ watch(
   },
 )
 
-watch(code, (newCode) => {
-  diagramStore.dbResult = newCode
-})
-
 const editorOptions = {
   fontSize: 14,
   minimap: { enabled: false },
@@ -91,6 +87,7 @@ const validate = (): string[] => {
 }
 
 const showTransform = ref(false)
+const showDeploy = ref(false)
 
 const handleTransform = async (value: DiagramType) => {
   showTransform.value = false
@@ -107,52 +104,6 @@ const handleTransform = async (value: DiagramType) => {
     if (!panelStore.isOpen(PanelId.LogicalScheme)) panelStore.open(PanelId.LogicalScheme)
   }
 }
-
-const showDeployDialog = ref(false)
-const deploying = ref(false)
-const dbConn = reactive({
-  host: 'localhost',
-  port: 5432,
-  dbName: '',
-  username: '',
-  password: '',
-})
-
-const handleDeploy = async () => {
-  if (!selectLanguage.value) {
-    toastMessage('Select a database language first', 'warn')
-    return
-  }
-
-  const errors = validate()
-  if (errors.length) {
-    toastMessage(`SQL validation failed: ${errors[0]}`, 'error')
-    return
-  }
-
-  deploying.value = true
-  try {
-    await api.database.execute({
-      dbType: selectLanguage.value,
-      host: dbConn.host,
-      port: dbConn.port,
-      dbName: dbConn.dbName,
-      username: dbConn.username,
-      password: dbConn.password,
-      sql: code.value,
-    })
-    toastMessage('SQL deployed successfully', 'success')
-    showDeployDialog.value = false
-  } catch (e) {
-    toastMessage(e instanceof Error ? e.message : 'Deployment failed', 'error')
-  } finally {
-    deploying.value = false
-  }
-}
-
-watch(selectLanguage, (val) => {
-  dbConn.port = val === 'mysql' ? 3306 : 5432
-})
 </script>
 
 <template>
@@ -181,7 +132,7 @@ watch(selectLanguage, (val) => {
       <Button
         severity="secondary"
         class="bi bi-play-circle"
-        @click="showDeployDialog = true"
+        @click="showDeploy = true"
         v-tooltip.bottom="'Deploy to DB'"
         text
       />
@@ -211,44 +162,7 @@ watch(selectLanguage, (val) => {
     @transform="handleTransform"
   />
 
-  <!-- Deploy Dialog -->
-  <Dialog
-    v-model:visible="showDeployDialog"
-    header="Deploy to Database"
-    modal
-    :style="{ width: '28rem' }"
-  >
-    <div class="flex flex-col gap-3 pt-2">
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Host</label>
-        <InputText v-model="dbConn.host" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Port</label>
-        <InputNumber v-model="dbConn.port" :useGrouping="false" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Database name</label>
-        <InputText v-model="dbConn.dbName" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Username</label>
-        <InputText v-model="dbConn.username" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Password</label>
-        <Password v-model="dbConn.password" :feedback="false" toggleMask />
-      </div>
-    </div>
-    <template #footer>
-      <Button label="Cancel" severity="secondary" text @click="showDeployDialog = false" />
-      <Button label="Deploy" icon="bi bi-play-circle" :loading="deploying" @click="handleDeploy" />
-    </template>
-  </Dialog>
+  <AccessDatabaseDialog v-model:visible="showDeploy" :database-type="selectLanguage" :code="code" />
 </template>
 
-<style scoped>
-:deep(.highlight-question-line) {
-  background-color: rgba(255, 200, 0, 0.25);
-}
-</style>
+<style scoped></style>

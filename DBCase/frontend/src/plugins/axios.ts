@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+import type { DatabaseType } from '@/stores/databaseStore.ts'
 import { DiagramType } from '@/stores/diagramStore'
 import type { AnyDiagramInput, UserSettings } from '@/types/api'
 
@@ -29,14 +30,20 @@ export const api = {
       }),
   },
   database: {
-    execute: (payload: {
-      dbType: string
-      host: string
-      port: number
-      dbName: string
-      username: string
-      password: string
-      sql: string
-    }) => http.post('/database/execute', payload),
+    test: (url: string, username: string, password: string) =>
+      http.post('/database/test', {
+        url,
+        username,
+        password,
+      }),
+    execute: (dbType: DatabaseType, url: string, username: string, password: string, sql: string) =>
+      http.post('/database/execute', {
+        dbType,
+        url,
+        username,
+        password,
+        sql,
+      }),
   },
 }
+export default api

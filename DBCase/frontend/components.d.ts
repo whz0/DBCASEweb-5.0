@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AboutUsDialog: typeof import('./src/components/dialogs/AboutUsDialog.vue')['default']
+    AccessDatabaseDialog: typeof import('./src/components/dialogs/AccessDatabaseDialog.vue')['default']
     AccessibilityDialog: typeof import('./src/components/dialogs/AccessibilityDialog.vue')['default']
     AddAttributeDialog: typeof import('./src/components/dialogs/AddAttributeDialog.vue')['default']
     AddDomainDialog: typeof import('./src/components/dialogs/AddDomainDialog.vue')['default']
