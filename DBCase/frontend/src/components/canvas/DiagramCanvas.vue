@@ -19,7 +19,7 @@
           v-for="connection in relationshipConnections"
           :key="connection.relId + '-' + connection.entityId"
         >
-          <!-- Main Connection Line -->
+          <!-- Main Connection Line (IsA parent uses arrow) -->
           <v-arrow
             v-if="connection.isParent"
             :config="{
@@ -35,22 +35,52 @@
           <v-line
             v-else
             :config="{
-              points: [connection.startX, connection.startY, connection.endX, connection.endY],
+              points: [
+                connection.startX,
+                connection.startY,
+                connection.lineEndX,
+                connection.lineEndY,
+              ],
               stroke: strokeColor,
               strokeWidth: 1,
               zIndex: -1,
             }"
           />
 
-          <!-- Double line for Total Participation (min >= 1) -->
+          <!-- Arrowhead at entity end for classic-arrow mode when cardMax === '1' -->
           <v-line
-            v-if="connection.isTotal"
+            v-if="
+              !connection.isParent &&
+              cardinalityMode === 'classic-arrow' &&
+              connection.cardMax === '1'
+            "
             :config="{
-              points: calculateParallelPoints(
+              points: calculateArrowheadPoints(
                 connection.startX,
                 connection.startY,
                 connection.endX,
                 connection.endY,
+                10,
+                8,
+                2,
+              ),
+              closed: true,
+              fill: strokeColor,
+              stroke: strokeColor,
+              strokeWidth: 1,
+              zIndex: -1,
+            }"
+          />
+
+          <!-- Double line for Total Participation — only in classic modes -->
+          <v-line
+            v-if="connection.isTotal && cardinalityMode !== 'minmax'"
+            :config="{
+              points: calculateParallelPoints(
+                connection.startX,
+                connection.startY,
+                connection.lineEndX,
+                connection.lineEndY,
                 4,
               ),
               stroke: strokeColor,
@@ -59,9 +89,11 @@
             }"
           />
 
+          <!-- Label: (min,max) in minmax mode; max only in classic-number; nothing in classic-arrow -->
           <v-text
+            v-if="connection.labelText"
             :config="{
-              text: connection.card,
+              text: connection.labelText,
               x: (connection.startX + connection.endX) / 2,
               y: (connection.startY + connection.endY) / 2 - 20,
               fontSize: 14,
@@ -135,6 +167,7 @@ import type { MenuItem } from 'primevue/menuitem'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useCardinalityMode } from '@/composables/useCardinalityMode'
 import { useTheme } from '@/composables/useTheme'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
@@ -146,6 +179,7 @@ import type {
   RelationshipParticipant,
 } from '@/types/er-diagram-elements'
 import {
+  calculateArrowheadPoints,
   calculateParallelPoints,
   type EllipseShape,
   getLineDiamondIntersection,
@@ -166,6 +200,7 @@ const erSchemaStore = useErSchemaStore()
 const dialogStore = useDialogStore()
 const { t } = useI18n()
 const { actualTheme } = useTheme()
+const { cardinalityMode } = useCardinalityMode()
 const strokeColor = computed(() => (actualTheme.value === 'dark' ? '#e5e7eb' : 'black'))
 
 const isDiagramEmpty = computed(() => {
@@ -448,7 +483,10 @@ interface RelationshipConnection {
   startY: number
   endX: number
   endY: number
-  card: string
+  lineEndX: number
+  lineEndY: number
+  cardMax: string
+  labelText: string
   isTotal: boolean
   isParent: boolean
 }
@@ -483,6 +521,19 @@ const relationshipConnections = computed(() => {
         const endPoint = getLineRectangleIntersection(relCenter, entityCenter, entityShape)
         if (startPoint && endPoint) {
           const minCard = participant.cardinalityMin
+          const maxCard = participant.cardinalityMax
+          const isIsA = rel.type === 'IsA'
+
+          let labelText = ''
+          if (!isIsA) {
+            if (cardinalityMode.value === 'minmax') {
+              labelText = `(${minCard},${maxCard})`
+            } else if (cardinalityMode.value === 'classic-number') {
+              labelText = maxCard
+            }
+            // classic-arrow: no label
+          }
+
           connections.push({
             relId: rel.id,
             entityId: entity.id,
@@ -490,12 +541,28 @@ const relationshipConnections = computed(() => {
             startY: startPoint.y,
             endX: endPoint.x,
             endY: endPoint.y,
-            card:
-              rel.type === 'IsA'
-                ? ''
-                : `(${participant.cardinalityMin},${participant.cardinalityMax})`,
-            isTotal: minCard !== '' && parseInt(minCard) >= 1,
-            isParent: rel.type === 'IsA' && participant.role === 'Parent',
+            lineEndX: (() => {
+              if (!isIsA && cardinalityMode.value === 'classic-arrow' && maxCard === '1') {
+                const dx = endPoint.x - startPoint.x
+                const dy = endPoint.y - startPoint.y
+                const d = Math.sqrt(dx * dx + dy * dy)
+                return d === 0 ? endPoint.x : endPoint.x - (dx / d) * 10
+              }
+              return endPoint.x
+            })(),
+            lineEndY: (() => {
+              if (!isIsA && cardinalityMode.value === 'classic-arrow' && maxCard === '1') {
+                const dx = endPoint.x - startPoint.x
+                const dy = endPoint.y - startPoint.y
+                const d = Math.sqrt(dx * dx + dy * dy)
+                return d === 0 ? endPoint.y : endPoint.y - (dy / d) * 10
+              }
+              return endPoint.y
+            })(),
+            cardMax: maxCard,
+            labelText,
+            isTotal: !isIsA && minCard !== '' && parseInt(minCard) >= 1,
+            isParent: isIsA && participant.role === 'Parent',
           })
         }
       }

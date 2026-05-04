@@ -175,3 +175,31 @@ export const calculateParallelPoints = (
 
   return [x1 + nx * offset, y1 + ny * offset, x2 + nx * offset, y2 + ny * offset]
 }
+
+export const calculateArrowheadPoints = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  length: number = 10,
+  width: number = 8,
+  perpOffset: number = 0,
+): number[] => {
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const dist = Math.sqrt(dx * dx + dy * dy)
+  if (dist === 0) return []
+  const ux = dx / dist
+  const uy = dy / dist
+  // perpendicular unit vector (same direction as calculateParallelPoints offset)
+  const nx = -uy
+  const ny = ux
+  // shift tip and base by perpOffset
+  const tx = x2 + nx * perpOffset
+  const ty = y2 + ny * perpOffset
+  const bx = tx - ux * length
+  const by = ty - uy * length
+  const px = nx * (width / 2)
+  const py = ny * (width / 2)
+  return [tx, ty, bx + px, by + py, bx - px, by - py]
+}

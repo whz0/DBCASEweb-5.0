@@ -38,6 +38,10 @@ const messages = {
       system: 'System',
       english: 'English',
       spanish: 'Spanish',
+      cardinalityNotation: 'Cardinality Notation',
+      cardinalityClassicNumber: 'Classic (number)',
+      cardinalityClassicArrow: 'Classic (arrow)',
+      cardinalityMinMax: '(min, max)',
     },
     panels: {
       conceptual: 'Conceptual Schema',
@@ -270,6 +274,10 @@ const messages = {
       system: 'Sistema',
       english: 'Inglés',
       spanish: 'Español',
+      cardinalityNotation: 'Notación de Cardinalidad',
+      cardinalityClassicNumber: 'Clásica (número)',
+      cardinalityClassicArrow: 'Clásica (flecha)',
+      cardinalityMinMax: '(min, max)',
     },
     panels: {
       conceptual: 'Esquema Conceptual',

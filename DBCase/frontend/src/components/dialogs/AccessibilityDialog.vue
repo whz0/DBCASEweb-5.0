@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useCardinalityMode } from '@/composables/useCardinalityMode'
 import { useTheme } from '@/composables/useTheme'
 import { api } from '@/plugins/axios'
 import { useAuthStore } from '@/stores/authStore'
@@ -11,6 +12,7 @@ const dialogStore = useDialogStore()
 const authStore = useAuthStore()
 const { theme, setTheme } = useTheme()
 const { locale, t } = useI18n()
+const { cardinalityMode, setCardinalityMode } = useCardinalityMode()
 
 const themeOptions = computed(() => [
   { label: t('settings.light'), value: 'light', icon: 'bi bi-sun' },
@@ -21,6 +23,12 @@ const themeOptions = computed(() => [
 const languageOptions = computed(() => [
   { label: t('settings.english'), value: 'en' },
   { label: t('settings.spanish'), value: 'es' },
+])
+
+const cardinalityOptions = computed(() => [
+  { label: t('settings.cardinalityClassicNumber'), value: 'classic-number' },
+  { label: t('settings.cardinalityClassicArrow'), value: 'classic-arrow' },
+  { label: t('settings.cardinalityMinMax'), value: 'minmax' },
 ])
 
 const changeLanguage = (lang: string) => {
@@ -77,6 +85,16 @@ const closeModal = () => {
             <span class="ml-2">{{ option.label }}</span>
           </template>
         </Select>
+      </div>
+      <div class="flex items-center justify-between">
+        <label>{{ t('settings.cardinalityNotation') }}</label>
+        <Select
+          :modelValue="cardinalityMode"
+          @update:modelValue="setCardinalityMode"
+          :options="cardinalityOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
       </div>
     </div>
   </Dialog>
