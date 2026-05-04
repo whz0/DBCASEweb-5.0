@@ -86,40 +86,43 @@ const saveEntity = () => {
     :style="{ width: '30rem' }"
     :header="isEditMode ? t('entity.editEntity') : t('entity.addEntity')"
   >
-    <div class="flex flex-col gap-3">
-      <label for="entityName" class="font-semibold">{{ t('entity.entityName') }}</label>
-      <InputText
-        id="entityName"
-        v-model="entityName"
-        :placeholder="t('entity.enterEntityName')"
-        autofocus
-      />
-
-      <div class="flex items-center gap-2 mt-2">
-        <Checkbox v-model="isWeakEntity" inputId="isWeak" :binary="true" />
-        <label for="isWeak">{{ t('entity.isWeakEntity') }}</label>
-      </div>
-
-      <template v-if="isWeakEntity">
-        <label for="relationName" class="font-semibold mt-2">{{
-          t('entity.weakRelationshipName')
-        }}</label>
+    <form @submit.prevent="saveEntity">
+      <div class="flex flex-col gap-3">
         <InputText
-          id="relationName"
-          v-model="relationName"
-          :placeholder="t('entity.enterRelationName')"
+          id="entityName"
+          v-model="entityName"
+          :placeholder="t('entity.enterEntityName')"
+          autofocus
         />
 
-        <label for="strongEntity" class="font-semibold mt-2">{{ t('entity.strongEntity') }}</label>
-        <Select
-          id="strongEntity"
-          v-model="selectedStrongEntity"
-          :options="strongEntities"
-          optionLabel="name"
-          :placeholder="t('entity.selectStrongEntity')"
-        />
-      </template>
-    </div>
+        <div class="flex items-center gap-2 mt-2">
+          <Checkbox v-model="isWeakEntity" inputId="isWeak" :binary="true" />
+          <label for="isWeak">{{ t('entity.isWeakEntity') }}</label>
+        </div>
+
+        <template v-if="isWeakEntity">
+          <label for="relationName" class="font-semibold mt-2">{{
+            t('entity.weakRelationshipName')
+          }}</label>
+          <InputText
+            id="relationName"
+            v-model="relationName"
+            :placeholder="t('entity.enterRelationName')"
+          />
+
+          <label for="strongEntity" class="font-semibold mt-2">{{
+            t('entity.strongEntity')
+          }}</label>
+          <Select
+            id="strongEntity"
+            v-model="selectedStrongEntity"
+            :options="strongEntities"
+            optionLabel="name"
+            :placeholder="t('entity.selectStrongEntity')"
+          />
+        </template>
+      </div>
+    </form>
 
     <template #footer>
       <Button

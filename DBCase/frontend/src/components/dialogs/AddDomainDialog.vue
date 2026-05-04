@@ -80,7 +80,7 @@ const saveDomain = () => {
   >
     <div class="flex flex-col gap-3">
       <label for="domainName" class="font-semibold">{{ t('domain.name') }}</label>
-      <InputText id="domainName" v-model="domainName" autofocus @keyup.enter="saveDomain" />
+      <InputText id="domainName" v-model="domainName" autofocus @keydown.enter="saveDomain" />
 
       <label for="baseType" class="font-semibold mt-2">{{ t('domain.baseType') }}</label>
       <Select
@@ -92,7 +92,12 @@ const saveDomain = () => {
       />
 
       <label for="values" class="font-semibold mt-2">{{ t('domain.allowedValues') }}</label>
-      <InputText id="values" v-model="values" :placeholder="t('domain.enterValues')" />
+      <InputText
+        id="values"
+        v-model="values"
+        :placeholder="t('domain.enterValues')"
+        @keydown.enter="saveDomain"
+      />
 
       <div v-if="erSchemaStore.domains.length > 0 && !isEditMode" class="mt-4">
         <h3 class="font-bold mb-2">{{ t('domain.existingDomains') }}</h3>

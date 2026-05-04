@@ -52,52 +52,57 @@ const save = () => {
     :style="{ width: '30rem' }"
     :header="isEditMode ? t('relationship.editRelationship') : t('relationship.addRelationship')"
   >
-    <div class="flex flex-col gap-3">
-      <label for="name" class="font-semibold">{{ t('common.name') }}</label>
-      <InputText
-        id="name"
-        v-model="name"
-        :placeholder="t('relationship.enterRelationshipName')"
-        autofocus
-        @keyup.enter="save"
-      />
+    <form @submit.prevent="save">
+      <div class="flex flex-col gap-3">
+        <label for="name" class="font-semibold">{{ t('common.name') }}</label>
+        <InputText
+          id="name"
+          v-model="name"
+          :placeholder="t('relationship.enterRelationshipName')"
+          autofocus
+          @keyup.enter="save"
+        />
 
-      <template v-if="isEditMode">
-        <div class="flex items-center justify-between mt-2">
-          <span class="font-semibold">{{ t('relationship.currentParticipants') }}</span>
-          <Button
-            :label="t('entity.addEntity')"
-            icon="bi bi-plus"
-            size="small"
-            severity="secondary"
-            @click="dialogStore.open(DialogId.AddEntityToRelationship)"
-          />
-        </div>
-        <ul v-if="participantsWithNames.length > 0">
-          <li
-            v-for="p in participantsWithNames"
-            :key="p.entityId"
-            class="flex justify-between items-center py-1 border-b border-black/10 dark:border-white/10 last:border-0"
-          >
-            <span class="text-sm">
-              <span class="font-semibold">{{ p.name }}</span>
-              ({{ p.cardinalityMin }},{{ p.cardinalityMax }})
-              <span v-if="p.role" class="italic text-gray-400"> — {{ p.role }}</span>
-            </span>
+        <template v-if="isEditMode">
+          <div class="flex items-center justify-between mt-2">
+            <span class="font-semibold">{{ t('relationship.currentParticipants') }}</span>
             <Button
-              icon="bi bi-trash"
-              severity="danger"
-              text
+              :label="t('entity.addEntity')"
+              icon="bi bi-plus"
               size="small"
-              @click="
-                erSchemaStore.removeParticipantFromRelationship(currentRelationship!.id, p.entityId)
-              "
+              severity="secondary"
+              @click="dialogStore.open(DialogId.AddEntityToRelationship)"
             />
-          </li>
-        </ul>
-        <span v-else class="text-sm text-gray-400">{{ t('relationship.noParticipants') }}</span>
-      </template>
-    </div>
+          </div>
+          <ul v-if="participantsWithNames.length > 0">
+            <li
+              v-for="p in participantsWithNames"
+              :key="p.entityId"
+              class="flex justify-between items-center py-1 border-b border-black/10 dark:border-white/10 last:border-0"
+            >
+              <span class="text-sm">
+                <span class="font-semibold">{{ p.name }}</span>
+                ({{ p.cardinalityMin }},{{ p.cardinalityMax }})
+                <span v-if="p.role" class="italic text-gray-400"> — {{ p.role }}</span>
+              </span>
+              <Button
+                icon="bi bi-trash"
+                severity="danger"
+                text
+                size="small"
+                @click="
+                  erSchemaStore.removeParticipantFromRelationship(
+                    currentRelationship!.id,
+                    p.entityId,
+                  )
+                "
+              />
+            </li>
+          </ul>
+          <span v-else class="text-sm text-gray-400">{{ t('relationship.noParticipants') }}</span>
+        </template>
+      </div>
+    </form>
 
     <template #footer>
       <Button

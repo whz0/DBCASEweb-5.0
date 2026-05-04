@@ -79,28 +79,30 @@ const saveIsA = () => {
     :style="{ width: '30rem' }"
     :header="isEditMode ? t('relationship.editRelationship') : t('panels.insertIsARelationship')"
   >
-    <div class="flex flex-col gap-3">
-      <label for="parent" class="font-semibold"
-        >{{ t('attribute.parent') }} ({{ t('isa.parent') }})</label
-      >
-      <Select
-        id="parent"
-        v-model="selectedParent"
-        :options="entities"
-        optionLabel="name"
-        :placeholder="t('entity.selectStrongEntity')"
-      />
+    <form @submit.prevent="saveIsA">
+      <div class="flex flex-col gap-3">
+        <label for="parent" class="font-semibold"
+          >{{ t('attribute.parent') }} ({{ t('isa.parent') }})</label
+        >
+        <Select
+          id="parent"
+          v-model="selectedParent"
+          :options="entities"
+          optionLabel="name"
+          :placeholder="t('entity.selectStrongEntity')"
+        />
 
-      <label for="children" class="font-semibold mt-2">{{ t('isa.childEntities') }}</label>
-      <MultiSelect
-        id="children"
-        v-model="selectedChildren"
-        :options="entities.filter((e: Entity) => e.id !== selectedParent?.id)"
-        optionLabel="name"
-        :placeholder="t('isa.selectChildren')"
-        display="chip"
-      />
-    </div>
+        <label for="children" class="font-semibold mt-2">{{ t('isa.childEntities') }}</label>
+        <MultiSelect
+          id="children"
+          v-model="selectedChildren"
+          :options="entities.filter((e: Entity) => e.id !== selectedParent?.id)"
+          optionLabel="name"
+          :placeholder="t('isa.selectChildren')"
+          display="chip"
+        />
+      </div>
+    </form>
 
     <template #footer>
       <Button

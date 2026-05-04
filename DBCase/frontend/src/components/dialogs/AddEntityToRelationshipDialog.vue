@@ -100,63 +100,71 @@ const onCardinalityChange = (e: { value: CardinalityOption }) => {
       (currentRelationship ? ': ' + currentRelationship.name : '')
     "
   >
-    <div class="flex flex-col gap-3">
-      <label for="entity" class="font-semibold">{{ t('relationship.selectEntity') }}</label>
-      <Select
-        id="entity"
-        v-model="selectedEntity"
-        :options="entities"
-        optionLabel="name"
-        :placeholder="t('relationship.selectEntity')"
-      />
+    <form @submit.prevent="addParticipant">
+      <div class="flex flex-col gap-3">
+        <label for="entity" class="font-semibold">{{ t('relationship.selectEntity') }}</label>
+        <Select
+          id="entity"
+          v-model="selectedEntity"
+          :options="entities"
+          optionLabel="name"
+          :placeholder="t('relationship.selectEntity')"
+        />
 
-      <label class="font-semibold mt-2">{{ t('relationship.cardinality') }}</label>
-      <Select
-        v-model="selectedCardinalityOption"
-        :options="cardinalityOptions"
-        optionLabel="label"
-        @change="onCardinalityChange"
-      />
+        <label class="font-semibold mt-2">{{ t('relationship.cardinality') }}</label>
+        <Select
+          v-model="selectedCardinalityOption"
+          :options="cardinalityOptions"
+          optionLabel="label"
+          @change="onCardinalityChange"
+        />
 
-      <div v-if="selectedCardinalityOption?.label === t('relationship.custom')" class="flex gap-2">
-        <div class="flex flex-col flex-1">
-          <label for="min" class="text-sm">{{ t('relationship.min') }}</label>
-          <InputText id="min" v-model="cardinalityMin" />
+        <div
+          v-if="selectedCardinalityOption?.label === t('relationship.custom')"
+          class="flex gap-2"
+        >
+          <div class="flex flex-col flex-1">
+            <label for="min" class="text-sm">{{ t('relationship.min') }}</label>
+            <InputText id="min" v-model="cardinalityMin" />
+          </div>
+          <div class="flex flex-col flex-1">
+            <label for="max" class="text-sm">{{ t('relationship.max') }}</label>
+            <InputText id="max" v-model="cardinalityMax" />
+          </div>
         </div>
-        <div class="flex flex-col flex-1">
-          <label for="max" class="text-sm">{{ t('relationship.max') }}</label>
-          <InputText id="max" v-model="cardinalityMax" />
+
+        <label for="role" class="font-semibold mt-2">{{ t('relationship.role') }}</label>
+        <InputText id="role" v-model="role" :placeholder="t('relationship.enterRole')" />
+
+        <div v-if="participantsWithNames.length > 0" class="mt-4">
+          <h3 class="font-bold mb-2">{{ t('relationship.currentParticipants') }}</h3>
+          <ul class="max-h-40 overflow-y-auto">
+            <li
+              v-for="p in participantsWithNames"
+              :key="p.entityId"
+              class="flex justify-between items-center py-1 border-b border-black/10 dark:border-white/10 last:border-0"
+            >
+              <span class="text-sm">
+                <span class="font-semibold">{{ p.name }}</span>
+                ({{ p.cardinalityMin }},{{ p.cardinalityMax }})
+                <span v-if="p.role" class="italic text-gray-500">- {{ p.role }}</span>
+              </span>
+              <Button
+                icon="bi bi-trash"
+                severity="danger"
+                text
+                @click="
+                  erSchemaStore.removeParticipantFromRelationship(
+                    currentRelationship!.id,
+                    p.entityId,
+                  )
+                "
+              />
+            </li>
+          </ul>
         </div>
       </div>
-
-      <label for="role" class="font-semibold mt-2">{{ t('relationship.role') }}</label>
-      <InputText id="role" v-model="role" :placeholder="t('relationship.enterRole')" />
-
-      <div v-if="participantsWithNames.length > 0" class="mt-4">
-        <h3 class="font-bold mb-2">{{ t('relationship.currentParticipants') }}</h3>
-        <ul class="max-h-40 overflow-y-auto">
-          <li
-            v-for="p in participantsWithNames"
-            :key="p.entityId"
-            class="flex justify-between items-center py-1 border-b border-black/10 dark:border-white/10 last:border-0"
-          >
-            <span class="text-sm">
-              <span class="font-semibold">{{ p.name }}</span>
-              ({{ p.cardinalityMin }},{{ p.cardinalityMax }})
-              <span v-if="p.role" class="italic text-gray-500">- {{ p.role }}</span>
-            </span>
-            <Button
-              icon="bi bi-trash"
-              severity="danger"
-              text
-              @click="
-                erSchemaStore.removeParticipantFromRelationship(currentRelationship!.id, p.entityId)
-              "
-            />
-          </li>
-        </ul>
-      </div>
-    </div>
+    </form>
 
     <template #footer>
       <Button

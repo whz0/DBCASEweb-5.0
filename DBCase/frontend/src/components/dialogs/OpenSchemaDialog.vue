@@ -59,19 +59,21 @@ const openSchema = () => {
     modal
     :style="{ width: '30rem' }"
   >
-    <div class="flex flex-col gap-3">
-      <label for="fileUpload">{{ t('schema.selectFile') }}</label>
-      <FileUpload
-        mode="basic"
-        name="schemaFile[]"
-        accept=".dbw"
-        :maxFileSize="1000000"
-        @select="onFileSelect"
-        :chooseLabel="t('common.chooseFile')"
-        :cancelLabel="t('common.cancel')"
-      />
-      <div v-if="selectedFile">{{ t('schema.selectedFile') }}: {{ selectedFile.name }}</div>
-    </div>
+    <form @submit.prevent="openSchema">
+      <div class="flex flex-col gap-3">
+        <label for="fileUpload">{{ t('schema.selectFile') }}</label>
+        <FileUpload
+          mode="basic"
+          name="schemaFile[]"
+          accept=".dbw"
+          :maxFileSize="1000000"
+          @select="onFileSelect"
+          :chooseLabel="t('common.chooseFile')"
+          :cancelLabel="t('common.cancel')"
+        />
+        <div v-if="selectedFile">{{ t('schema.selectedFile') }}: {{ selectedFile.name }}</div>
+      </div>
+    </form>
     <template #footer>
       <Button
         :label="t('common.cancel')"

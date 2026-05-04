@@ -125,6 +125,7 @@ const saveAttribute = () => {
         v-model="attributeName"
         :placeholder="t('attribute.enterAttributeName')"
         autofocus
+        @keydown.enter="saveAttribute"
       />
 
       <label for="parent" class="font-semibold mt-2">{{ t('attribute.parent') }}</label>
