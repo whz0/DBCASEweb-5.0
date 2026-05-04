@@ -10,6 +10,8 @@
       ref="stageRef"
       :config="stageConfig"
       @mousedown="handleStageMouseDown"
+      @mousemove="handleStageMouseMove"
+      @mouseup="handleStageMouseUp"
       @touchstart="handleStageMouseDown"
       @wheel="handleWheel"
     >
@@ -145,6 +147,20 @@
           :undefined-el="undefinedEl"
           @dragmove="handleUndefinedDragMove"
         />
+        <!-- Rubber-band selection rect -->
+        <v-rect
+          v-if="rubberBand.visible"
+          :config="{
+            x: Math.min(rubberBand.x1, rubberBand.x2),
+            y: Math.min(rubberBand.y1, rubberBand.y2),
+            width: Math.abs(rubberBand.x2 - rubberBand.x1),
+            height: Math.abs(rubberBand.y2 - rubberBand.y1),
+            fill: 'rgba(99,102,241,0.15)',
+            stroke: '#6366f1',
+            strokeWidth: 1,
+            dash: [4, 3],
+          }"
+        />
       </v-layer>
     </v-stage>
     <ContentUnavailableView
@@ -155,6 +171,16 @@
       :actions="emptyDiagramActions"
     />
     <MiniMap v-if="mainStage && !isDiagramEmpty" :main-stage="mainStage" />
+    <!-- Selection mode toggle -->
+    <div class="absolute top-2 right-2 z-10">
+      <Button
+        :icon="selectionMode ? 'bi bi-cursor' : 'bi bi-arrows-move'"
+        :severity="selectionMode ? 'primary' : 'secondary'"
+        v-tooltip.left="selectionMode ? t('canvas.selectionMode') : t('canvas.dragMode')"
+        text
+        @click="toggleSelectionMode"
+      />
+    </div>
   </div>
 </template>
 
@@ -238,6 +264,14 @@ const stageConfig = reactive({
   draggable: true,
 })
 
+const selectionMode = ref(false)
+
+const toggleSelectionMode = () => {
+  selectionMode.value = !selectionMode.value
+  stageConfig.draggable = !selectionMode.value
+  if (!selectionMode.value) erSchemaStore.selectElement(null)
+}
+
 const cm = ref()
 const menuModel = ref<MenuItem[]>([])
 
@@ -269,10 +303,67 @@ const handleWheel = (e: KonvaEventObject<WheelEvent>) => {
   }
 }
 
+const rubberBand = reactive({ visible: false, x1: 0, y1: 0, x2: 0, y2: 0 })
+
+const getStagePos = (e: KonvaEventObject<MouseEvent>) => {
+  const stage = e.target.getStage()!
+  const p = stage.getPointerPosition()!
+  const t = stage.getAbsoluteTransform().copy().invert()
+  return t.point(p)
+}
+
 const handleStageMouseDown = (e: KonvaEventObject<MouseEvent>) => {
-  if (e.evt.button === 0 && e.target === e.target.getStage()) {
+  if (e.evt.button !== 0) return
+  if (e.target !== e.target.getStage()) return
+  if (!selectionMode.value) {
     erSchemaStore.selectElement(null)
+    return
   }
+  if (!e.evt.shiftKey) erSchemaStore.selectElement(null)
+  const pos = getStagePos(e)
+  rubberBand.x1 = pos.x
+  rubberBand.y1 = pos.y
+  rubberBand.x2 = pos.x
+  rubberBand.y2 = pos.y
+  rubberBand.visible = true
+}
+
+const handleStageMouseMove = (e: KonvaEventObject<MouseEvent>) => {
+  if (!rubberBand.visible) return
+  const pos = getStagePos(e)
+  rubberBand.x2 = pos.x
+  rubberBand.y2 = pos.y
+}
+
+const handleStageMouseUp = () => {
+  if (!rubberBand.visible) return
+  rubberBand.visible = false
+
+  const rx1 = Math.min(rubberBand.x1, rubberBand.x2)
+  const rx2 = Math.max(rubberBand.x1, rubberBand.x2)
+  const ry1 = Math.min(rubberBand.y1, rubberBand.y2)
+  const ry2 = Math.max(rubberBand.y1, rubberBand.y2)
+
+  // Only select if the rect has meaningful size
+  if (rx2 - rx1 < 4 && ry2 - ry1 < 4) return
+
+  const inside = (x: number, y: number) => x >= rx1 && x <= rx2 && y >= ry1 && y <= ry2
+
+  const ids: string[] = []
+  erSchemaStore.entities.forEach((el) => {
+    if (inside(el.position.x, el.position.y)) ids.push(el.id)
+  })
+  erSchemaStore.relationships.forEach((el) => {
+    if (inside(el.position.x, el.position.y)) ids.push(el.id)
+  })
+  erSchemaStore.attributes.forEach((el) => {
+    if (inside(el.position.x, el.position.y)) ids.push(el.id)
+  })
+  erSchemaStore.undefineds.forEach((el) => {
+    if (inside(el.position.x, el.position.y)) ids.push(el.id)
+  })
+
+  if (ids.length > 0) erSchemaStore.selectElements(ids)
 }
 
 const getContextMenuItems = () => {
@@ -656,14 +747,9 @@ const handleUndefinedDragMove = (event: { id: string; x: number; y: number }) =>
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  // Ignore if user is typing in an input or textarea
-  if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
-    return
-  }
-
-  const selectedId = erSchemaStore.selectedElementId
-  if ((e.key === 'Backspace' || e.key === 'Delete') && selectedId) {
-    erSchemaStore.deleteElement(selectedId)
+  if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return
+  if (e.key === 'Backspace' || e.key === 'Delete') {
+    erSchemaStore.deleteSelected()
   }
 }
 

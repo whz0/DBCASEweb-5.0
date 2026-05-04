@@ -22,7 +22,12 @@ export const useErSchemaStore = defineStore('erSchema', () => {
   const attributes = ref<Attribute[]>([])
   const domains = ref<Domain[]>([])
   const undefineds = ref<Undefined[]>([])
-  const selectedElementId = ref<string | null>(null)
+  const selectedElementIds = ref<Set<string>>(new Set())
+  // Keep a single-id alias for context menu compatibility
+  const selectedElementId = computed(() => {
+    const ids = [...selectedElementIds.value]
+    return ids.length === 1 ? ids[0] : ids.length > 1 ? ids[0] : null
+  })
   const lastClickPosition = ref<Position>({ x: 100, y: 100 })
   const stageRef = ref<Stage | null>(null)
 
@@ -71,7 +76,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     attributes.value = snapshot.attributes || []
     domains.value = snapshot.domains || []
     undefineds.value = snapshot.undefineds || []
-    selectedElementId.value = null
+    selectedElementIds.value = new Set()
   }
 
   function undo() {
@@ -159,8 +164,25 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     }
   }
 
-  function selectElement(id: string | null) {
-    selectedElementId.value = id
+  function isSelected(id: string) {
+    return selectedElementIds.value.has(id)
+  }
+
+  function selectElement(id: string | null, addToSelection = false) {
+    if (id === null) {
+      selectedElementIds.value = new Set()
+    } else if (addToSelection) {
+      const next = new Set(selectedElementIds.value)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      selectedElementIds.value = next
+    } else {
+      selectedElementIds.value = new Set([id])
+    }
+  }
+
+  function selectElements(ids: string[]) {
+    selectedElementIds.value = new Set(ids)
   }
 
   function deleteEntity(entityIndex: number, entityId: string) {
@@ -183,8 +205,55 @@ export const useErSchemaStore = defineStore('erSchema', () => {
       undefineds.value = undefineds.value.filter((u) => u.id !== id)
     }
 
-    if (selectedElementId.value === id) {
-      selectedElementId.value = null
+    const next = new Set(selectedElementIds.value)
+    next.delete(id)
+    selectedElementIds.value = next
+  }
+
+  function deleteSelected() {
+    const ids = [...selectedElementIds.value]
+    if (ids.length === 0) return
+    saveHistory()
+    for (const id of ids) {
+      const entityIndex = entities.value.findIndex((e) => e.id === id)
+      if (entityIndex !== -1) {
+        deleteEntity(entityIndex, id)
+      } else {
+        relationships.value = relationships.value.filter((r) => r.id !== id)
+        attributes.value = attributes.value.filter((a) => a.id !== id)
+        domains.value = domains.value.filter((d) => d.id !== id)
+        undefineds.value = undefineds.value.filter((u) => u.id !== id)
+      }
+    }
+    selectedElementIds.value = new Set()
+  }
+
+  function moveSelected(id: string, dx: number, dy: number) {
+    for (const selId of selectedElementIds.value) {
+      if (selId === id) continue
+      const entity = entities.value.find((e) => e.id === selId)
+      if (entity) {
+        entity.position.x += dx
+        entity.position.y += dy
+        continue
+      }
+      const rel = relationships.value.find((r) => r.id === selId)
+      if (rel) {
+        rel.position.x += dx
+        rel.position.y += dy
+        continue
+      }
+      const attr = attributes.value.find((a) => a.id === selId)
+      if (attr) {
+        attr.position.x += dx
+        attr.position.y += dy
+        continue
+      }
+      const undef = undefineds.value.find((u) => u.id === selId)
+      if (undef) {
+        undef.position.x += dx
+        undef.position.y += dy
+      }
     }
   }
 
@@ -442,7 +511,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     attributes.value = []
     domains.value = []
     undefineds.value = []
-    selectedElementId.value = null
+    selectedElementIds.value = new Set()
     lastClickPosition.value = { x: 100, y: 100 }
     past.value = []
     future.value = []
@@ -455,6 +524,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     domains,
     undefineds,
     selectedElementId,
+    selectedElementIds,
     lastClickPosition,
     canUndo: computed(() => past.value.length > 0),
     canRedo: computed(() => future.value.length > 0),
@@ -472,8 +542,12 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     saveDomain,
     addEntity,
     addRelationship,
+    isSelected,
     selectElement,
+    selectElements,
     deleteElement,
+    deleteSelected,
+    moveSelected,
     removeParticipantFromRelationship,
     updateEntityPosition,
     updateRelationshipPosition,

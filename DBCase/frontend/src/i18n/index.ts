@@ -53,6 +53,10 @@ const messages = {
       insertIsARelationship: 'Insert new IsA relationship',
       createDomain: 'Create domain',
     },
+    canvas: {
+      selectionMode: 'Selection mode (click to switch to pan)',
+      dragMode: 'Pan mode (click to switch to selection)',
+    },
     entity: {
       addEntity: 'Add Entity',
       editEntity: 'Edit Entity',
@@ -288,6 +292,10 @@ const messages = {
       insertRelationship: 'Insertar una nueva relación',
       insertIsARelationship: 'Insertar una nueva relación IsA',
       createDomain: 'Crear dominio',
+    },
+    canvas: {
+      selectionMode: 'Modo selección (clic para cambiar a desplazamiento)',
+      dragMode: 'Modo desplazamiento (clic para cambiar a selección)',
     },
     entity: {
       addEntity: 'Añadir Entidad',

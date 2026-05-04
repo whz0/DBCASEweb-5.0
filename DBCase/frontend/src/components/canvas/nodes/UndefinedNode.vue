@@ -6,23 +6,10 @@
       y: undefinedEl.position.y,
       draggable: true,
     }"
-    @dragstart="erSchemaStore.saveHistory()"
-    @dragmove="
-      (e: KonvaEventObject<DragEvent>) =>
-        emit('dragmove', { id: undefinedEl.id, x: e.target.x(), y: e.target.y() })
-    "
-    @mousedown="
-      (e: KonvaEventObject<MouseEvent>) => {
-        erSchemaStore.selectElement(undefinedEl.id)
-        e.cancelBubble = true
-      }
-    "
-    @touchstart="
-      (e: KonvaEventObject<MouseEvent>) => {
-        erSchemaStore.selectElement(undefinedEl.id)
-        e.cancelBubble = true
-      }
-    "
+    @dragstart="handleDragStart"
+    @dragmove="handleDragMove"
+    @mousedown="handleSelect"
+    @touchstart="handleSelect"
   >
     <v-circle
       :config="{
@@ -59,5 +46,32 @@ import type { Undefined } from '@/types/er-diagram-elements'
 const props = defineProps<{ undefinedEl: Undefined }>()
 const emit = defineEmits(['dragmove'])
 const erSchemaStore = useErSchemaStore()
-const isSelected = computed(() => erSchemaStore.selectedElementId === props.undefinedEl.id)
+const isSelected = computed(() => erSchemaStore.isSelected(props.undefinedEl.id))
+
+let prevX = 0
+let prevY = 0
+
+const handleDragStart = (event: KonvaEventObject<DragEvent>) => {
+  prevX = event.target.x()
+  prevY = event.target.y()
+  erSchemaStore.saveHistory()
+}
+
+const handleDragMove = (e: KonvaEventObject<DragEvent>) => {
+  const x = e.target.x()
+  const y = e.target.y()
+  erSchemaStore.moveSelected(props.undefinedEl.id, x - prevX, y - prevY)
+  prevX = x
+  prevY = y
+  emit('dragmove', { id: props.undefinedEl.id, x, y })
+}
+
+const handleSelect = (e: KonvaEventObject<MouseEvent>) => {
+  if (e.evt.shiftKey) {
+    erSchemaStore.selectElement(props.undefinedEl.id, true)
+  } else if (!erSchemaStore.isSelected(props.undefinedEl.id)) {
+    erSchemaStore.selectElement(props.undefinedEl.id)
+  }
+  e.cancelBubble = true
+}
 </script>

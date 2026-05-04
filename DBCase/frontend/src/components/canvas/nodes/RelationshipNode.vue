@@ -77,20 +77,34 @@ const props = defineProps<{
 
 const erSchemaStore = useErSchemaStore()
 
-const isSelected = computed(() => erSchemaStore.selectedElementId === props.relationship.id)
+const isSelected = computed(() => erSchemaStore.isSelected(props.relationship.id))
 
 const emit = defineEmits(['dragmove'])
 
+let prevX = 0
+let prevY = 0
+
 const handleDragMove = (event: KonvaEventObject<DragEvent>) => {
-  emit('dragmove', { id: props.relationship.id, x: event.target.x(), y: event.target.y() })
+  const x = event.target.x()
+  const y = event.target.y()
+  erSchemaStore.moveSelected(props.relationship.id, x - prevX, y - prevY)
+  prevX = x
+  prevY = y
+  emit('dragmove', { id: props.relationship.id, x, y })
 }
 
-const handleDragStart = () => {
+const handleDragStart = (event: KonvaEventObject<DragEvent>) => {
+  prevX = event.target.x()
+  prevY = event.target.y()
   erSchemaStore.saveHistory()
 }
 
 const handleSelect = (e: KonvaEventObject<MouseEvent>) => {
-  erSchemaStore.selectElement(props.relationship.id)
+  if (e.evt.shiftKey) {
+    erSchemaStore.selectElement(props.relationship.id, true)
+  } else if (!erSchemaStore.isSelected(props.relationship.id)) {
+    erSchemaStore.selectElement(props.relationship.id)
+  }
   e.cancelBubble = true
 }
 
