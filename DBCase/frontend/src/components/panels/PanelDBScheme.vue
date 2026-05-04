@@ -1,20 +1,45 @@
 <script setup lang="ts">
 import { MySQL, PostgreSQL } from 'dt-sql-parser'
-import type { editor as MonacoEditor } from 'monaco-editor'
-import { Range } from 'monaco-editor'
+import { editor as monacoEditor, Range } from 'monaco-editor'
 import CodeEditor from 'monaco-editor-vue3'
 import { useToast } from 'primevue'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import AccessDatabaseDialog from '@/components/dialogs/AccessDatabaseDialog.vue'
 import TransformDiagramDialog from '@/components/dialogs/TransformDiagramDialog.vue'
+import { useTheme } from '@/composables/useTheme'
 import { DiagramType, useDiagramStore } from '@/stores/diagramStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
 
 const { t } = useI18n()
 const toast = useToast()
+const { actualTheme } = useTheme()
+
+const getCssVar = (name: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim() || undefined
+
+const defineMonacoThemes = () => {
+  monacoEditor.defineTheme('aura-light', {
+    base: 'vs',
+    inherit: true,
+    rules: [],
+    colors: { 'editor.background': getCssVar('--p-surface-0') ?? '#ffffff' },
+  })
+  monacoEditor.defineTheme('aura-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [],
+    colors: { 'editor.background': getCssVar('--p-surface-900') ?? '#171717' },
+  })
+}
+
+const monacoTheme = computed(() => (actualTheme.value === 'dark' ? 'aura-dark' : 'aura-light'))
+
+watch(monacoTheme, (theme) => {
+  editorInstance?.updateOptions({ theme })
+})
 const panelStore = useGeneratePanelStore()
 const { transform } = useDiagramStore()
 const diagramStore = useDiagramStore()
@@ -35,15 +60,15 @@ const code = ref()
 const toastMessage = (message: string, severity: 'error' | 'warn' | 'info' | 'success') =>
   toast.add({ severity, detail: message, life: 3000 })
 
-let editorInstance: MonacoEditor.IStandaloneCodeEditor | null = null
-let decorationsCollection: MonacoEditor.IEditorDecorationsCollection | null = null
+let editorInstance: monacoEditor.IStandaloneCodeEditor | null = null
+let decorationsCollection: monacoEditor.IEditorDecorationsCollection | null = null
 
 const highlightQuestionLines = () => {
   if (!editorInstance || !code.value) return
 
   const newDecorations = code.value
     .split('\n')
-    .reduce((acc: MonacoEditor.IModelDeltaDecoration[], line: string, i: number) => {
+    .reduce((acc: monacoEditor.IModelDeltaDecoration[], line: string, i: number) => {
       if (line.includes('?'))
         acc.push({
           range: new Range(i + 1, 1, i + 1, 1),
@@ -59,8 +84,10 @@ const highlightQuestionLines = () => {
   }
 }
 
-const handleEditorDidMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
+const handleEditorDidMount = (editor: monacoEditor.IStandaloneCodeEditor) => {
   editorInstance = editor
+  defineMonacoThemes()
+  editor.updateOptions({ theme: monacoTheme.value })
   highlightQuestionLines()
 }
 
@@ -150,7 +177,7 @@ const handleTransform = async (value: DiagramType) => {
     <CodeEditor
       v-model:value="code"
       language="sql"
-      theme="vs-white"
+      :theme="monacoTheme"
       :options="editorOptions"
       @editorDidMount="handleEditorDidMount"
     />
