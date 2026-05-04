@@ -12,6 +12,7 @@ import AddEntityDialog from '@/components/dialogs/AddEntityDialog.vue'
 import AddEntityToRelationshipDialog from '@/components/dialogs/AddEntityToRelationshipDialog.vue'
 import AddIsARelationshipDialog from '@/components/dialogs/AddIsARelationshipDialog.vue'
 import AddRelationshipDialog from '@/components/dialogs/AddRelationshipDialog.vue'
+import EditCardinalityDialog from '@/components/dialogs/EditCardinalityDialog.vue'
 import HelpDialog from '@/components/dialogs/HelpDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
@@ -210,6 +211,7 @@ const toggleDrawMenu = (event: Event) => {
         <GenerateSchemeDialog />
         <AddRelationshipDialog />
         <AddEntityToRelationshipDialog />
+        <EditCardinalityDialog />
         <AddIsARelationshipDialog />
         <AddDomainDialog />
       </template>

@@ -20,6 +20,7 @@ export const enum DialogId {
   EditIsARelationship,
   EditAttribute,
   EditDomain,
+  EditCardinality,
 }
 
 export const useDialogStore = defineStore('dialogs', () => {

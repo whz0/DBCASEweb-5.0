@@ -164,6 +164,22 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     }
   }
 
+  function updateParticipant(
+    relationshipId: string,
+    entityId: string,
+    data: { cardinalityMin: string; cardinalityMax: string; role: string },
+  ) {
+    saveHistory()
+    const relationship = relationships.value.find((r) => r.id === relationshipId)
+    if (!relationship) return
+    const participant = relationship.participants.find((p) => p.entityId === entityId)
+    if (participant) {
+      participant.cardinalityMin = data.cardinalityMin
+      participant.cardinalityMax = data.cardinalityMax
+      participant.role = data.role
+    }
+  }
+
   function isSelected(id: string) {
     return selectedElementIds.value.has(id)
   }
@@ -549,6 +565,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     deleteSelected,
     moveSelected,
     removeParticipantFromRelationship,
+    updateParticipant,
     updateEntityPosition,
     updateRelationshipPosition,
     addParticipantToRelationship,

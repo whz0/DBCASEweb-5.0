@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
+import { targetParticipantId } from '@/composables/useTargetParticipant'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import type { Relationship } from '@/types/er-diagram-elements'
 
@@ -85,18 +86,33 @@ const save = () => {
                 ({{ p.cardinalityMin }},{{ p.cardinalityMax }})
                 <span v-if="p.role" class="italic text-gray-400"> — {{ p.role }}</span>
               </span>
-              <Button
-                icon="bi bi-trash"
-                severity="danger"
-                text
-                size="small"
-                @click="
-                  erSchemaStore.removeParticipantFromRelationship(
-                    currentRelationship!.id,
-                    p.entityId,
-                  )
-                "
-              />
+              <div class="flex">
+                <Button
+                  icon="bi bi-pencil"
+                  severity="secondary"
+                  text
+                  size="small"
+                  @click="
+                    () => {
+                      erSchemaStore.selectElement(currentRelationship!.id)
+                      targetParticipantId = p.entityId
+                      dialogStore.open(DialogId.EditCardinality)
+                    }
+                  "
+                />
+                <Button
+                  icon="bi bi-trash"
+                  severity="danger"
+                  text
+                  size="small"
+                  @click="
+                    erSchemaStore.removeParticipantFromRelationship(
+                      currentRelationship!.id,
+                      p.entityId,
+                    )
+                  "
+                />
+              </div>
             </li>
           </ul>
           <span v-else class="text-sm text-gray-400">{{ t('relationship.noParticipants') }}</span>

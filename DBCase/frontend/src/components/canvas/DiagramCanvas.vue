@@ -441,6 +441,11 @@ const getContextMenuItems = () => {
         command: () => dialogStore.open(DialogId.AddEntityToRelationship),
       },
       {
+        label: t('relationship.editCardinality'),
+        icon: 'bi bi-123',
+        command: () => dialogStore.open(DialogId.EditCardinality),
+      },
+      {
         label: t('relationship.editRelationship'),
         icon: 'bi bi-pencil-square',
         command: () => dialogStore.open(editDialogId),
