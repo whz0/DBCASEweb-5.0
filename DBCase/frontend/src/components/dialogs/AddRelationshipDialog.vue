@@ -61,7 +61,6 @@ const save = () => {
           v-model="name"
           :placeholder="t('relationship.enterRelationshipName')"
           autofocus
-          @keyup.enter="save"
         />
 
         <template v-if="isEditMode">

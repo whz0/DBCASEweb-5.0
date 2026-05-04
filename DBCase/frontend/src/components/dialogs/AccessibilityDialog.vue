@@ -12,7 +12,7 @@ const dialogStore = useDialogStore()
 const authStore = useAuthStore()
 const { theme, setTheme } = useTheme()
 const { locale, t } = useI18n()
-const { cardinalityMode, setCardinalityMode } = useCardinalityMode()
+const { showArrow, showNumber, showMinMax, setArrow, setNumber, setMinMax } = useCardinalityMode()
 
 const themeOptions = computed(() => [
   { label: t('settings.light'), value: 'light', icon: 'bi bi-sun' },
@@ -23,12 +23,6 @@ const themeOptions = computed(() => [
 const languageOptions = computed(() => [
   { label: t('settings.english'), value: 'en' },
   { label: t('settings.spanish'), value: 'es' },
-])
-
-const cardinalityOptions = computed(() => [
-  { label: t('settings.cardinalityClassicNumber'), value: 'classic-number' },
-  { label: t('settings.cardinalityClassicArrow'), value: 'classic-arrow' },
-  { label: t('settings.cardinalityMinMax'), value: 'minmax' },
 ])
 
 const changeLanguage = (lang: string) => {
@@ -86,15 +80,40 @@ const closeModal = () => {
           </template>
         </Select>
       </div>
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col gap-2">
         <label>{{ t('settings.cardinalityNotation') }}</label>
-        <Select
-          :modelValue="cardinalityMode"
-          @update:modelValue="setCardinalityMode"
-          :options="cardinalityOptions"
-          optionLabel="label"
-          optionValue="value"
-        />
+        <div class="flex flex-col gap-2 pl-1">
+          <div class="flex items-center gap-2">
+            <Checkbox
+              :modelValue="showArrow"
+              :binary="true"
+              inputId="chkArrow"
+              :disabled="showArrow && !showNumber && !showMinMax"
+              @update:modelValue="setArrow"
+            />
+            <label for="chkArrow">{{ t('settings.cardinalityArrow') }}</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Checkbox
+              :modelValue="showNumber"
+              :binary="true"
+              inputId="chkNumber"
+              :disabled="showNumber && !showArrow && !showMinMax"
+              @update:modelValue="setNumber"
+            />
+            <label for="chkNumber">{{ t('settings.cardinalityNumber') }}</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Checkbox
+              :modelValue="showMinMax"
+              :binary="true"
+              inputId="chkMinMax"
+              :disabled="showMinMax && !showArrow && !showNumber"
+              @update:modelValue="setMinMax"
+            />
+            <label for="chkMinMax">{{ t('settings.cardinalityMinMax') }}</label>
+          </div>
+        </div>
       </div>
     </div>
   </Dialog>

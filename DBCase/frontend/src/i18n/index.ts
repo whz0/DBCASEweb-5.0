@@ -39,8 +39,8 @@ const messages = {
       english: 'English',
       spanish: 'Spanish',
       cardinalityNotation: 'Cardinality Notation',
-      cardinalityClassicNumber: 'Classic (number)',
-      cardinalityClassicArrow: 'Classic (arrow)',
+      cardinalityArrow: 'Arrow',
+      cardinalityNumber: 'Number',
       cardinalityMinMax: '(min, max)',
     },
     panels: {
@@ -286,8 +286,8 @@ const messages = {
       english: 'Inglés',
       spanish: 'Español',
       cardinalityNotation: 'Notación de Cardinalidad',
-      cardinalityClassicNumber: 'Clásica (número)',
-      cardinalityClassicArrow: 'Clásica (flecha)',
+      cardinalityArrow: 'Flecha',
+      cardinalityNumber: 'Número',
       cardinalityMinMax: '(min, max)',
     },
     panels: {

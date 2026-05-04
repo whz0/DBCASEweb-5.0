@@ -31,7 +31,7 @@ const defineMonacoThemes = () => {
     base: 'vs-dark',
     inherit: true,
     rules: [],
-    colors: { 'editor.background': getCssVar('--p-surface-900') ?? '#171717' },
+    colors: { 'editor.background': '#18181b' },
   })
 }
 

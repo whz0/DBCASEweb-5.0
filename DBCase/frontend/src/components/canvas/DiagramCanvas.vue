@@ -51,11 +51,7 @@
 
           <!-- Arrowhead at entity end for classic-arrow mode when cardMax === '1' -->
           <v-line
-            v-if="
-              !connection.isParent &&
-              cardinalityMode === 'classic-arrow' &&
-              connection.cardMax === '1'
-            "
+            v-if="!connection.isParent && showArrow && connection.cardMax === '1'"
             :config="{
               points: calculateArrowheadPoints(
                 connection.startX,
@@ -74,9 +70,9 @@
             }"
           />
 
-          <!-- Double line for Total Participation — only in classic modes -->
+          <!-- Double line for Total Participation — only when arrow or number mode active -->
           <v-line
-            v-if="connection.isTotal && cardinalityMode !== 'minmax'"
+            v-if="connection.isTotal && (showArrow || showNumber)"
             :config="{
               points: calculateParallelPoints(
                 connection.startX,
@@ -91,13 +87,25 @@
             }"
           />
 
-          <!-- Label: (min,max) in minmax mode; max only in classic-number; nothing in classic-arrow -->
+          <!-- Label above the line -->
           <v-text
-            v-if="connection.labelText"
+            v-if="connection.labelAbove"
             :config="{
-              text: connection.labelText,
+              text: connection.labelAbove,
               x: (connection.startX + connection.endX) / 2,
               y: (connection.startY + connection.endY) / 2 - 20,
+              fontSize: 14,
+              fill: strokeColor,
+              align: 'center',
+            }"
+          />
+          <!-- Label below the line (only when both modes active) -->
+          <v-text
+            v-if="connection.labelBelow"
+            :config="{
+              text: connection.labelBelow,
+              x: (connection.startX + connection.endX) / 2,
+              y: (connection.startY + connection.endY) / 2 + 8,
               fontSize: 14,
               fill: strokeColor,
               align: 'center',
@@ -193,7 +201,7 @@ import type { MenuItem } from 'primevue/menuitem'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { useCardinalityMode } from '@/composables/useCardinalityMode'
+import { showArrow, showMinMax, showNumber } from '@/composables/useCardinalityMode'
 import { useTheme } from '@/composables/useTheme'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
@@ -226,7 +234,6 @@ const erSchemaStore = useErSchemaStore()
 const dialogStore = useDialogStore()
 const { t } = useI18n()
 const { actualTheme } = useTheme()
-const { cardinalityMode } = useCardinalityMode()
 const strokeColor = computed(() => (actualTheme.value === 'dark' ? '#e5e7eb' : 'black'))
 
 const isDiagramEmpty = computed(() => {
@@ -582,7 +589,8 @@ interface RelationshipConnection {
   lineEndX: number
   lineEndY: number
   cardMax: string
-  labelText: string
+  labelAbove: string
+  labelBelow: string
   isTotal: boolean
   isParent: boolean
 }
@@ -620,14 +628,14 @@ const relationshipConnections = computed(() => {
           const maxCard = participant.cardinalityMax
           const isIsA = rel.type === 'IsA'
 
-          let labelText = ''
+          let labelAbove = ''
+          let labelBelow = ''
           if (!isIsA) {
-            if (cardinalityMode.value === 'minmax') {
-              labelText = `(${minCard},${maxCard})`
-            } else if (cardinalityMode.value === 'classic-number') {
-              labelText = maxCard
-            }
-            // classic-arrow: no label
+            const labels: string[] = []
+            if (showNumber.value) labels.push(maxCard)
+            if (showMinMax.value) labels.push(`(${minCard},${maxCard})`)
+            labelAbove = labels[0] ?? ''
+            labelBelow = labels[1] ?? ''
           }
 
           connections.push({
@@ -638,7 +646,7 @@ const relationshipConnections = computed(() => {
             endX: endPoint.x,
             endY: endPoint.y,
             lineEndX: (() => {
-              if (!isIsA && cardinalityMode.value === 'classic-arrow' && maxCard === '1') {
+              if (!isIsA && showArrow.value && maxCard === '1') {
                 const dx = endPoint.x - startPoint.x
                 const dy = endPoint.y - startPoint.y
                 const d = Math.sqrt(dx * dx + dy * dy)
@@ -647,7 +655,7 @@ const relationshipConnections = computed(() => {
               return endPoint.x
             })(),
             lineEndY: (() => {
-              if (!isIsA && cardinalityMode.value === 'classic-arrow' && maxCard === '1') {
+              if (!isIsA && showArrow.value && maxCard === '1') {
                 const dx = endPoint.x - startPoint.x
                 const dy = endPoint.y - startPoint.y
                 const d = Math.sqrt(dx * dx + dy * dy)
@@ -656,8 +664,13 @@ const relationshipConnections = computed(() => {
               return endPoint.y
             })(),
             cardMax: maxCard,
-            labelText,
-            isTotal: !isIsA && minCard !== '' && parseInt(minCard) >= 1,
+            labelAbove,
+            labelBelow,
+            isTotal:
+              !isIsA &&
+              (showArrow.value || showNumber.value) &&
+              minCard !== '' &&
+              parseInt(minCard) >= 1,
             isParent: isIsA && participant.role === 'Parent',
           })
         }

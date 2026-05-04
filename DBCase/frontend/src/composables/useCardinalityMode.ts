@@ -1,18 +1,38 @@
 import { ref } from 'vue'
 
-// 'classic-number': double/single line + max cardinality number
-// 'classic-arrow': double/single line + arrow pointing to "1" side
-// 'minmax': (min,max) notation only, no double lines
-export type CardinalityMode = 'classic-number' | 'classic-arrow' | 'minmax'
+const load = (key: string, def: boolean) =>
+  localStorage.getItem(key) !== null ? localStorage.getItem(key) === 'true' : def
 
-const saved = localStorage.getItem('cardinalityMode') as CardinalityMode | null
-const cardinalityMode = ref<CardinalityMode>(saved || 'classic-number')
+export const showArrow = ref(load('card.arrow', false))
+export const showNumber = ref(load('card.number', true))
+export const showMinMax = ref(load('card.minmax', false))
+
+function save(key: string, val: boolean) {
+  localStorage.setItem(key, String(val))
+}
+
+function atLeastOne(changing: typeof showArrow, val: boolean) {
+  if (!val && !showArrow.value && !showNumber.value && !showMinMax.value) return
+  if (
+    !val &&
+    [showArrow, showNumber, showMinMax].filter((r) => r !== changing).every((r) => !r.value)
+  )
+    return
+  changing.value = val
+}
 
 export function useCardinalityMode() {
-  const setCardinalityMode = (mode: CardinalityMode) => {
-    cardinalityMode.value = mode
-    localStorage.setItem('cardinalityMode', mode)
+  const setArrow = (v: boolean) => {
+    atLeastOne(showArrow, v)
+    save('card.arrow', showArrow.value)
   }
-
-  return { cardinalityMode, setCardinalityMode }
+  const setNumber = (v: boolean) => {
+    atLeastOne(showNumber, v)
+    save('card.number', showNumber.value)
+  }
+  const setMinMax = (v: boolean) => {
+    atLeastOne(showMinMax, v)
+    save('card.minmax', showMinMax.value)
+  }
+  return { showArrow, showNumber, showMinMax, setArrow, setNumber, setMinMax }
 }
