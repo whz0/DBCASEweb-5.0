@@ -3,9 +3,12 @@ package com.tfg.ucm.dbcase.service;
 import com.tfg.ucm.dbcase.model.User;
 import com.tfg.ucm.dbcase.model.UserSettings;
 import com.tfg.ucm.dbcase.repository.UserRepository;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,16 +21,23 @@ public class UserService {
         User user =
                 userRepository
                         .findByUsername(username)
-                        .map(existingUser -> updatePictureIfNeeded(existingUser, picture))
+                        .map(
+                                existingUser -> {
+                                    refreshExpiry(existingUser);
+                                    return updatePictureIfNeeded(existingUser, picture);
+                                })
                         .orElseGet(() -> createOauth2User(username, picture));
 
         return jwtService.generateToken(user.getUsername());
     }
 
     private User createOauth2User(String username, String picture) {
-        User user = new User();
-        user.setUsername(username);
-        user.setPictureUrl(picture);
+        final User user =
+                User.builder()
+                        .username(username)
+                        .pictureUrl(picture)
+                        .expiresAt(LocalDateTime.now().plusYears(1))
+                        .build();
         return userRepository.save(user);
     }
 
@@ -49,9 +59,12 @@ public class UserService {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("El usuario ya existe");
         }
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(password);
+        final User user =
+                User.builder()
+                        .username(username)
+                        .password(password)
+                        .expiresAt(LocalDateTime.now().plusYears(1L))
+                        .build();
         return userRepository.save(user);
     }
 
@@ -65,5 +78,22 @@ public class UserService {
         User user = getCurrentUser(username);
         user.setSettings(settings);
         return userRepository.save(user);
+    }
+
+    @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
+    public void purgeExpiredUsers() {
+        userRepository.deleteByExpiresAtBeforeAndExpiresAtIsNotNull(LocalDateTime.now());
+    }
+
+    public void refreshExpiryByUsername(String username) {
+        userRepository.findByUsername(username).ifPresent(this::refreshExpiry);
+    }
+
+    private void refreshExpiry(User user) {
+        if (user.getExpiresAt() != null) {
+            user.setExpiresAt(LocalDateTime.now().plusYears(1));
+            userRepository.save(user);
+        }
     }
 }

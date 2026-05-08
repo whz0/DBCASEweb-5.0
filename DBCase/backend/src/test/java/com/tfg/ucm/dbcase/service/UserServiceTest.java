@@ -2,16 +2,21 @@ package com.tfg.ucm.dbcase.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tfg.ucm.dbcase.model.User;
+import com.tfg.ucm.dbcase.model.UserSettings;
 import com.tfg.ucm.dbcase.repository.UserRepository;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -19,6 +24,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -125,5 +131,67 @@ class UserServiceTest {
         }
         verify(userRepository, times(1)).findByUsername(username);
         verify(userRepository, times(0)).save(any(User.class));
+    }
+
+    @ParameterizedTest
+    @MethodSource("usernameProvider")
+    void testGetCurrentUser_NotFound(String username) {
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+        assertThrows(UsernameNotFoundException.class, () -> userService.getCurrentUser(username));
+    }
+
+    @ParameterizedTest
+    @MethodSource("usernameProvider")
+    void testUpdateChart(String username) {
+        User user = User.builder().username(username).build();
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+        User result = userService.updateChart(username, "chart-data");
+
+        assertEquals("chart-data", result.getChart());
+        verify(userRepository).save(user);
+    }
+
+    @ParameterizedTest
+    @MethodSource("usernameProvider")
+    void testUpdateSettings(String username) {
+        User user = User.builder().username(username).build();
+        UserSettings settings = new UserSettings("en", "dark");
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+        User result = userService.updateSettings(username, settings);
+
+        assertEquals(settings, result.getSettings());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void testRefreshExpiryByUsername_WithExpiry() {
+        User user = User.builder().username("u").expiresAt(LocalDateTime.now().plusDays(1)).build();
+        when(userRepository.findByUsername("u")).thenReturn(Optional.of(user));
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        userService.refreshExpiryByUsername("u");
+
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void testRefreshExpiryByUsername_NullExpiry_DoesNotSave() {
+        User user = User.builder().username("u").expiresAt(null).build();
+        when(userRepository.findByUsername("u")).thenReturn(Optional.of(user));
+
+        userService.refreshExpiryByUsername("u");
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void testRefreshExpiryByUsername_UserNotFound_DoesNothing() {
+        when(userRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+        userService.refreshExpiryByUsername("ghost");
+        verify(userRepository, never()).save(any());
     }
 }

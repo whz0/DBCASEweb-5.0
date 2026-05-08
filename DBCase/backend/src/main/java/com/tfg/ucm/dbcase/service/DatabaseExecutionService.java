@@ -23,7 +23,7 @@ public class DatabaseExecutionService {
         }
     }
 
-    public void execute(ExecuteSqlRequest req) throws Exception {
+    public void execute(ExecuteSqlRequest req) throws SQLException {
         try (Connection conn =
                         DriverManager.getConnection(
                                 req.getUrl(), req.getUsername(), req.getPassword());

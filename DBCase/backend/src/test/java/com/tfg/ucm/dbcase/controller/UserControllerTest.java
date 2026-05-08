@@ -1,6 +1,8 @@
 package com.tfg.ucm.dbcase.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -13,6 +15,7 @@ import com.tfg.ucm.dbcase.config.RateLimitingFilter;
 import com.tfg.ucm.dbcase.config.SecurityConfig;
 import com.tfg.ucm.dbcase.dto.LoginRequest;
 import com.tfg.ucm.dbcase.model.User;
+import com.tfg.ucm.dbcase.model.UserSettings;
 import com.tfg.ucm.dbcase.service.AuthService;
 import com.tfg.ucm.dbcase.service.CookieService;
 import com.tfg.ucm.dbcase.service.JWTService;
@@ -137,5 +140,34 @@ class UserControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "user1")
+    void testSaveChart() throws Exception {
+        User user = User.builder().username("user1").chart("chart-data").build();
+        when(userService.updateChart(eq("user1"), anyString())).thenReturn(user);
+
+        mockMvc.perform(
+                        post("/api/user/chart")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("\"chart-data\""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.chart").value("chart-data"));
+    }
+
+    @Test
+    @WithMockUser(username = "user1")
+    void testSaveSettings() throws Exception {
+        UserSettings settings = new UserSettings("es", "dark");
+        User user = User.builder().username("user1").settings(settings).build();
+        when(userService.updateSettings(eq("user1"), any(UserSettings.class))).thenReturn(user);
+
+        mockMvc.perform(
+                        post("/api/user/settings")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(settings)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.settings.language").value("es"));
     }
 }

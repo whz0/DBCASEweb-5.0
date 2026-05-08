@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,4 +35,8 @@ public class User {
     private String pictureUrl;
 
     @Embedded private UserSettings settings;
+
+    /** Null means the account never expires (admin / seeded users). */
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 }

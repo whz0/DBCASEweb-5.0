@@ -3,8 +3,7 @@ package com.tfg.ucm.dbcase.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.tfg.ucm.dbcase.dto.LoginRequest;
 import org.junit.jupiter.api.Test;
@@ -24,6 +23,8 @@ class AuthServiceTest {
 
     @Mock private AuthenticationManager authManager;
 
+    @Mock private UserService userService;
+
     @InjectMocks private AuthService authService;
 
     @Test
@@ -41,6 +42,7 @@ class AuthServiceTest {
 
         // Assert
         assertEquals("mock-token", result);
+        verify(userService).refreshExpiryByUsername("user");
     }
 
     @Test

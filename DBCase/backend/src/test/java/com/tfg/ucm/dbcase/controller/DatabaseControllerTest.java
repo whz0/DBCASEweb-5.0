@@ -14,6 +14,7 @@ import com.tfg.ucm.dbcase.config.SecurityConfig;
 import com.tfg.ucm.dbcase.dto.ExecuteSqlRequest;
 import com.tfg.ucm.dbcase.dto.TestDatabaseRequest;
 import com.tfg.ucm.dbcase.service.DatabaseExecutionService;
+import java.sql.SQLException;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -80,7 +81,7 @@ class DatabaseControllerTest {
                         "postgresql", "jdbc:h2:mem:test", "sa", "", "CREATE TABLE T(id INT)");
 
         if (throws_) {
-            doThrow(new Exception(expectedBody)).when(databaseExecutionService).execute(any());
+            doThrow(new SQLException(expectedBody)).when(databaseExecutionService).execute(any());
         }
 
         mockMvc.perform(

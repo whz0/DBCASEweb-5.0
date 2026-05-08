@@ -14,6 +14,7 @@ public class AuthService {
 
     private final JWTService jwtService;
     private final AuthenticationManager authManager;
+    private final UserService userService;
 
     public String verify(final LoginRequest loginRequest) {
         final Authentication authentication =
@@ -22,6 +23,7 @@ public class AuthService {
                                 loginRequest.getUsername(), loginRequest.getPassword()));
 
         if (authentication.isAuthenticated()) {
+            userService.refreshExpiryByUsername(loginRequest.getUsername());
             return jwtService.generateToken(loginRequest.getUsername());
         }
 
