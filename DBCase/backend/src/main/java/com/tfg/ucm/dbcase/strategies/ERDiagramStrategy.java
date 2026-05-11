@@ -374,17 +374,23 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                         .filter(n -> n.getName().equals(fk.getReference()))
                                         .findFirst()
                                         .ifPresent(
-                                                ref ->
-                                                        buildOneOneRel(
-                                                                node,
-                                                                ref,
-                                                                fk,
-                                                                graph,
-                                                                visited,
-                                                                pos,
-                                                                relationships,
-                                                                entities,
-                                                                attributes));
+                                                ref -> {
+                                                    Node first =
+                                                            node.getName().compareTo(ref.getName())
+                                                                            <= 0
+                                                                    ? node
+                                                                    : ref;
+                                                    Node second = first == node ? ref : node;
+                                                    buildOneOneRel(
+                                                            first,
+                                                            second,
+                                                            graph,
+                                                            visited,
+                                                            pos,
+                                                            relationships,
+                                                            entities,
+                                                            attributes);
+                                                });
                             });
                 }
             } else {
@@ -603,7 +609,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
     private void buildOneOneRel(
             Node node,
             Node ref,
-            Node fk,
             Graph<Node, Edge> graph,
             Set<String> visited,
             Position pos,
@@ -615,11 +620,32 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             return;
         }
 
-        List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
+        String minNode =
+                Graphs.successorListOf(graph, node).stream()
+                                .filter(
+                                        a ->
+                                                a.isAttribute()
+                                                        && a.isFk()
+                                                        && a.isUnique()
+                                                        && ref.getName().equals(a.getReference()))
+                                .anyMatch(Node::isNotNull)
+                        ? "1"
+                        : "0";
+        String minRef =
+                Graphs.successorListOf(graph, ref).stream()
+                                .filter(
+                                        a ->
+                                                a.isAttribute()
+                                                        && a.isFk()
+                                                        && a.isUnique()
+                                                        && node.getName().equals(a.getReference()))
+                                .anyMatch(Node::isNotNull)
+                        ? "1"
+                        : "0";
 
-        String min = fk.isNotNull() ? "1" : "0";
-        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), "?", "1", ""));
-        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), min, "1", ""));
+        List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
+        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), minNode, "1", ""));
+        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), minRef, "1", ""));
 
         buildEntity(node, graph, visited, circlePos(pos, 0, 2, 150), entities, attributes);
         buildEntity(ref, graph, visited, circlePos(pos, 1, 2, 150), entities, attributes);
