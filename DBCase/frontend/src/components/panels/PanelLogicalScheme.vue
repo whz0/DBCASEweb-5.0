@@ -78,7 +78,7 @@ const toApiFormat = (html: string) => {
 const fromApiFormat = (text: string) => {
   return text
     .replace(/\n$/, '')
-    .replace(/__([^_]*)__/g, '<u>$1</u>')
+    .replace(/__(.+?)__/g, '<u>$1</u>')
     .replace(/\n/g, '<br>')
 }
 

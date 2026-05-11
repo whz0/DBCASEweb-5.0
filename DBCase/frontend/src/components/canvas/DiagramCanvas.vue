@@ -26,8 +26,8 @@
             v-if="connection.isParent"
             :config="{
               points: [connection.startX, connection.startY, connection.endX, connection.endY],
-              stroke: strokeColor,
-              fill: strokeColor,
+              stroke: connection.isInvalid ? '#ef4444' : strokeColor,
+              fill: connection.isInvalid ? '#ef4444' : strokeColor,
               strokeWidth: 1,
               pointerLength: 8,
               pointerWidth: 8,
@@ -43,7 +43,7 @@
                 connection.lineEndX,
                 connection.lineEndY,
               ],
-              stroke: strokeColor,
+              stroke: connection.isInvalid ? '#ef4444' : strokeColor,
               strokeWidth: 1,
               zIndex: -1,
             }"
@@ -63,8 +63,8 @@
                 2,
               ),
               closed: true,
-              fill: strokeColor,
-              stroke: strokeColor,
+              fill: connection.isInvalid ? '#ef4444' : strokeColor,
+              stroke: connection.isInvalid ? '#ef4444' : strokeColor,
               strokeWidth: 1,
               zIndex: -1,
             }"
@@ -81,7 +81,7 @@
                 connection.lineEndY,
                 4,
               ),
-              stroke: strokeColor,
+              stroke: connection.isInvalid ? '#ef4444' : strokeColor,
               strokeWidth: 1,
               zIndex: -1,
             }"
@@ -95,7 +95,7 @@
               x: (connection.startX + connection.endX) / 2,
               y: (connection.startY + connection.endY) / 2 - 20,
               fontSize: 14,
-              fill: strokeColor,
+              fill: connection.isInvalid ? '#ef4444' : strokeColor,
               align: 'center',
             }"
           />
@@ -107,7 +107,7 @@
               x: (connection.startX + connection.endX) / 2,
               y: (connection.startY + connection.endY) / 2 + 8,
               fontSize: 14,
-              fill: strokeColor,
+              fill: connection.isInvalid ? '#ef4444' : strokeColor,
               align: 'center',
             }"
           />
@@ -593,6 +593,7 @@ interface RelationshipConnection {
   labelBelow: string
   isTotal: boolean
   isParent: boolean
+  isInvalid: boolean
 }
 
 const relationshipConnections = computed(() => {
@@ -672,6 +673,7 @@ const relationshipConnections = computed(() => {
               minCard !== '' &&
               parseInt(minCard) >= 1,
             isParent: isIsA && participant.role === 'Parent',
+            isInvalid: minCard === '?' || maxCard === '?',
           })
         }
       }

@@ -58,52 +58,14 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         StringBuilder restrictions = new StringBuilder();
         StringBuilder lostRestrictions = new StringBuilder();
 
-        Set<String> visited = new HashSet<>();
         Set<String> usedRefs = new HashSet<>();
 
         for (Node node : allNodes) {
-            if (NodeClassifier.isNMRel(node, graph)) {
-                buildNMRel(node, graph, visited, relationships, restrictions, lostRestrictions);
-            } else if (NodeClassifier.isEntity(node, graph)) {
-                Set<Node> uniqueFks = NodeClassifier.hasUniqueFk(node, graph);
-                if (!uniqueFks.isEmpty()) {
-                    uniqueFks.forEach(
-                            fk -> {
-                                Node ref =
-                                        graph.vertexSet().stream()
-                                                .filter(n -> n.getName().equals(fk.getReference()))
-                                                .findFirst()
-                                                .orElse(null);
-                                if (ref != null) {
-                                    if (NodeClassifier.isTotalRel(node, ref, graph)) {
-                                        buildTotalRel(
-                                                node,
-                                                fk,
-                                                usedRefs,
-                                                graph,
-                                                visited,
-                                                relationships,
-                                                restrictions,
-                                                lostRestrictions);
-                                    } else {
-                                        buildPartialRel(
-                                                node,
-                                                fk,
-                                                usedRefs,
-                                                graph,
-                                                visited,
-                                                relationships,
-                                                restrictions,
-                                                lostRestrictions);
-                                    }
-                                }
-                            });
-                } else {
-                    buildPureEntity(node, graph, visited, relationships);
-                }
-            } else {
-                relationships.append(node.getName()).append(" ???\n");
-            }
+            relationships
+                    .append(node.getName())
+                    .append(" ( ")
+                    .append(buildEntry(node, graph, restrictions, lostRestrictions, usedRefs))
+                    .append(")\n");
         }
 
         return new LinkedHashMap<>(
@@ -113,53 +75,28 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                         "lossRestriction", lostRestrictions.toString()));
     }
 
-    private void buildNMRel(
+    private String buildEntry(
             Node node,
             Graph<Node, Edge> graph,
-            Set<String> visited,
-            StringBuilder relationship,
             StringBuilder restrictions,
-            StringBuilder lostRestriction) {
+            StringBuilder lostRestrictions,
+            Set<String> usedRefs) {
 
-        Graphs.successorListOf(graph, node).stream()
-                .filter(n -> n.isAttribute() && n.isFk())
-                .collect(Collectors.toSet())
-                .forEach(
-                        n -> {
-                            Node ref =
-                                    graph.vertexSet().stream()
-                                            .filter(r -> r.getName().equals(n.getReference()))
-                                            .findFirst()
-                                            .orElse(null);
-
-                            Node refAttr = Graphs.successorListOf(graph, n).getFirst();
-
-                            assert ref != null;
-                            restrictions
-                                    .append(node.getName())
-                                    .append(".")
-                                    .append(n.getName())
-                                    .append(" -> ")
-                                    .append(ref.getName())
-                                    .append(".")
-                                    .append(refAttr.getName())
-                                    .append("\n");
-                        });
-    }
-
-    private String buildEntry(
-            Node node, Graph<Node, Edge> graph, StringBuilder restrictions, boolean skipFk) {
         StringBuilder pks = new StringBuilder();
         StringBuilder others = new StringBuilder();
+
         for (Node attr : Graphs.successorListOf(graph, node)) {
             if (!attr.isAttribute()) {
                 continue;
             }
             if (attr.isFk()) {
-                if (skipFk) {
+                if (usedRefs.contains(attr.getReference())) {
+                    appendRestriction(attr, node, graph, lostRestrictions);
                     continue;
+                } else {
+                    usedRefs.add(node.getName());
+                    appendRestriction(attr, node, graph, restrictions);
                 }
-                appendRestriction(attr, node, graph, restrictions);
             }
             if (attr.isPk()) {
                 if (!pks.isEmpty()) {
@@ -177,12 +114,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
             return pks + ", " + others;
         }
         return pks.isEmpty() ? others.toString() : pks.toString();
-    }
-
-    private void appendRestrictions(Node node, Graph<Node, Edge> graph, StringBuilder target) {
-        Graphs.successorListOf(graph, node).stream()
-                .filter(a -> a.isAttribute() && a.isFk())
-                .forEach(attr -> appendRestriction(attr, node, graph, target));
     }
 
     private void appendRestriction(
@@ -262,87 +193,18 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
                             if (lost) {
                                 attrSrc.setUnique(true);
-                                Node unique =
-                                        Graphs.successorListOf(diagram, ref).stream()
-                                                .filter(
-                                                        a ->
-                                                                a.isAttribute()
-                                                                        && a.getReference()
-                                                                                .equals(srcName))
-                                                .findFirst()
-                                                .orElse(null);
-
-                                if (unique != null) {
-                                    unique.setUnique(true);
-                                }
+                                Graphs.successorListOf(diagram, ref).stream()
+                                        .filter(
+                                                a ->
+                                                        a.isAttribute()
+                                                                && a.getReference().equals(srcName))
+                                        .findFirst()
+                                        .ifPresent(unique -> unique.setUnique(true));
                             }
 
                             Auxiliary.addForeignAttr(attrSrc, src, refName, diagram);
                             Auxiliary.addPrimaryAttr(attrRef, ref, diagram);
                             Auxiliary.addEdge(attrSrc, attrRef, diagram);
                         });
-    }
-
-    private void buildTotalRel(
-            Node node,
-            Node fk,
-            Set<String> usedRefs,
-            Graph<Node, Edge> graph,
-            Set<String> visited,
-            StringBuilder relationship,
-            StringBuilder restrictions,
-            StringBuilder lostRestriction) {
-        if (!visited.contains(node.getUuid())) {
-            visited.add(node.getUuid());
-            boolean refAlreadyUsed = usedRefs.contains(fk.getReference());
-            if (!refAlreadyUsed) {
-                usedRefs.add(node.getName());
-            }
-            String entry;
-            if (refAlreadyUsed) {
-                appendRestrictions(node, graph, lostRestriction);
-                entry = buildEntry(node, graph, new StringBuilder(), true);
-            } else {
-                appendRestrictions(node, graph, restrictions);
-                entry = buildEntry(node, graph, new StringBuilder(), false);
-            }
-            relationship.append(node.getName()).append(" (").append(entry).append(")\n");
-        }
-    }
-
-    private void buildPartialRel(
-            Node node,
-            Node fk,
-            Set<String> usedRefs,
-            Graph<Node, Edge> graph,
-            Set<String> visited,
-            StringBuilder relationship,
-            StringBuilder restrictions,
-            StringBuilder lostRestriction) {
-        if (!visited.contains(node.getUuid())) {
-            visited.add(node.getUuid());
-            boolean refAlreadyUsed = usedRefs.contains(fk.getReference());
-            if (!refAlreadyUsed) {
-                usedRefs.add(node.getName());
-            }
-            String entry;
-            if (refAlreadyUsed) {
-                appendRestrictions(node, graph, lostRestriction);
-                entry = buildEntry(node, graph, new StringBuilder(), true);
-            } else {
-                entry = buildEntry(node, graph, restrictions, false);
-            }
-            relationship.append(node.getName()).append(" (").append(entry).append(")\n");
-        }
-    }
-
-    private void buildPureEntity(
-            Node node, Graph<Node, Edge> graph, Set<String> visited, StringBuilder relationship) {
-        if (!visited.contains(node.getUuid())) {
-            visited.add(node.getUuid());
-            StringBuilder dummy = new StringBuilder();
-            String entry = buildEntry(node, graph, dummy, false);
-            relationship.append(node.getName()).append(" (").append(entry).append(")\n");
-        }
     }
 }

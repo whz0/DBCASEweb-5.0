@@ -54,12 +54,12 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             }
         }
 
-        Set<Node> uniquesNotNull =
+        Set<Node> uniques =
                 result.vertexSet().stream()
-                        .filter(a -> a.isAttribute() && a.isFk() && a.isUnique() && a.isNotNull())
+                        .filter(a -> a.isAttribute() && a.isFk() && a.isUnique())
                         .collect(Collectors.toSet());
 
-        for (Node unique : uniquesNotNull) {
+        for (Node unique : uniques) {
             Node node = Graphs.predecessorListOf(result, unique).getFirst();
             Node pk =
                     Graphs.successorListOf(result, node).stream()
@@ -70,7 +70,9 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             if (pk != null) {
                 Node attr = getOrCreateAttr(pk.getName(), refNode, result);
                 attr.setUnique(true);
-                attr.setNotNull(true);
+                if (unique.isNotNull()) {
+                    attr.setNotNull(true);
+                }
                 addForeignAttr(attr, refNode, node.getName(), result);
                 addEdge(attr, pk, result);
             }

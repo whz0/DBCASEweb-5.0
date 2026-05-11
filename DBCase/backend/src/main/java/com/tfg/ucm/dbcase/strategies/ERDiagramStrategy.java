@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DirectedMultigraph;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -62,22 +61,21 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         }
 
         for (ErEntityDTO erEnt : input.entities()) {
-            Node entity = getOrCreateNode(erEnt.name(), graph);
-            processOwnAttributes(entity, erEnt.attributes(), attributeDTOMap, graph);
+            processOwnAttributes(erEnt, attributeDTOMap, graph);
         }
 
         for (ErRelationshipDTO erRel : input.relationships()) {
 
-            if (erRel.participants().size() == 2) {
+            if (erRel.participants().size() > 2) {
+                generateNAria(erRel, entityDTOMap, attributeDTOMap, graph);
+            } else if (erRel.participants().size() == 2) {
                 ErRelationshipParticipantDTO one = erRel.participants().get(0);
                 ErRelationshipParticipantDTO other = erRel.participants().get(1);
 
-                boolean isTotal =
-                        !one.cardinalityMin().equals("0") || !other.cardinalityMin().equals("0");
                 boolean isNM =
                         one.cardinalityMax().equalsIgnoreCase("n")
                                 && other.cardinalityMax().equalsIgnoreCase("n");
-                boolean is11 =
+                boolean isOneOne =
                         one.cardinalityMax().equals("1") && other.cardinalityMax().equals("1");
 
                 ErEntityDTO entityOne = entityDTOMap.get(one.entityId());
@@ -88,39 +86,20 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
                 if (isNM) {
                     generateNM(erRel, entityOne, entityOther, attributeDTOMap, graph);
+                } else if (isOneOne) {
+                    generateOneOne(one, other, entityOne, entityOther, attributeDTOMap, graph);
                 } else {
-                    if (isTotal) {
-                        if (is11) {
-                            generateTotal11(
-                                    erRel,
-                                    one,
-                                    other,
-                                    entityOne,
-                                    entityOther,
-                                    attributeDTOMap,
-                                    graph);
-                        } else {
-                            Pair<ErEntityDTO, ErEntityDTO> par =
-                                    distinctSides(one, other, entityDTOMap);
-                            generateTotal1N(
-                                    erRel,
-                                    one,
-                                    other,
-                                    par.getFirst(),
-                                    par.getSecond(),
-                                    attributeDTOMap,
-                                    graph);
-                        }
-                    } else {
-                        if (is11) {
-                            generatePartial11(entityOne, entityOther, attributeDTOMap, graph);
-                        } else {
-                            Pair<ErEntityDTO, ErEntityDTO> par =
-                                    distinctSides(one, other, entityDTOMap);
-                            generatePartial1N(
-                                    erRel, par.getFirst(), par.getSecond(), attributeDTOMap, graph);
-                        }
-                    }
+                    ErRelationshipParticipantDTO oneSide =
+                            one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
+                    ErRelationshipParticipantDTO nSide =
+                            !one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
+
+                    generateOneN(
+                            entityDTOMap.get(oneSide.entityId()),
+                            entityDTOMap.get(nSide.entityId()),
+                            nSide.cardinalityMin(),
+                            attributeDTOMap,
+                            graph);
                 }
             }
         }
@@ -132,17 +111,17 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         return Diagram.builder().diagram(graph).build();
     }
 
-    private Pair<ErEntityDTO, ErEntityDTO> distinctSides(
-            ErRelationshipParticipantDTO one,
-            ErRelationshipParticipantDTO other,
-            Map<String, ErEntityDTO> entities) {
-        ErRelationshipParticipantDTO oneSide =
-                one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
-        ErRelationshipParticipantDTO nSide =
-                !one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
-        ErEntityDTO oneSideEntity = entities.get(oneSide.entityId());
-        ErEntityDTO nSideEntity = entities.get(nSide.entityId());
-        return Pair.of(oneSideEntity, nSideEntity);
+    private void generateNAria(
+            ErRelationshipDTO rel,
+            Map<String, ErEntityDTO> entityMap,
+            Map<String, ErAttributeDTO> attrMap,
+            Graph<Node, Edge> graph) {
+        Node relNode = getOrCreateNode(rel.name(), graph);
+        for (ErRelationshipParticipantDTO participant : rel.participants()) {
+            ErEntityDTO entity = entityMap.get(participant.entityId());
+            addFkToRef(
+                    getPkName(entity, attrMap), relNode, entity.name(), true, false, false, graph);
+        }
     }
 
     private void generateNM(
@@ -168,41 +147,22 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 false,
                 false,
                 graph);
-        processOwnAttributes(relNode, rel.attributes(), attrMap, graph);
+        processAttributes(relNode, rel.attributes(), attrMap, graph);
     }
 
-    private void generateTotal1N(
-            ErRelationshipDTO rel,
-            ErRelationshipParticipantDTO oneParticipant,
-            ErRelationshipParticipantDTO nParticipant,
+    private void generateOneN(
             ErEntityDTO oneSide,
             ErEntityDTO nSide,
+            String minCard,
             Map<String, ErAttributeDTO> attrMap,
             Graph<Node, Edge> graph) {
         Node nNode = getOrCreateNode(nSide.name(), graph);
-        Node oneNode = getOrCreateNode(oneSide.name(), graph);
-        boolean nIsTotal = !nParticipant.cardinalityMin().equals("0");
+        boolean nIsTotal = !minCard.equals("0");
         addFkToRef(
                 getPkName(oneSide, attrMap), nNode, oneSide.name(), false, false, nIsTotal, graph);
-        processOwnAttributes(oneNode, rel.attributes(), attrMap, graph);
-        processOwnAttributes(nNode, rel.attributes(), attrMap, graph);
     }
 
-    private void generatePartial1N(
-            ErRelationshipDTO rel,
-            ErEntityDTO oneSide,
-            ErEntityDTO nSide,
-            Map<String, ErAttributeDTO> attrMap,
-            Graph<Node, Edge> graph) {
-        Node nNode = getOrCreateNode(nSide.name(), graph);
-        Node oneNode = getOrCreateNode(oneSide.name(), graph);
-        addFkToRef(getPkName(oneSide, attrMap), nNode, oneSide.name(), false, false, false, graph);
-        processOwnAttributes(nNode, rel.attributes(), attrMap, graph);
-        processOwnAttributes(oneNode, rel.attributes(), attrMap, graph);
-    }
-
-    private void generateTotal11(
-            ErRelationshipDTO rel,
+    private void generateOneOne(
             ErRelationshipParticipantDTO participantOne,
             ErRelationshipParticipantDTO participantOther,
             ErEntityDTO entityOne,
@@ -213,6 +173,24 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         boolean otherIsTotal = !participantOther.cardinalityMin().equals("0");
         Node nodeOne = getOrCreateNode(entityOne.name(), graph);
         Node nodeOther = getOrCreateNode(entityOther.name(), graph);
+        if (!oneIsTotal && !otherIsTotal) {
+            addFkToRef(
+                    getPkName(entityOther, attrMap),
+                    nodeOne,
+                    entityOther.name(),
+                    false,
+                    true,
+                    false,
+                    graph);
+            addFkToRef(
+                    getPkName(entityOne, attrMap),
+                    nodeOther,
+                    entityOne.name(),
+                    false,
+                    true,
+                    false,
+                    graph);
+        }
         if (oneIsTotal) {
             addFkToRef(
                     getPkName(entityOther, attrMap),
@@ -233,33 +211,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                     true,
                     graph);
         }
-    }
-
-    private void generatePartial11(
-            ErEntityDTO entityOne,
-            ErEntityDTO entityOther,
-            Map<String, ErAttributeDTO> attrMap,
-            Graph<Node, Edge> graph) {
-
-        Node nodeOne = getOrCreateNode(entityOne.name(), graph);
-        addFkToRef(
-                getPkName(entityOther, attrMap),
-                nodeOne,
-                entityOther.name(),
-                false,
-                true,
-                false,
-                graph);
-
-        Node nodeOther = getOrCreateNode(entityOther.name(), graph);
-        addFkToRef(
-                getPkName(entityOne, attrMap),
-                nodeOther,
-                entityOne.name(),
-                false,
-                true,
-                false,
-                graph);
     }
 
     private void generateSelfRel() {}
@@ -299,7 +250,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         addEdge(fkAttr, refAttr, graph);
     }
 
-    private void processOwnAttributes(
+    private void processAttributes(
             Node owner,
             List<String> attrIds,
             Map<String, ErAttributeDTO> attributeDTOMap,
@@ -331,6 +282,16 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         }
     }
 
+    private void processOwnAttributes(
+            ErEntityDTO entity,
+            Map<String, ErAttributeDTO> attributeDTOMap,
+            Graph<Node, Edge> graph) {
+
+        Node node = getOrCreateNode(entity.name(), graph);
+        processAttributes(node, entity.attributes(), attributeDTOMap, graph);
+        processAttributes(node, entity.primaryKeys(), attributeDTOMap, graph);
+    }
+
     @Override
     public Object transform(Diagram diagram) {
         Graph<Node, Edge> graph = diagram.getDiagram();
@@ -360,7 +321,21 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
 
             if (NodeClassifier.isNMRel(node, graph)) {
-                buildNMRel(node, graph, visited, pos, relationships, entities, attributes);
+                long distinctRefs =
+                        Graphs.successorListOf(graph, node).stream()
+                                .filter(
+                                        a ->
+                                                a.isAttribute()
+                                                        && a.isFk()
+                                                        && a.getReference() != null)
+                                .map(Node::getReference)
+                                .distinct()
+                                .count();
+                if (distinctRefs > 2) {
+                    buildNArias(node, graph, visited, pos, relationships, entities, attributes);
+                } else {
+                    buildNMRel(node, graph, visited, pos, relationships, entities, attributes);
+                }
             } else if (NodeClassifier.isEntity(node, graph)) {
                 Set<Node> uniqueFks = NodeClassifier.hasUniqueFk(node, graph);
                 Set<Node> plainFks =
@@ -437,7 +412,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             List<Node> ownAttrList =
                     Graphs.successorListOf(graph, node).stream()
                             .filter(n -> n.isAttribute() && !n.isFk())
-                            .collect(Collectors.toList());
+                            .toList();
             int attrTotal = ownAttrList.size();
             AtomicInteger attrIdx = new AtomicInteger(0);
             ownAttrList.forEach(
@@ -469,6 +444,67 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
             entities.add(new ErEntityDTO(node.getUuid(), node.getName(), pos, false, attrs, pks));
         }
+    }
+
+    private void buildNArias(
+            Node node,
+            Graph<Node, Edge> graph,
+            Set<String> visited,
+            Position pos,
+            List<ErRelationshipDTO> relationships,
+            List<ErEntityDTO> entities,
+            List<ErAttributeDTO> attributes) {
+
+        if (visited.contains(node.getUuid())) {
+            return;
+        }
+        visited.add(node.getUuid());
+
+        List<Node> ownAttrsList =
+                Graphs.neighborListOf(graph, node).stream()
+                        .filter(a -> a.isAttribute() && !a.isPk())
+                        .toList();
+        List<String> ownAttrsId = new ArrayList<>();
+        AtomicInteger ownIdx = new AtomicInteger(0);
+        ownAttrsList.forEach(
+                a -> {
+                    Position aPos =
+                            circlePos(pos, ownIdx.getAndIncrement(), ownAttrsList.size(), 100);
+                    attributes.add(
+                            new ErAttributeDTO(
+                                    a.getUuid(),
+                                    a.getName(),
+                                    aPos,
+                                    node.getUuid(),
+                                    a.isPk(),
+                                    false,
+                                    false,
+                                    a.isNotNull(),
+                                    a.isUnique(),
+                                    "String",
+                                    a.getDataType() != null ? a.getDataType().length() : 0,
+                                    List.of()));
+                    ownAttrsId.add(a.getUuid());
+                });
+
+        List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
+        Graphs.successorListOf(graph, node).stream()
+                .filter(a -> a.isAttribute() && a.isPk() && a.isFk())
+                .toList()
+                .forEach(
+                        attr ->
+                                buildParticipants(
+                                        attr,
+                                        graph,
+                                        visited,
+                                        pos,
+                                        participants,
+                                        entities,
+                                        attributes));
+
+        relationships.add(
+                new ErRelationshipDTO(
+                        node.getUuid(), node.getName(), pos, "String", participants, ownAttrsId));
     }
 
     private void buildNMRel(
@@ -556,7 +592,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         .orElse(null);
 
         if (entity != null) {
-            participants.add(new ErRelationshipParticipantDTO(entity.getUuid(), "0", "n", ""));
+            participants.add(new ErRelationshipParticipantDTO(entity.getUuid(), "?", "n", ""));
 
             int pIdx = participants.size() - 1;
             Position entityPos = circlePos(pos, pIdx, Math.max(participants.size(), 2), 150);
@@ -582,7 +618,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
 
         String min = fk.isNotNull() ? "1" : "0";
-        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), "0", "1", ""));
+        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), "?", "1", ""));
         participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), min, "1", ""));
 
         buildEntity(node, graph, visited, circlePos(pos, 0, 2, 150), entities, attributes);
@@ -613,7 +649,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         }
 
         List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
-        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), "0", "n", ""));
 
         String min =
                 Graphs.successorListOf(graph, node).stream()
@@ -626,8 +661,9 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                 .isEmpty()
                         ? "0"
                         : "1";
+        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), min, "n", ""));
 
-        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), min, "1", ""));
+        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), "?", "1", ""));
 
         buildEntity(node, graph, visited, circlePos(pos, 0, 2, 150), entities, attributes);
         buildEntity(ref, graph, visited, circlePos(pos, 1, 2, 150), entities, attributes);
