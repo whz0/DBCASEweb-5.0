@@ -2,7 +2,6 @@ package com.tfg.ucm.dbcase.strategies;
 
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jgrapht.Graph;
@@ -10,53 +9,21 @@ import org.jgrapht.Graphs;
 
 public class NodeClassifier {
 
-    public static NodeType classifyA(Node node, Graph<Node, Edge> graph) {
+    public static boolean isEntity(Node node, Graph<Node, Edge> graph) {
 
-        if (node.isAttribute()) {
-            return NodeType.ATTRIBUTE;
-        } else {
-            return classifyNonAttribute(node, graph);
-        }
+        return !Graphs.successorListOf(graph, node).stream()
+                .filter(attr -> attr.isAttribute() && attr.isPk() && !attr.isFk())
+                .collect(Collectors.toSet())
+                .isEmpty();
     }
 
-    public static NodeType classifyNonAttribute(Node node, Graph<Node, Edge> graph) {
-
-        if (isRelationship(node, graph)) {
-            return classifyRelationship(node, graph);
-        } else {
-            return classifyEntity(node, graph);
-        }
-    }
-
-    public static NodeType hasEdgesWithPk() {
-
-        return null;
-    }
-
-    public static NodeType hasEdgesWithFk() {
-
-        return null;
-    }
-
-    public static NodeType classifyRelationship(Node node, Graph<Node, Edge> graph) {
-        return NodeType.RELATIONSHIP;
-    }
-
-    public static NodeType classifyEntity(Node node, Graph<Node, Edge> graph) {
-        return NodeType.ENTITY;
-    }
-
-    public static boolean isRelationship(Node node, Graph<Node, Edge> graph) {
-        if (node.isAttribute()) {
-            return false;
-        }
-
+    public static boolean isNMRel(Node node, Graph<Node, Edge> graph) {
         Set<Node> fks =
-                Graphs.neighborSetOf(graph, node).stream()
+                Graphs.successorListOf(graph, node).stream()
                         .filter(Node::isFk)
                         .collect(Collectors.toSet());
         Set<Node> pks =
-                Graphs.neighborSetOf(graph, node).stream()
+                Graphs.successorListOf(graph, node).stream()
                         .filter(Node::isPk)
                         .collect(Collectors.toSet());
 
@@ -67,35 +34,37 @@ public class NodeClassifier {
         return fks.equals(pks);
     }
 
-    public static boolean isEntity(Node node, Graph<Node, Edge> graph) {
-        return !node.isAttribute() && !isRelationship(node, graph);
-    }
-
-    public static boolean isForeignKey(Node attr, Node owner) {
-        return attr.isAttribute()
-                && attr.isFk()
-                && attr.getReference() != null
-                && !attr.getReference().equals(owner.getName());
-    }
-
-    public static String getFkAttrName(Edge edge) {
-        String label = edge.getLabel();
-        if (label != null && label.startsWith("fk:")) {
-            return label.substring(label.lastIndexOf(':') + 1);
-        }
-        return null;
-    }
-
-    public static List<Edge> getFkEdges(Node rel, Graph<Node, Edge> graph) {
-        return graph.edgesOf(rel).stream()
+    public static Set<Node> hasUniqueFk(Node node, Graph<Node, Edge> graph) {
+        return Graphs.successorListOf(graph, node).stream()
                 .filter(
-                        e -> {
-                            Node other = Graphs.getOppositeVertex(graph, e, rel);
-                            return other.isAttribute()
-                                    && other.isFk()
-                                    && other.getReference() != null
-                                    && !other.getReference().equals(rel.getName());
-                        })
-                .toList();
+                        attr ->
+                                attr.isAttribute()
+                                        && attr.isFk()
+                                        && attr.isUnique()
+                                        && attr.getReference() != null)
+                .collect(Collectors.toSet());
+    }
+
+    public static boolean isTotalRel(Node node1, Node node2, Graph<Node, Edge> graph) {
+        return !Graphs.successorListOf(graph, node1).stream()
+                        .filter(
+                                attr ->
+                                        attr.isAttribute()
+                                                && attr.isFk()
+                                                && attr.isNotNull()
+                                                && attr.isUnique()
+                                                && attr.getReference().equals(node2.getName()))
+                        .collect(Collectors.toSet())
+                        .isEmpty()
+                && !Graphs.successorListOf(graph, node2).stream()
+                        .filter(
+                                attr ->
+                                        attr.isAttribute()
+                                                && attr.isFk()
+                                                && attr.isNotNull()
+                                                && attr.isUnique()
+                                                && attr.getReference().equals(node1.getName()))
+                        .collect(Collectors.toSet())
+                        .isEmpty();
     }
 }

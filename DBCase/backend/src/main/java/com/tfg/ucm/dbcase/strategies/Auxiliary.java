@@ -1,5 +1,6 @@
 package com.tfg.ucm.dbcase.strategies;
 
+import com.tfg.ucm.dbcase.dto.DataType;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
@@ -47,7 +48,7 @@ public class Auxiliary {
     static void addForeignAttr(Node attr, Node node, String ref, Graph<Node, Edge> diagram) {
 
         attr.setFk(true);
-        attr.setDataType(Domain.INTEGER);
+        attr.setDataType(DataType.of(Domain.INTEGER));
         attr.setReference(ref);
         addEdge(node, attr, diagram);
     }
@@ -55,7 +56,7 @@ public class Auxiliary {
     static void addPrimaryAttr(Node attr, Node node, Graph<Node, Edge> diagram) {
 
         attr.setPk(true);
-        attr.setDataType(Domain.INTEGER);
+        attr.setDataType(DataType.of(Domain.INTEGER));
         addEdge(node, attr, diagram);
     }
 

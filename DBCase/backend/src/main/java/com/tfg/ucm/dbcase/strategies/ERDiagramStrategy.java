@@ -6,25 +6,32 @@ import static com.tfg.ucm.dbcase.strategies.Auxiliary.addPrimaryAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateNode;
 
+import com.tfg.ucm.dbcase.dto.DataType;
 import com.tfg.ucm.dbcase.dto.Diagram;
+import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.erdiagram.ErAttributeDTO;
 import com.tfg.ucm.dbcase.dto.erdiagram.ErEntityDTO;
 import com.tfg.ucm.dbcase.dto.erdiagram.ErRelationshipDTO;
 import com.tfg.ucm.dbcase.dto.erdiagram.ErRelationshipParticipantDTO;
+import com.tfg.ucm.dbcase.dto.erdiagram.ErUndefinedDTO;
 import com.tfg.ucm.dbcase.dto.erdiagram.Position;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.ErInput;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DirectedMultigraph;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -43,111 +50,286 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
     @Override
     public Diagram generate(ErInput input) {
         Graph<Node, Edge> graph = new DirectedMultigraph<>(Edge.class);
-        Map<String, ErRelationshipDTO> relationshipDTOMap = new HashMap<>();
+
         Map<String, ErEntityDTO> entityDTOMap = new HashMap<>();
         Map<String, ErAttributeDTO> attributeDTOMap = new HashMap<>();
-
-        for (ErRelationshipDTO r : input.relationships()) {
-            relationshipDTOMap.put(r.id(), r);
-        }
 
         for (ErEntityDTO e : input.entities()) {
             entityDTOMap.put(e.id(), e);
         }
-
         for (ErAttributeDTO a : input.attributes()) {
             attributeDTOMap.put(a.id(), a);
         }
 
-        for (ErRelationshipDTO erRel : input.relationships()) {
-            Map<String, String> listN = new HashMap<>();
-            Map<String, String> listOne = new HashMap<>();
-            for (ErRelationshipParticipantDTO erPart : erRel.participants()) {
+        for (ErEntityDTO erEnt : input.entities()) {
+            Node entity = getOrCreateNode(erEnt.name(), graph);
+            processOwnAttributes(entity, erEnt.attributes(), attributeDTOMap, graph);
+        }
 
-                ErEntityDTO entity = entityDTOMap.get(erPart.entityId());
-                // Si el número de relaciones N es igual que el número de
-                // participantes entonces habrá que crear tabla intermedia
-                List<String> pkNames =
-                        entity.primaryKeys().stream()
-                                .map(
-                                        id ->
-                                                attributeDTOMap.containsKey(id)
-                                                        ? attributeDTOMap.get(id).name()
-                                                        : id)
-                                .toList();
-                if (erPart.cardinalityMax().equals("N")) {
-                    mapAttribute(listN, pkNames, entity.name());
+        for (ErRelationshipDTO erRel : input.relationships()) {
+
+            if (erRel.participants().size() == 2) {
+                ErRelationshipParticipantDTO one = erRel.participants().get(0);
+                ErRelationshipParticipantDTO other = erRel.participants().get(1);
+
+                boolean isTotal =
+                        !one.cardinalityMin().equals("0") || !other.cardinalityMin().equals("0");
+                boolean isNM =
+                        one.cardinalityMax().equalsIgnoreCase("n")
+                                && other.cardinalityMax().equalsIgnoreCase("n");
+                boolean is11 =
+                        one.cardinalityMax().equals("1") && other.cardinalityMax().equals("1");
+
+                ErEntityDTO entityOne = entityDTOMap.get(one.entityId());
+                ErEntityDTO entityOther = entityDTOMap.get(other.entityId());
+                if (entityOne == null || entityOther == null) {
+                    continue;
+                }
+
+                if (isNM) {
+                    generateNM(erRel, entityOne, entityOther, attributeDTOMap, graph);
                 } else {
-                    mapAttribute(listOne, pkNames, entity.name());
-                    for (String attrName : listOne.keySet()) {
-                        Node entityRef = getOrCreateNode(listOne.get(attrName), graph);
-                        Node attrRef = getOrCreateAttr(attrName, entityRef, graph);
-                        Node entitySrc = getOrCreateNode(entity.name(), graph);
-                        Node attrSrc = getOrCreateAttr(attrName, entitySrc, graph);
-                        addEdge(attrSrc, attrRef, graph);
+                    if (isTotal) {
+                        if (is11) {
+                            generateTotal11(
+                                    erRel,
+                                    one,
+                                    other,
+                                    entityOne,
+                                    entityOther,
+                                    attributeDTOMap,
+                                    graph);
+                        } else {
+                            Pair<ErEntityDTO, ErEntityDTO> par =
+                                    distinctSides(one, other, entityDTOMap);
+                            generateTotal1N(
+                                    erRel,
+                                    one,
+                                    other,
+                                    par.getFirst(),
+                                    par.getSecond(),
+                                    attributeDTOMap,
+                                    graph);
+                        }
+                    } else {
+                        if (is11) {
+                            generatePartial11(entityOne, entityOther, attributeDTOMap, graph);
+                        } else {
+                            Pair<ErEntityDTO, ErEntityDTO> par =
+                                    distinctSides(one, other, entityDTOMap);
+                            generatePartial1N(
+                                    erRel, par.getFirst(), par.getSecond(), attributeDTOMap, graph);
+                        }
                     }
                 }
-                processEntity(
-                        listOne, entityDTOMap.get(erPart.entityId()), input.attributes(), graph);
-            }
-            if (listN.size() == erRel.participants().size() || !erRel.attributes().isEmpty()) {
-                processRelationship(listN, erRel, input.attributes(), graph);
             }
         }
+
+        for (ErUndefinedDTO u : input.undefineds()) {
+            getOrCreateNode(u.name(), graph);
+        }
+
+        graph.edgeSet().forEach(System.out::print);
 
         return Diagram.builder().diagram(graph).build();
     }
 
-    private void mapAttribute(Map<String, String> map, List<String> pks, String entity) {
-        for (String pk : pks) {
-            map.put(pk, entity);
+    private Pair<ErEntityDTO, ErEntityDTO> distinctSides(
+            ErRelationshipParticipantDTO one,
+            ErRelationshipParticipantDTO other,
+            Map<String, ErEntityDTO> entities) {
+        ErRelationshipParticipantDTO oneSide =
+                one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
+        ErRelationshipParticipantDTO nSide =
+                !one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
+        ErEntityDTO oneSideEntity = entities.get(oneSide.entityId());
+        ErEntityDTO nSideEntity = entities.get(nSide.entityId());
+        return Pair.of(oneSideEntity, nSideEntity);
+    }
+
+    private void generateNM(
+            ErRelationshipDTO rel,
+            ErEntityDTO entityOne,
+            ErEntityDTO entityOther,
+            Map<String, ErAttributeDTO> attrMap,
+            Graph<Node, Edge> graph) {
+        Node relNode = getOrCreateNode(rel.name(), graph);
+        addFkToRef(
+                getPkName(entityOne, attrMap),
+                relNode,
+                entityOne.name(),
+                true,
+                false,
+                false,
+                graph);
+        addFkToRef(
+                getPkName(entityOther, attrMap),
+                relNode,
+                entityOther.name(),
+                true,
+                false,
+                false,
+                graph);
+        processOwnAttributes(relNode, rel.attributes(), attrMap, graph);
+    }
+
+    private void generateTotal1N(
+            ErRelationshipDTO rel,
+            ErRelationshipParticipantDTO oneParticipant,
+            ErRelationshipParticipantDTO nParticipant,
+            ErEntityDTO oneSide,
+            ErEntityDTO nSide,
+            Map<String, ErAttributeDTO> attrMap,
+            Graph<Node, Edge> graph) {
+        Node nNode = getOrCreateNode(nSide.name(), graph);
+        Node oneNode = getOrCreateNode(oneSide.name(), graph);
+        boolean nIsTotal = !nParticipant.cardinalityMin().equals("0");
+        addFkToRef(
+                getPkName(oneSide, attrMap), nNode, oneSide.name(), false, false, nIsTotal, graph);
+        processOwnAttributes(oneNode, rel.attributes(), attrMap, graph);
+        processOwnAttributes(nNode, rel.attributes(), attrMap, graph);
+    }
+
+    private void generatePartial1N(
+            ErRelationshipDTO rel,
+            ErEntityDTO oneSide,
+            ErEntityDTO nSide,
+            Map<String, ErAttributeDTO> attrMap,
+            Graph<Node, Edge> graph) {
+        Node nNode = getOrCreateNode(nSide.name(), graph);
+        Node oneNode = getOrCreateNode(oneSide.name(), graph);
+        addFkToRef(getPkName(oneSide, attrMap), nNode, oneSide.name(), false, false, false, graph);
+        processOwnAttributes(nNode, rel.attributes(), attrMap, graph);
+        processOwnAttributes(oneNode, rel.attributes(), attrMap, graph);
+    }
+
+    private void generateTotal11(
+            ErRelationshipDTO rel,
+            ErRelationshipParticipantDTO participantOne,
+            ErRelationshipParticipantDTO participantOther,
+            ErEntityDTO entityOne,
+            ErEntityDTO entityOther,
+            Map<String, ErAttributeDTO> attrMap,
+            Graph<Node, Edge> graph) {
+        boolean oneIsTotal = !participantOne.cardinalityMin().equals("0");
+        boolean otherIsTotal = !participantOther.cardinalityMin().equals("0");
+        Node nodeOne = getOrCreateNode(entityOne.name(), graph);
+        Node nodeOther = getOrCreateNode(entityOther.name(), graph);
+        if (oneIsTotal) {
+            addFkToRef(
+                    getPkName(entityOther, attrMap),
+                    nodeOne,
+                    entityOther.name(),
+                    false,
+                    true,
+                    true,
+                    graph);
+        }
+        if (otherIsTotal) {
+            addFkToRef(
+                    getPkName(entityOne, attrMap),
+                    nodeOther,
+                    entityOne.name(),
+                    false,
+                    true,
+                    true,
+                    graph);
         }
     }
 
-    private void processEntity(
-            Map<String, String> pks,
-            ErEntityDTO erEnt,
-            List<ErAttributeDTO> erAttributes,
+    private void generatePartial11(
+            ErEntityDTO entityOne,
+            ErEntityDTO entityOther,
+            Map<String, ErAttributeDTO> attrMap,
             Graph<Node, Edge> graph) {
-        processNode(
-                getOrCreateNode(erEnt.name(), graph), pks, erEnt.attributes(), erAttributes, graph);
+
+        Node nodeOne = getOrCreateNode(entityOne.name(), graph);
+        addFkToRef(
+                getPkName(entityOther, attrMap),
+                nodeOne,
+                entityOther.name(),
+                false,
+                true,
+                false,
+                graph);
+
+        Node nodeOther = getOrCreateNode(entityOther.name(), graph);
+        addFkToRef(
+                getPkName(entityOne, attrMap),
+                nodeOther,
+                entityOne.name(),
+                false,
+                true,
+                false,
+                graph);
     }
 
-    private void processRelationship(
-            Map<String, String> pks,
-            ErRelationshipDTO erRel,
-            List<ErAttributeDTO> erAttributes,
-            Graph<Node, Edge> graph) {
-        processNode(
-                getOrCreateNode(erRel.name(), graph), pks, erRel.attributes(), erAttributes, graph);
+    private void generateSelfRel() {}
+
+    private String getPkName(ErEntityDTO entity, Map<String, ErAttributeDTO> attrMap) {
+        if (entity.primaryKeys().isEmpty()) {
+            return entity.name().toLowerCase() + "Id";
+        }
+        String pkId = entity.primaryKeys().getFirst();
+        ErAttributeDTO pkAttr = attrMap.get(pkId);
+        return pkAttr != null ? pkAttr.name() : pkId;
     }
 
-    private void processNode(
-            Node node,
-            Map<String, String> pks,
+    private void addFkToRef(
+            String attrName,
+            Node owner,
+            String refEntityName,
+            boolean isPk,
+            boolean isUnique,
+            boolean isNotNull,
+            Graph<Node, Edge> graph) {
+        Node refEntity = getOrCreateNode(refEntityName, graph);
+        Node refAttr = getOrCreateAttr(attrName, refEntity, graph);
+        addPrimaryAttr(refAttr, refEntity, graph);
+
+        Node fkAttr = getOrCreateAttr(attrName, owner, graph);
+        addForeignAttr(fkAttr, owner, refEntityName, graph);
+        if (isPk) {
+            fkAttr.setPk(true);
+        }
+        if (isUnique) {
+            fkAttr.setUnique(true);
+        }
+        if (isNotNull) {
+            fkAttr.setNotNull(true);
+        }
+        addEdge(fkAttr, refAttr, graph);
+    }
+
+    private void processOwnAttributes(
+            Node owner,
             List<String> attrIds,
-            List<ErAttributeDTO> erAttributes,
+            Map<String, ErAttributeDTO> attributeDTOMap,
             Graph<Node, Edge> graph) {
-
-        for (String pk : pks.keySet()) {
-            Node primaryKey = getOrCreateAttr(pk, node, graph);
-            addForeignAttr(primaryKey, node, pks.get(pk), graph);
-            primaryKey.setPk(true);
-        }
-
         for (String attrId : attrIds) {
-            erAttributes.stream()
-                    .filter(a -> a.id().equals(attrId))
-                    .findFirst()
-                    .ifPresent(
-                            erAttr -> {
-                                Node attr = getOrCreateAttr(erAttr.name(), node, graph);
-                                if (erAttr.isKey()) {
-                                    addPrimaryAttr(attr, node, graph);
-                                } else {
-                                    addEdge(node, attr, graph);
-                                }
-                            });
+            ErAttributeDTO erAttr = attributeDTOMap.get(attrId);
+            if (erAttr == null) {
+                continue;
+            }
+            Node attr = getOrCreateAttr(erAttr.name(), owner, graph);
+            attr.setNotNull(erAttr.isNotNull());
+            attr.setUnique(erAttr.isUnique());
+            Domain domain = null;
+            try {
+                domain = Domain.valueOf(erAttr.domainId().toUpperCase());
+            } catch (Exception ignored) {
+            }
+            if (domain != null) {
+                attr.setDataType(
+                        erAttr.size() > 0
+                                ? DataType.of(domain, erAttr.size())
+                                : DataType.of(domain));
+            }
+            if (erAttr.isKey()) {
+                addPrimaryAttr(attr, owner, graph);
+            } else {
+                addEdge(owner, attr, graph);
+            }
         }
     }
 
@@ -158,116 +340,316 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         List<ErEntityDTO> entities = new ArrayList<>();
         List<ErRelationshipDTO> relationships = new ArrayList<>();
         List<ErAttributeDTO> attributes = new ArrayList<>();
+        List<ErUndefinedDTO> undefineds = new ArrayList<>();
 
         Set<Node> nodes =
                 graph.vertexSet().stream()
                         .filter(n -> !n.isAttribute())
                         .collect(Collectors.toSet());
 
-        HashMap<String, Node> mapByName = new HashMap<>();
-        nodes.forEach(n -> mapByName.put(n.getName(), n));
+        Set<String> visited = new HashSet<>();
 
-        Set<Node> relationshipNodes =
-                nodes.stream()
-                        .filter((n) -> NodeClassifier.isRelationship(n, graph))
-                        .collect(Collectors.toSet());
+        int total = nodes.size();
+        int idx = 0;
+        for (Node node : nodes) {
+            Position pos = circlePos(new Position(0, 0), idx++, total, Math.max(150, total * 150));
+            List<Node> ownAttrs =
+                    Graphs.successorListOf(graph, node).stream().filter(Node::isAttribute).toList();
 
-        int i = 10, j = 10;
-        for (Node rel : relationshipNodes) {
-            Position pos = new Position(i += 10, j += 10);
-            buildRelationship(rel, pos, graph, mapByName, relationships, entities, attributes);
+            if (ownAttrs.isEmpty()) {
+                undefineds.add(new ErUndefinedDTO(node.getUuid(), node.getName(), pos, List.of()));
+                continue;
+            }
+
+            if (NodeClassifier.isNMRel(node, graph)) {
+                buildNMRel(node, graph, visited, pos, relationships, entities, attributes);
+            } else if (NodeClassifier.isEntity(node, graph)) {
+                Set<Node> uniqueFks = NodeClassifier.hasUniqueFk(node, graph);
+                Set<Node> plainFks =
+                        Graphs.successorListOf(graph, node).stream()
+                                .filter(
+                                        a ->
+                                                a.isAttribute()
+                                                        && a.isFk()
+                                                        && !a.isUnique()
+                                                        && !a.isPk())
+                                .collect(Collectors.toSet());
+                if (uniqueFks.isEmpty() && plainFks.isEmpty()) {
+                    buildEntity(node, graph, visited, pos, entities, attributes);
+                } else if (uniqueFks.isEmpty()) {
+                    plainFks.forEach(
+                            fk -> {
+                                graph.vertexSet().stream()
+                                        .filter(n -> n.getName().equals(fk.getReference()))
+                                        .findFirst()
+                                        .ifPresent(
+                                                ref ->
+                                                        buildOneNRel(
+                                                                node,
+                                                                ref,
+                                                                graph,
+                                                                visited,
+                                                                pos,
+                                                                relationships,
+                                                                entities,
+                                                                attributes));
+                            });
+                } else {
+                    uniqueFks.forEach(
+                            fk -> {
+                                graph.vertexSet().stream()
+                                        .filter(n -> n.getName().equals(fk.getReference()))
+                                        .findFirst()
+                                        .ifPresent(
+                                                ref ->
+                                                        buildOneOneRel(
+                                                                node,
+                                                                ref,
+                                                                fk,
+                                                                graph,
+                                                                visited,
+                                                                pos,
+                                                                relationships,
+                                                                entities,
+                                                                attributes));
+                            });
+                }
+            } else {
+                undefineds.add(new ErUndefinedDTO(node.getUuid(), node.getName(), pos, List.of()));
+            }
         }
 
-        for (Node remaining : mapByName.values()) {
-            Position pos = new Position(i += 10, j += 10);
-            buildEntity(remaining, pos, graph, mapByName, entities, relationships, attributes);
-        }
-
-        return new ErInput(entities, relationships, attributes, List.of(), List.of());
+        return new ErInput(entities, relationships, attributes, List.of(), undefineds);
     }
 
     private void buildEntity(
             Node node,
-            Position pos,
             Graph<Node, Edge> graph,
-            Map<String, Node> mapByName,
+            Set<String> visited,
+            Position pos,
             List<ErEntityDTO> entities,
-            List<ErRelationshipDTO> relationships,
             List<ErAttributeDTO> attributes) {
 
-        Set<Node> attrs = Graphs.neighborSetOf(graph, node);
+        if (!visited.contains(node.getUuid())) {
+            visited.add(node.getUuid());
 
-        Position around = pos;
-        List<String> ownAttributes = new ArrayList<>();
-        List<String> ownPks = new ArrayList<>();
-        for (Node attr : attrs) {
-            addingAttribute(node, attr, around, attributes, ownAttributes, ownPks);
+            List<String> attrs = new ArrayList<>();
+            List<String> pks = new ArrayList<>();
+
+            List<Node> ownAttrList =
+                    Graphs.successorListOf(graph, node).stream()
+                            .filter(n -> n.isAttribute() && !n.isFk())
+                            .collect(Collectors.toList());
+            int attrTotal = ownAttrList.size();
+            AtomicInteger attrIdx = new AtomicInteger(0);
+            ownAttrList.forEach(
+                    attr -> {
+                        Position attrPos =
+                                circlePos(pos, attrIdx.getAndIncrement(), attrTotal, 100);
+                        attributes.add(
+                                new ErAttributeDTO(
+                                        attr.getUuid(),
+                                        attr.getName(),
+                                        attrPos,
+                                        node.getUuid(),
+                                        attr.isPk(),
+                                        false,
+                                        false,
+                                        attr.isNotNull(),
+                                        attr.isUnique(),
+                                        "String",
+                                        attr.getDataType() != null
+                                                ? attr.getDataType().length()
+                                                : 0,
+                                        List.of()));
+                        if (attr.isPk()) {
+                            pks.add(attr.getUuid());
+                        } else {
+                            attrs.add(attr.getUuid());
+                        }
+                    });
+
+            entities.add(new ErEntityDTO(node.getUuid(), node.getName(), pos, false, attrs, pks));
         }
-        entities.add(
-                new ErEntityDTO(node.getUuid(), node.getName(), pos, false, ownAttributes, ownPks));
     }
 
-    private void buildRelationship(
+    private void buildNMRel(
             Node node,
-            Position pos,
             Graph<Node, Edge> graph,
-            Map<String, Node> mapByName,
+            Set<String> visited,
+            Position pos,
             List<ErRelationshipDTO> relationships,
             List<ErEntityDTO> entities,
             List<ErAttributeDTO> attributes) {
 
-        if (mapByName.containsKey(node.getName())) {
-            mapByName.remove(node.getName());
+        if (!visited.contains(node.getUuid())) {
+            visited.add(node.getUuid());
 
-            List<Node> nodes = Graphs.neighborListOf(graph, node);
+            List<String> ownAttrsId = new ArrayList<>();
+            Set<Node> ownAttrs =
+                    Graphs.neighborListOf(graph, node).stream()
+                            .filter(attr -> attr.isAttribute() && !attr.isPk())
+                            .collect(Collectors.toSet());
+
+            List<Node> ownAttrsList = new ArrayList<>(ownAttrs);
+            int nmAttrTotal = ownAttrsList.size();
+            AtomicInteger nmAttrIdx = new AtomicInteger(0);
+            ownAttrsList.forEach(
+                    a -> {
+                        Position aPos =
+                                circlePos(pos, nmAttrIdx.getAndIncrement(), nmAttrTotal, 100);
+                        attributes.add(
+                                new ErAttributeDTO(
+                                        a.getUuid(),
+                                        a.getName(),
+                                        aPos,
+                                        node.getUuid(),
+                                        a.isPk(),
+                                        false,
+                                        false,
+                                        a.isNotNull(),
+                                        a.isUnique(),
+                                        "String",
+                                        a.getDataType() != null ? a.getDataType().length() : 0,
+                                        List.of()));
+
+                        ownAttrsId.add(a.getUuid());
+                    });
+
             List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
-            List<String> ownAttrs = new ArrayList<>();
 
-            for (Node n : nodes) {
-                if (n.isFk()) {
-                    Node ref = mapByName.get(n.getReference());
-                    pos = new Position(pos.x() + 10, pos.y() + 10);
-                    if (n.isAttribute()) {
-                        addingAttribute(node, n, pos, attributes, ownAttrs, List.of());
-                    } else if (NodeClassifier.isRelationship(ref, graph)) {
-                        buildRelationship(
-                                n, pos, graph, mapByName, relationships, entities, attributes);
-                    } else {
-                        buildEntity(n, pos, graph, mapByName, entities, relationships, attributes);
-                    }
-                }
-            }
+            Graphs.successorListOf(graph, node).stream()
+                    .filter(Node::isPk)
+                    .collect(Collectors.toSet())
+                    .forEach(
+                            attr ->
+                                    buildParticipants(
+                                            attr,
+                                            graph,
+                                            visited,
+                                            pos,
+                                            participants,
+                                            entities,
+                                            attributes));
+
             relationships.add(
                     new ErRelationshipDTO(
-                            node.getUuid(), node.getName(), pos, "String", participants, ownAttrs));
+                            node.getUuid(),
+                            node.getName(),
+                            pos,
+                            "String",
+                            participants,
+                            ownAttrsId));
         }
     }
 
-    private void addingAttribute(
+    private void buildParticipants(
             Node node,
-            Node attr,
+            Graph<Node, Edge> graph,
+            Set<String> visited,
             Position pos,
-            List<ErAttributeDTO> attributes,
-            List<String> ownAttributes,
-            List<String> ownPks) {
-        attributes.add(
-                new ErAttributeDTO(
-                        attr.getUuid(),
-                        attr.getName(),
-                        pos,
-                        node.getUuid(),
-                        attr.isPk(),
-                        false,
-                        false,
-                        attr.isNotNull(),
-                        attr.isUnique(),
-                        "String",
-                        10,
-                        List.of()));
-        if (attr.isPk()) {
-            ownPks.add(attr.getUuid());
-        } else {
-            ownAttributes.add(attr.getUuid());
+            List<ErRelationshipParticipantDTO> participants,
+            List<ErEntityDTO> entities,
+            List<ErAttributeDTO> attributes) {
+        Node entity =
+                graph.vertexSet().stream()
+                        .filter(n -> n.getName().equals(node.getReference()))
+                        .findFirst()
+                        .orElse(null);
+
+        if (entity != null) {
+            participants.add(new ErRelationshipParticipantDTO(entity.getUuid(), "0", "n", ""));
+
+            int pIdx = participants.size() - 1;
+            Position entityPos = circlePos(pos, pIdx, Math.max(participants.size(), 2), 150);
+            buildEntity(entity, graph, visited, entityPos, entities, attributes);
         }
+    }
+
+    private void buildOneOneRel(
+            Node node,
+            Node ref,
+            Node fk,
+            Graph<Node, Edge> graph,
+            Set<String> visited,
+            Position pos,
+            List<ErRelationshipDTO> relationships,
+            List<ErEntityDTO> entities,
+            List<ErAttributeDTO> attributes) {
+
+        if (visited.contains(node.getUuid()) && visited.contains(ref.getUuid())) {
+            return;
+        }
+
+        List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
+
+        String min = fk.isNotNull() ? "1" : "0";
+        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), "0", "1", ""));
+        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), min, "1", ""));
+
+        buildEntity(node, graph, visited, circlePos(pos, 0, 2, 150), entities, attributes);
+        buildEntity(ref, graph, visited, circlePos(pos, 1, 2, 150), entities, attributes);
+
+        relationships.add(
+                new ErRelationshipDTO(
+                        UUID.randomUUID().toString(),
+                        node.getName() + ref.getName(),
+                        pos,
+                        "String",
+                        participants,
+                        List.of()));
+    }
+
+    private void buildOneNRel(
+            Node node,
+            Node ref,
+            Graph<Node, Edge> graph,
+            Set<String> visited,
+            Position pos,
+            List<ErRelationshipDTO> relationships,
+            List<ErEntityDTO> entities,
+            List<ErAttributeDTO> attributes) {
+
+        if (visited.contains(node.getUuid()) && visited.contains(ref.getUuid())) {
+            return;
+        }
+
+        List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
+        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), "0", "n", ""));
+
+        String min =
+                Graphs.successorListOf(graph, node).stream()
+                                .filter(
+                                        a ->
+                                                a.getReference() != null
+                                                        && a.getReference().equals(ref.getName())
+                                                        && a.isNotNull())
+                                .collect(Collectors.toSet())
+                                .isEmpty()
+                        ? "0"
+                        : "1";
+
+        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), min, "1", ""));
+
+        buildEntity(node, graph, visited, circlePos(pos, 0, 2, 150), entities, attributes);
+        buildEntity(ref, graph, visited, circlePos(pos, 1, 2, 150), entities, attributes);
+
+        relationships.add(
+                new ErRelationshipDTO(
+                        UUID.randomUUID().toString(),
+                        node.getName() + ref.getName(),
+                        pos,
+                        "String",
+                        participants,
+                        List.of()));
+    }
+
+    private Position circlePos(Position center, int index, int total, double radius) {
+        if (total == 0) {
+            return center;
+        }
+        double angle = Math.PI * index / total;
+        return new Position(
+                center.x() + radius * Math.cos(angle), center.y() + radius * Math.sin(angle));
     }
 }

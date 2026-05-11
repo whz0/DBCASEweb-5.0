@@ -10,10 +10,12 @@ const props = defineProps<{
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const editable = ref<HTMLElement>()
+const isEditing = ref(false)
 
 watch(
   () => props.modelValue,
   (val) => {
+    if (isEditing.value) return
     nextTick(() => {
       if (editable.value && editable.value.innerHTML !== (val ?? ''))
         editable.value.innerHTML = val ?? ''
@@ -52,6 +54,8 @@ const onContextMenu = (e: MouseEvent) => {
       contenteditable="true"
       class="w-full h-full outline-none p-1"
       @contextmenu.prevent="onContextMenu($event)"
+      @focus="isEditing = true"
+      @blur="isEditing = false"
       @input="(e) => emit('update:modelValue', (e.target as HTMLElement).innerHTML)"
     />
   </ScrollPanel>

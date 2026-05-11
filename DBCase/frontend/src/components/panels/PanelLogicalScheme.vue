@@ -27,35 +27,59 @@ watch(
   () => diagramStore.logicalResult,
   (value) => {
     if (!value) return
-    if (relationship.value !== (value.relationship ?? ''))
-      relationship.value = fromApiFormat(value.relationship ?? '')
-    if (restriction.value !== (value.restriction ?? ''))
-      restriction.value = fromApiFormat(value.restriction ?? '')
-    if (lostRestriction.value !== (value.lostRestriction ?? ''))
-      lostRestriction.value = fromApiFormat(value.lostRestriction ?? '')
+    const newRel = fromApiFormat(value.relationship ?? '')
+    const newRes = fromApiFormat(value.restriction ?? '')
+    const newLost = fromApiFormat(value.lossRestriction ?? '')
+    if (relationship.value !== newRel) relationship.value = newRel
+    if (restriction.value !== newRes) restriction.value = newRes
+    if (lostRestriction.value !== newLost) lostRestriction.value = newLost
   },
 )
 
-watch([relationship, restriction, lostRestriction], () => {
-  diagramStore.logicalResult = {
-    relationship: toApiFormat(relationship.value),
-    restriction: toApiFormat(restriction.value),
-    lossRestriction: toApiFormat(lostRestriction.value),
+watch([relationship, restriction, lostRestriction], ([rel, res, lost]) => {
+  const next = {
+    relationship: toApiFormat(rel),
+    restriction: toApiFormat(res),
+    lossRestriction: toApiFormat(lost),
   }
+  const cur = diagramStore.logicalResult
+  if (
+    cur?.relationship === next.relationship &&
+    cur?.restriction === next.restriction &&
+    cur?.lossRestriction === next.lossRestriction
+  )
+    return
+  diagramStore.logicalResult = next
 })
 
 const showTransform = ref(false)
 
+const decodeHtmlEntities = (str: string) => {
+  const txt = document.createElement('textarea')
+  txt.innerHTML = str
+  return txt.value
+}
+
 const toApiFormat = (html: string) => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/div>/gi, '\n')
-    .replace(/<u>(.*?)<\/u>/gi, '__$1__')
-    .replace(/<[^>]+>/g, '')
+  return (
+    html
+      .replace(/<u>(.*?)<\/u>/gi, '__$1__')
+      .replace(/<div>/gi, '\n')
+      .replace(/<\/div>/gi, '')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\n+$/, '')
+      .split('\n')
+      .map(decodeHtmlEntities)
+      .join('\n') + '\n'
+  )
 }
 
 const fromApiFormat = (text: string) => {
-  return text.replace(/__([^_]*)__/g, '<u>$1</u>').replace(/\n/g, '<br>')
+  return text
+    .replace(/\n$/, '')
+    .replace(/__([^_]*)__/g, '<u>$1</u>')
+    .replace(/\n/g, '<br>')
 }
 
 const handleTransform = async (value: DiagramType) => {

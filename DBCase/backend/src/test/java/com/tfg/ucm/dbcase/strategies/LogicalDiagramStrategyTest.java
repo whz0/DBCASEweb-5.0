@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.tfg.ucm.dbcase.dto.DataType;
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
@@ -40,7 +41,7 @@ class LogicalDiagramStrategyTest {
                         .isAttribute(true)
                         .isUnique(true)
                         .isNotNull(true)
-                        .dataType(Domain.VARCHAR)
+                        .dataType(DataType.of(Domain.VARCHAR))
                         .build();
 
         graph.addVertex(attribute1);
@@ -62,7 +63,7 @@ class LogicalDiagramStrategyTest {
                         .name("e")
                         .isAttribute(true)
                         .isPk(true)
-                        .dataType(Domain.INTEGER)
+                        .dataType(DataType.of(Domain.INTEGER))
                         .reference("A")
                         .build();
         Node attribute4 = Node.builder().name("f").isAttribute(true).build();
@@ -182,7 +183,7 @@ class LogicalDiagramStrategyTest {
                         .findFirst()
                         .orElseThrow();
 
-        assertEquals(Domain.INTEGER, pk.getDataType());
+        assertEquals(Domain.INTEGER, pk.getDataType().domain());
     }
 
     @Test

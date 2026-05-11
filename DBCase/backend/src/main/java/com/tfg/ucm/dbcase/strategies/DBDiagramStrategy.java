@@ -6,12 +6,14 @@ import static com.tfg.ucm.dbcase.strategies.Auxiliary.addPrimaryAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateNode;
 
+import com.tfg.ucm.dbcase.dto.DataType;
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.PhysicalInput;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,6 +52,28 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             }
         }
 
+        Set<Node> uniquesNotNull =
+                result.vertexSet().stream()
+                        .filter(a -> a.isAttribute() && a.isFk() && a.isUnique() && a.isNotNull())
+                        .collect(Collectors.toSet());
+
+        for (Node unique : uniquesNotNull) {
+            Node node = Graphs.predecessorListOf(result, unique).getFirst();
+            Node pk =
+                    Graphs.successorListOf(result, node).stream()
+                            .filter(a -> a.isAttribute() && a.isPk() && !a.isFk())
+                            .findFirst()
+                            .orElse(null);
+            Node refNode = getOrCreateNode(unique.getReference(), result);
+            if (pk != null) {
+                Node attr = getOrCreateAttr(pk.getName(), refNode, result);
+                attr.setUnique(true);
+                attr.setNotNull(true);
+                addForeignAttr(attr, refNode, node.getName(), result);
+                addEdge(attr, pk, result);
+            }
+        }
+
         return Diagram.builder().diagram(result).build();
     }
 
@@ -59,17 +83,18 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         List<Node> allNodes = graph.vertexSet().stream().filter(n -> !n.isAttribute()).toList();
 
         StringBuilder sql = new StringBuilder();
+        Set<String> usedRefs = new HashSet<>();
         for (Node node : allNodes) {
-            sql.append(buildTable(node, graph));
+            sql.append(buildTable(node, graph, usedRefs));
         }
         return sql;
     }
 
-    private String buildTable(Node entity, Graph<Node, Edge> graph) {
+    private String buildTable(Node entity, Graph<Node, Edge> graph, Set<String> usedRefs) {
         StringBuilder columns = new StringBuilder();
         StringBuilder constraints = new StringBuilder();
 
-        Graphs.neighborListOf(graph, entity)
+        Graphs.successorListOf(graph, entity)
                 .forEach(
                         attr -> {
                             if (!attr.isAttribute()) {
@@ -81,7 +106,14 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                             : "?";
 
                             if (attr.isFk()) {
+                                if (attr.isUnique() && usedRefs.contains(attr.getReference())) {
+                                    return;
+                                }
+                                if (attr.isUnique()) {
+                                    usedRefs.add(entity.getName());
+                                }
                                 String fkName = attr.getName();
+                                String unique = attr.isUnique() ? " UNIQUE" : "";
                                 String notNull = attr.isNotNull() ? " NOT NULL" : "";
                                 String isPk = attr.isPk() ? " PRIMARY KEY" : "";
 
@@ -89,6 +121,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                         .append(fkName)
                                         .append(" INTEGER")
                                         .append(isPk)
+                                        .append(unique)
                                         .append(notNull)
                                         .append(",\n");
 
@@ -177,6 +210,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                                         Node refTable = getOrCreateNode(tableName, diagram);
                                         Node refAttr =
                                                 getOrCreateAttr(refAttrName, refTable, diagram);
+                                        addEdge(refTable, refAttr, diagram);
                                         addEdge(attr, refAttr, diagram);
                                     }
 
@@ -209,8 +243,17 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                 domain = null;
             }
 
+            List<String> typeParams = col.getColDataType().getArgumentsStringList();
+            DataType dataType =
+                    (domain != null)
+                            ? (typeParams != null && !typeParams.isEmpty()
+                                    ? DataType.of(
+                                            domain, Integer.parseInt(typeParams.getFirst().trim()))
+                                    : DataType.of(domain))
+                            : null;
+
             Node attr = getOrCreateAttr(name, entity, diagram);
-            attr.setDataType(domain);
+            attr.setDataType(dataType);
             attr.setNotNull(isNotNull);
             attr.setUnique(isUnique);
             if (isPk) {

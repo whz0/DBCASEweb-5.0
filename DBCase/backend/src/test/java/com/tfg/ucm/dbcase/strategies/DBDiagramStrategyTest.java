@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.tfg.ucm.dbcase.dto.DataType;
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
 import com.tfg.ucm.dbcase.dto.Edge;
@@ -41,7 +42,7 @@ class DBDiagramStrategyTest {
                         .isAttribute(true)
                         .isUnique(true)
                         .isNotNull(true)
-                        .dataType(Domain.VARCHAR)
+                        .dataType(DataType.of(Domain.VARCHAR))
                         .build();
 
         graph.addVertex(attribute1);
@@ -63,7 +64,7 @@ class DBDiagramStrategyTest {
                         .name("e")
                         .isAttribute(true)
                         .isPk(true)
-                        .dataType(Domain.INTEGER)
+                        .dataType(DataType.of(Domain.INTEGER))
                         .reference("A")
                         .build();
         Node attribute4 = Node.builder().name("f").isAttribute(true).build();
@@ -120,12 +121,12 @@ class DBDiagramStrategyTest {
 
             if (node.getName().equals("b")) {
                 assertTrue(node.isPk());
-                assertEquals(Domain.INTEGER, node.getDataType());
+                assertEquals(Domain.INTEGER, node.getDataType().domain());
             } else if (node.getName().equals("c")) {
                 assertFalse(node.isPk());
                 assertTrue(node.isNotNull());
                 assertTrue(node.isUnique());
-                assertEquals(Domain.VARCHAR, node.getDataType());
+                assertEquals(Domain.VARCHAR, node.getDataType().domain());
             }
         }
     }
