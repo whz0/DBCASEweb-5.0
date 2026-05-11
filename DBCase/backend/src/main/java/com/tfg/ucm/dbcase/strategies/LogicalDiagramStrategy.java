@@ -149,7 +149,8 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
     private String buildEntry(
             Node node, Graph<Node, Edge> graph, StringBuilder restrictions, boolean skipFk) {
-        StringBuilder attrList = new StringBuilder();
+        StringBuilder pks = new StringBuilder();
+        StringBuilder others = new StringBuilder();
         for (Node attr : Graphs.successorListOf(graph, node)) {
             if (!attr.isAttribute()) {
                 continue;
@@ -160,18 +161,22 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 }
                 appendRestriction(attr, node, graph, restrictions);
             }
-            if (!attrList.isEmpty()) {
-                attrList.append(", ");
-            }
             if (attr.isPk()) {
-                attrList.append("__").append(attr.getName()).append("__");
-            } else if (!attr.isNotNull()) {
-                attrList.append("*").append(attr.getName()).append("*");
+                if (!pks.isEmpty()) {
+                    pks.append(", ");
+                }
+                pks.append("__").append(attr.getName()).append("__");
             } else {
-                attrList.append(attr.getName());
+                if (!others.isEmpty()) {
+                    others.append(", ");
+                }
+                others.append(!attr.isNotNull() ? "*" + attr.getName() + "*" : attr.getName());
             }
         }
-        return attrList.toString();
+        if (!pks.isEmpty() && !others.isEmpty()) {
+            return pks + ", " + others;
+        }
+        return pks.isEmpty() ? others.toString() : pks.toString();
     }
 
     private void appendRestrictions(Node node, Graph<Node, Edge> graph, StringBuilder target) {

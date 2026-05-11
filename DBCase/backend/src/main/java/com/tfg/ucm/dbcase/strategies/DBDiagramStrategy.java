@@ -13,6 +13,7 @@ import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.PhysicalInput;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
 
         for (String statement : diagram.sql().split(";")) {
+
             if (!statement.isBlank()) {
                 parseStatement(statement.trim(), result);
             }
@@ -91,82 +93,113 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
     }
 
     private String buildTable(Node entity, Graph<Node, Edge> graph, Set<String> usedRefs) {
+        List<Node> attrs =
+                Graphs.successorListOf(graph, entity).stream().filter(Node::isAttribute).toList();
+
+        long pkCount = attrs.stream().filter(Node::isPk).count();
+        boolean compositePk = pkCount > 1;
+
+        StringBuilder pkColumns = new StringBuilder();
+        List<String> pkNames = new ArrayList<>();
+        StringBuilder pkConstraints = new StringBuilder();
         StringBuilder columns = new StringBuilder();
         StringBuilder constraints = new StringBuilder();
 
-        Graphs.successorListOf(graph, entity)
-                .forEach(
-                        attr -> {
-                            if (!attr.isAttribute()) {
-                                return;
-                            }
-                            String dataType =
-                                    attr.getDataType() != null
-                                            ? attr.getDataType().toString()
-                                            : "?";
+        for (Node attr : attrs) {
+            String dataType = attr.getDataType() != null ? attr.getDataType().toString() : "?";
 
-                            if (attr.isFk()) {
-                                if (attr.isUnique() && usedRefs.contains(attr.getReference())) {
-                                    return;
-                                }
-                                if (attr.isUnique()) {
-                                    usedRefs.add(entity.getName());
-                                }
-                                String fkName = attr.getName();
-                                String unique = attr.isUnique() ? " UNIQUE" : "";
-                                String notNull = attr.isNotNull() ? " NOT NULL" : "";
-                                String isPk = attr.isPk() ? " PRIMARY KEY" : "";
+            if (attr.isPk()) {
+                pkColumns.append("\t").append(attr.getName()).append(" ").append(dataType);
+                if (compositePk) {
+                    pkNames.add(attr.getName());
+                } else {
+                    pkColumns.append(" PRIMARY KEY");
+                }
+                pkColumns.append(",\n");
+            }
 
-                                columns.append("\t")
-                                        .append(fkName)
-                                        .append(" INTEGER")
-                                        .append(isPk)
-                                        .append(unique)
-                                        .append(notNull)
-                                        .append(",\n");
+            if (attr.isFk()) {
+                if (attr.isUnique() && usedRefs.contains(attr.getReference())) {
+                    continue;
+                }
+                if (attr.isUnique()) {
+                    usedRefs.add(entity.getName());
+                }
 
-                                List<Node> successors = Graphs.successorListOf(graph, attr);
-                                if (successors.isEmpty()) {
-                                    return;
-                                }
-                                Node attrRef = successors.getFirst();
-                                constraints
-                                        .append("\tFOREIGN KEY (")
-                                        .append(fkName)
-                                        .append(") REFERENCES ")
-                                        .append(attr.getReference())
-                                        .append("(")
-                                        .append(attrRef.getName())
-                                        .append("),\n");
-                            } else if (attr.isPk()) {
-                                if (dataType.equals("?")) {
-                                    dataType = "INTEGER";
-                                }
-                                columns.append("\t")
-                                        .append(attr.getName())
-                                        .append(" ")
-                                        .append(dataType)
-                                        .append(" PRIMARY KEY")
-                                        .append(",\n");
-                            } else {
-                                columns.append("\t")
-                                        .append(attr.getName())
-                                        .append(" ")
-                                        .append(dataType)
-                                        .append(attr.isUnique() ? " UNIQUE" : "")
-                                        .append(attr.isNotNull() ? " NOT NULL" : "")
-                                        .append(",\n");
-                            }
-                        });
+                List<Node> successors = Graphs.successorListOf(graph, attr);
+                if (!successors.isEmpty()) {
+                    constraints
+                            .append("\tFOREIGN KEY (")
+                            .append(attr.getName())
+                            .append(") REFERENCES ")
+                            .append(attr.getReference())
+                            .append("(")
+                            .append(successors.getFirst().getName())
+                            .append("),\n");
+                }
+            }
 
-        if (columns.isEmpty()) {
+            if (!attr.isPk()) {
+                columns.append("\t")
+                        .append(attr.getName())
+                        .append(" ")
+                        .append(dataType)
+                        .append(attr.isUnique() ? " UNIQUE" : "")
+                        .append(attr.isNotNull() ? " NOT NULL" : "")
+                        .append(",\n");
+            }
+        }
+
+        if (!pkNames.isEmpty()) {
+            pkConstraints
+                    .append("\tPRIMARY KEY (")
+                    .append(String.join(", ", pkNames))
+                    .append("),\n");
+        }
+
+        if (columns.isEmpty() && pkColumns.isEmpty()) {
             return "";
         }
-        String body = columns.toString() + constraints.toString();
+        String body =
+                pkColumns.toString()
+                        + columns.toString()
+                        + pkConstraints.toString()
+                        + constraints.toString();
         if (body.endsWith(",\n")) {
             body = body.substring(0, body.length() - 2) + "\n";
         }
         return "CREATE TABLE " + entity.getName() + "(\n" + body + ");\n\n";
+    }
+
+    private void validateSinglePrimaryKey(CreateTable createTable, String tableName)
+            throws Exception {
+        long pkInIndexes =
+                createTable.getIndexes() == null
+                        ? 0
+                        : createTable.getIndexes().stream()
+                                .filter(i -> i.getType().equalsIgnoreCase("primary key"))
+                                .count();
+        long pkInColumns =
+                createTable.getColumnDefinitions() == null
+                        ? 0
+                        : createTable.getColumnDefinitions().stream()
+                                .filter(
+                                        c ->
+                                                c.getColumnSpecs() != null
+                                                        && c.getColumnSpecs().stream()
+                                                                .anyMatch(
+                                                                        s ->
+                                                                                s.equalsIgnoreCase(
+                                                                                        "primary"))
+                                                        && c.getColumnSpecs().stream()
+                                                                .anyMatch(
+                                                                        s ->
+                                                                                s.equalsIgnoreCase(
+                                                                                        "key")))
+                                .count();
+        if (pkInIndexes + pkInColumns > 1) {
+            throw new Exception("Table " + tableName + " cannot have more than one PRIMARY KEY");
+        }
     }
 
     private void parseStatement(String sqlStr, Graph<Node, Edge> diagram) throws Exception {
@@ -174,6 +207,9 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             Statement statement = CCJSqlParserUtil.parse(sqlStr);
             if (statement instanceof CreateTable createTable) {
                 String nodeName = createTable.getTable().getName();
+
+                validateSinglePrimaryKey(createTable, nodeName);
+
                 Node entity = getOrCreateNode(nodeName, diagram);
                 diagram.addVertex(entity);
                 if (createTable.getIndexes() != null) {

@@ -129,8 +129,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             getOrCreateNode(u.name(), graph);
         }
 
-        graph.edgeSet().forEach(System.out::print);
-
         return Diagram.builder().diagram(graph).build();
     }
 
