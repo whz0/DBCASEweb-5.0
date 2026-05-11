@@ -72,7 +72,11 @@ const highlightQuestionLines = () => {
       if (line.includes('?'))
         acc.push({
           range: new Range(i + 1, 1, i + 1, 1),
-          options: { isWholeLine: true, className: 'highlight-question-line' },
+          options: {
+            isWholeLine: true,
+            className: 'highlight-question-line',
+            inlineClassName: 'highlight-question-line',
+          },
         })
       return acc
     }, [])
@@ -88,6 +92,11 @@ const handleEditorDidMount = (editor: monacoEditor.IStandaloneCodeEditor) => {
   editorInstance = editor
   defineMonacoThemes()
   editor.updateOptions({ theme: monacoTheme.value })
+
+  editor.onDidChangeModelContent(() => {
+    highlightQuestionLines()
+  })
+
   highlightQuestionLines()
 }
 
@@ -108,6 +117,7 @@ const editorOptions = {
 }
 
 const validate = (): string[] => {
+  if (!selectLanguage.value || !code.value || code.value.includes('?')) return []
   const parser = parsers[selectLanguage.value as keyof typeof parsers]
   if (!parser) return []
   return parser.validate(code.value).map((e) => e.message)
@@ -192,4 +202,9 @@ const handleTransform = async (value: DiagramType) => {
   <AccessDatabaseDialog v-model:visible="showDeploy" :database-type="selectLanguage" :code="code" />
 </template>
 
-<style scoped></style>
+<style>
+.highlight-question-line {
+  background-color: rgba(255, 200, 0, 0.15);
+  border-left: 3px solid #ffc800;
+}
+</style>
