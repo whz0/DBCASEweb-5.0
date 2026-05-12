@@ -1,39 +1,23 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
 import { DialogId } from '@/stores/dialogStore'
-import type { Domain } from '@/types/er-diagram-elements'
+import { useDomainStore } from '@/stores/domainStore'
 
 const { t } = useI18n()
-const { erSchemaStore, dialogStore, isEditMode, visible, closeModal } = useDiagramDialog(
-  DialogId.AddDomain,
-  DialogId.EditDomain,
-)
+const { visible, closeModal } = useDiagramDialog(DialogId.AddDomain, DialogId.EditDomain)
+
+const domainStore = useDomainStore()
 
 const domainName = ref('')
 const baseType = ref('INTEGER')
-const values = ref('')
-
-const currentDomain = computed(() => {
-  if (!isEditMode.value) return null
-  const id = erSchemaStore.selectedElementId
-  return erSchemaStore.domains.find((d: Domain) => d.id === id) || null
-})
 
 watch(visible, (isNowVisible) => {
-  if (isNowVisible) {
-    if (isEditMode.value && currentDomain.value) {
-      domainName.value = currentDomain.value.name
-      baseType.value = currentDomain.value.baseType
-      values.value = currentDomain.value.values?.join(', ') || ''
-    } else {
-      domainName.value = ''
-      baseType.value = 'INTEGER'
-      values.value = ''
-    }
-  }
+  if (!isNowVisible) return
+  domainName.value = ''
+  baseType.value = 'INTEGER'
 })
 
 const baseTypeOptions = [
@@ -51,19 +35,9 @@ const baseTypeOptions = [
   { label: 'VARCHAR', value: 'VARCHAR' },
 ]
 
-const saveDomain = () => {
+const saveDomain = async () => {
   if (!domainName.value.trim()) return
-
-  erSchemaStore.saveDomain(
-    {
-      name: domainName.value.trim(),
-      baseType: baseType.value,
-      values: values.value.trim()
-        ? values.value.split(',').map((v: string) => v.trim())
-        : undefined,
-    },
-    isEditMode.value,
-  )
+  await domainStore.add(domainName.value.trim(), baseType.value)
   closeModal()
 }
 </script>
@@ -76,7 +50,7 @@ const saveDomain = () => {
     :dismissable-mask="true"
     :draggable="false"
     :style="{ width: '25rem' }"
-    :header="isEditMode ? t('domain.editDomain') : t('panels.createDomain')"
+    :header="t('panels.createDomain')"
   >
     <div class="flex flex-col gap-3">
       <label for="domainName" class="font-semibold">{{ t('domain.name') }}</label>
@@ -91,42 +65,22 @@ const saveDomain = () => {
         optionValue="value"
       />
 
-      <label for="values" class="font-semibold mt-2">{{ t('domain.allowedValues') }}</label>
-      <InputText
-        id="values"
-        v-model="values"
-        :placeholder="t('domain.enterValues')"
-        @keydown.enter="saveDomain"
-      />
-
-      <div v-if="erSchemaStore.domains.length > 0 && !isEditMode" class="mt-4">
+      <div v-if="domainStore.domains.length > 0" class="mt-4">
         <h3 class="font-bold mb-2">{{ t('domain.existingDomains') }}</h3>
         <ul class="max-h-40 overflow-y-auto">
           <li
-            v-for="domain in erSchemaStore.domains"
+            v-for="domain in domainStore.domains"
             :key="domain.id"
             class="flex justify-between items-center py-1 border-b border-black/10 dark:border-white/10 last:border-0"
           >
             <span>{{ domain.name }} ({{ domain.baseType }})</span>
-            <div class="flex gap-1">
-              <Button
-                icon="bi bi-pencil"
-                severity="secondary"
-                text
-                @click="
-                  () => {
-                    erSchemaStore.selectElement(domain.id)
-                    dialogStore.open(DialogId.EditDomain)
-                  }
-                "
-              />
-              <Button
-                icon="bi bi-trash"
-                severity="danger"
-                text
-                @click="erSchemaStore.deleteElement(domain.id)"
-              />
-            </div>
+            <Button
+              v-if="domain.baseType !== domain.name"
+              icon="bi bi-trash"
+              severity="danger"
+              text
+              @click="domainStore.remove(domain.name)"
+            />
           </li>
         </ul>
       </div>
@@ -139,11 +93,7 @@ const saveDomain = () => {
         severity="secondary"
         @click="closeModal"
       />
-      <Button
-        :label="isEditMode ? t('common.confirm') : t('common.add')"
-        icon="bi bi-check-lg"
-        @click="saveDomain"
-      />
+      <Button :label="t('common.add')" icon="bi bi-check-lg" @click="saveDomain" />
     </template>
   </Dialog>
 </template>

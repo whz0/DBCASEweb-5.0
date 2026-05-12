@@ -6,6 +6,7 @@ import { i18n } from '@/i18n'
 import { api } from '@/plugins/axios.ts'
 import { useDiagramStore } from '@/stores/diagramStore'
 import { useDialogStore } from '@/stores/dialogStore'
+import { useDomainStore } from '@/stores/domainStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { useGeneratePanelStore } from '@/stores/generatePanelStore'
 import type { UserSettings } from '@/types/api'
@@ -31,6 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value.username = sessionStorage.getItem('username') ?? ''
       user.value.chart = sessionStorage.getItem('chart') ?? ''
       user.value.pictureUrl = sessionStorage.getItem('pictureUrl') ?? ''
+      useDomainStore().load()
     }
   }
 
@@ -109,6 +111,7 @@ export const useAuthStore = defineStore('auth', () => {
       assignUser()
       useDiagramStore().reset()
       useErSchemaStore().reset()
+      useDomainStore().reset()
       useDialogStore().reset()
       useGeneratePanelStore().reset()
     }
@@ -128,6 +131,8 @@ export const useAuthStore = defineStore('auth', () => {
       if (u.settings?.theme) {
         theme.setTheme(u.settings.theme as 'light' | 'dark' | 'system')
       }
+
+      useDomainStore().load()
     } else {
       user.value.username = ''
       user.value.chart = ''

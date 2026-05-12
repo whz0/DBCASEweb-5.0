@@ -29,7 +29,7 @@ export interface Attribute extends DiagramElement {
   isMultivalued?: boolean
   isNotNull?: boolean
   isUnique?: boolean
-  domainId?: string
+  domain?: string
   size?: number
   components?: string[]
 }
@@ -40,7 +40,7 @@ export interface Relationship extends DiagramElement {
   attributes: string[]
 }
 
-export interface Domain {
+export interface SnapshotDomain {
   id: string
   name: string
   baseType: string
@@ -55,6 +55,6 @@ export interface Snapshot {
   entities: Entity[]
   relationships: Relationship[]
   attributes: Attribute[]
-  domains: Domain[]
+  domains?: SnapshotDomain[]
   undefineds?: Undefined[]
 }

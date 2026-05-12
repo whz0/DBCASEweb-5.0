@@ -5,10 +5,10 @@ import { computed, ref } from 'vue'
 
 import { api } from '@/plugins/axios'
 import { useAuthStore } from '@/stores/authStore'
+import { useDomainStore } from '@/stores/domainStore'
 import type {
   Attribute,
   DiagramElement,
-  Domain,
   Entity,
   Position,
   Relationship,
@@ -20,7 +20,6 @@ export const useErSchemaStore = defineStore('erSchema', () => {
   const entities = ref<Entity[]>([])
   const relationships = ref<Relationship[]>([])
   const attributes = ref<Attribute[]>([])
-  const domains = ref<Domain[]>([])
   const undefineds = ref<Undefined[]>([])
   const selectedElementIds = ref<Set<string>>(new Set())
   // Keep a single-id alias for context menu compatibility
@@ -35,12 +34,13 @@ export const useErSchemaStore = defineStore('erSchema', () => {
   const future = ref<Snapshot[]>([])
 
   function getCurrentSnapshot(): Snapshot {
+    const domainStore = useDomainStore()
     return JSON.parse(
       JSON.stringify({
         entities: entities.value,
         relationships: relationships.value,
         attributes: attributes.value,
-        domains: domains.value,
+        domains: domainStore.domains,
         undefineds: undefineds.value,
       }),
     )
@@ -74,7 +74,6 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     entities.value = snapshot.entities || []
     relationships.value = snapshot.relationships || []
     attributes.value = snapshot.attributes || []
-    domains.value = snapshot.domains || []
     undefineds.value = snapshot.undefineds || []
     selectedElementIds.value = new Set()
   }
@@ -217,7 +216,6 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     } else {
       relationships.value = relationships.value.filter((r) => r.id !== id)
       attributes.value = attributes.value.filter((a) => a.id !== id)
-      domains.value = domains.value.filter((d) => d.id !== id)
       undefineds.value = undefineds.value.filter((u) => u.id !== id)
     }
 
@@ -237,7 +235,6 @@ export const useErSchemaStore = defineStore('erSchema', () => {
       } else {
         relationships.value = relationships.value.filter((r) => r.id !== id)
         attributes.value = attributes.value.filter((a) => a.id !== id)
-        domains.value = domains.value.filter((d) => d.id !== id)
         undefineds.value = undefineds.value.filter((u) => u.id !== id)
       }
     }
@@ -381,7 +378,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
       isNotNull: boolean
       isUnique: boolean
       size: number
-      domainId?: string
+      domain?: string
     },
     isEdit: boolean,
   ) {
@@ -471,27 +468,6 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     }
   }
 
-  function saveDomain(
-    data: { name: string; baseType: string; values?: string[] },
-    isEdit: boolean,
-    domainId?: string,
-  ) {
-    const targetId = isEdit ? domainId || selectedElementId.value : null
-    if (isEdit && targetId) {
-      const index = domains.value.findIndex((d) => d.id === targetId)
-      if (index !== -1) {
-        saveHistory()
-        domains.value[index] = { ...domains.value[index], ...data } as Domain
-      }
-    } else {
-      saveHistory()
-      domains.value.push({
-        id: crypto.randomUUID(),
-        ...data,
-      })
-    }
-  }
-
   function convertUndefinedToEntity(id: string) {
     const u = undefineds.value.find((u) => u.id === id)
     if (!u) return
@@ -525,7 +501,6 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     entities.value = []
     relationships.value = []
     attributes.value = []
-    domains.value = []
     undefineds.value = []
     selectedElementIds.value = new Set()
     lastClickPosition.value = { x: 100, y: 100 }
@@ -537,7 +512,6 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     entities,
     relationships,
     attributes,
-    domains,
     undefineds,
     selectedElementId,
     selectedElementIds,
@@ -555,7 +529,6 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     saveAttribute,
     saveRelationship,
     saveIsARelationship,
-    saveDomain,
     addEntity,
     addRelationship,
     isSelected,

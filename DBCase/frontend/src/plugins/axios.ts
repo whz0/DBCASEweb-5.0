@@ -2,7 +2,7 @@ import axios from 'axios'
 
 import type { DatabaseType } from '@/stores/databaseStore.ts'
 import { DiagramType } from '@/stores/diagramStore'
-import type { AnyDiagramInput, UserSettings } from '@/types/api'
+import type { AnyDiagramInput, CustomDomain, UserSettings } from '@/types/api'
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -27,6 +27,15 @@ export const api = {
         type,
         diagram: { ...diagram, type },
         transformTo,
+      }),
+  },
+  domain: {
+    getAll: () => http.get<CustomDomain[]>('/domain/data-types'),
+    add: (name: string, base: string) => http.post('/domain/add', { name, base }),
+    delete: (name: string) =>
+      http.delete('/domain/delete', {
+        data: name,
+        headers: { 'Content-Type': 'text/plain' },
       }),
   },
   database: {

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
 import { DialogId } from '@/stores/dialogStore'
+import { useDomainStore } from '@/stores/domainStore'
 import type { Attribute, Entity, Relationship } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
@@ -11,6 +12,8 @@ const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddAttribute,
   DialogId.EditAttribute,
 )
+
+const domainStore = useDomainStore()
 
 const attributeName = ref('')
 const selectedParentId = ref<string | null>(null)
@@ -20,9 +23,9 @@ const isComposite = ref(false)
 const isNotNull = ref(false)
 const isUnique = ref(false)
 const size = ref(20)
-const selectedDomainId = ref<string | null>(null)
+const selectedDomain = ref<string | null>(null)
 
-const domains = computed(() => erSchemaStore.domains)
+const domains = computed(() => domainStore.domains)
 
 const currentAttribute = computed(() => {
   if (!isEditMode.value) return null
@@ -62,7 +65,7 @@ watch(visible, (isNowVisible) => {
       isNotNull.value = !!attr.isNotNull
       isUnique.value = !!attr.isUnique
       size.value = attr.size ?? 20
-      selectedDomainId.value = attr.domainId || null
+      selectedDomain.value = attr.domain || null
     } else {
       const selectedId = erSchemaStore.selectedElementId
       if (selectedId) {
@@ -82,7 +85,7 @@ watch(visible, (isNowVisible) => {
       isNotNull.value = false
       isUnique.value = false
       size.value = 20
-      selectedDomainId.value = null
+      selectedDomain.value = null
     }
   }
 })
@@ -99,7 +102,7 @@ const saveAttribute = () => {
         isNotNull: isNotNull.value,
         isUnique: isUnique.value,
         size: size.value,
-        domainId: selectedDomainId.value || undefined,
+        domain: selectedDomain.value || undefined,
       },
       isEditMode.value,
     )
@@ -141,10 +144,10 @@ const saveAttribute = () => {
       <label for="domain" class="font-semibold mt-2">{{ t('attribute.domain') }}</label>
       <Select
         id="domain"
-        v-model="selectedDomainId"
+        v-model="selectedDomain"
         :options="domains"
         optionLabel="name"
-        optionValue="id"
+        optionValue="name"
         :placeholder="t('attribute.selectDomain')"
         show-clear
       />
