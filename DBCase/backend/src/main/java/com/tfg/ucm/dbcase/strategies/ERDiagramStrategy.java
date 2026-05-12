@@ -329,7 +329,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         int total = nodes.size();
         int idx = 0;
         for (Node node : nodes) {
-            Position pos = circlePos(new Position(0, 0), idx++, total, Math.max(150, total * 150));
+            Position pos = circlePos(new Position(0, 0), idx++, total, Math.max(200, total * 80));
             List<Node> ownAttrs =
                     Graphs.successorListOf(graph, node).stream().filter(Node::isAttribute).toList();
 
@@ -441,8 +441,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             AtomicInteger attrIdx = new AtomicInteger(0);
             ownAttrList.forEach(
                     attr -> {
-                        Position attrPos =
-                                circlePos(pos, attrIdx.getAndIncrement(), attrTotal, 100);
+                        Position attrPos = circlePos(pos, attrIdx.getAndIncrement(), attrTotal, 80);
                         attributes.add(
                                 new ErAttributeDTO(
                                         attr.getUuid(),
@@ -495,7 +494,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         ownAttrsList.forEach(
                 a -> {
                     Position aPos =
-                            circlePos(pos, ownIdx.getAndIncrement(), ownAttrsList.size(), 100);
+                            circlePos(pos, ownIdx.getAndIncrement(), ownAttrsList.size(), 80);
                     attributes.add(
                             new ErAttributeDTO(
                                     a.getUuid(),
@@ -559,7 +558,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             ownAttrsList.forEach(
                     a -> {
                         Position aPos =
-                                circlePos(pos, nmAttrIdx.getAndIncrement(), nmAttrTotal, 100);
+                                circlePos(pos, nmAttrIdx.getAndIncrement(), nmAttrTotal, 80);
                         attributes.add(
                                 new ErAttributeDTO(
                                         a.getUuid(),
@@ -622,10 +621,10 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         .orElse(null);
 
         if (entity != null) {
-            participants.add(new ErRelationshipParticipantDTO(entity.getUuid(), "?", "n", ""));
+            participants.add(new ErRelationshipParticipantDTO(entity.getUuid(), "0", "n", ""));
 
             int pIdx = participants.size() - 1;
-            Position entityPos = circlePos(pos, pIdx, Math.max(participants.size(), 2), 150);
+            Position entityPos = circlePos(pos, pIdx, Math.max(participants.size(), 2), 120);
             buildEntity(entity, graph, visited, entityPos, entities, attributes);
         }
     }
@@ -671,8 +670,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         participants.add(new ErRelationshipParticipantDTO(node.getUuid(), minNode, "1", ""));
         participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), minRef, "1", ""));
 
-        buildEntity(node, graph, visited, circlePos(pos, 0, 2, 150), entities, attributes);
-        buildEntity(ref, graph, visited, circlePos(pos, 1, 2, 150), entities, attributes);
+        buildEntity(node, graph, visited, circlePos(pos, 0, 2, 120), entities, attributes);
+        buildEntity(ref, graph, visited, circlePos(pos, 1, 2, 120), entities, attributes);
 
         relationships.add(
                 new ErRelationshipDTO(
@@ -713,10 +712,10 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         : "1";
         participants.add(new ErRelationshipParticipantDTO(node.getUuid(), min, "n", ""));
 
-        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), "?", "1", ""));
+        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), "0", "1", ""));
 
-        buildEntity(node, graph, visited, circlePos(pos, 0, 2, 150), entities, attributes);
-        buildEntity(ref, graph, visited, circlePos(pos, 1, 2, 150), entities, attributes);
+        buildEntity(node, graph, visited, circlePos(pos, 0, 2, 120), entities, attributes);
+        buildEntity(ref, graph, visited, circlePos(pos, 1, 2, 120), entities, attributes);
 
         relationships.add(
                 new ErRelationshipDTO(
