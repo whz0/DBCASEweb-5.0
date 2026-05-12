@@ -1,6 +1,8 @@
 package com.tfg.ucm.dbcase.model;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,6 +10,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,4 +43,8 @@ public class User {
     /** Null means the account never expires (admin / seeded users). */
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
+
+    @ElementCollection
+    @CollectionTable(name = "user_custom_domains")
+    private List<UserDomain> customDomains = new ArrayList<>();
 }

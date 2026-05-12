@@ -2,7 +2,7 @@ package com.tfg.ucm.dbcase.dto;
 
 public record DataType(Domain domain, int length) {
 
-    public static final int NO_LENGTH = 999;
+    public static final int NO_LENGTH = 0;
 
     public static DataType of(Domain domain) {
         return new DataType(domain, NO_LENGTH);

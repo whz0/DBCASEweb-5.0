@@ -12,6 +12,6 @@ public record ErAttributeDTO(
         boolean isMultivalued,
         boolean isNotNull,
         boolean isUnique,
-        String domainId,
+        String domain,
         int size,
         List<String> components) {}

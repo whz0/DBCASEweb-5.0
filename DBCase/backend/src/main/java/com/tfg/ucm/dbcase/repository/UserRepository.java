@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    Optional<User> findUserById(Long id);
+
     Optional<User> findByUsername(String username);
 
     void deleteByExpiresAtBeforeAndExpiresAtIsNotNull(LocalDateTime now);

@@ -274,9 +274,13 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                 isUnique = specs.stream().anyMatch(s -> s.equalsIgnoreCase("unique"));
                 isNotNull = Stream.of("not", "null").allMatch(normalizedSpecs::contains);
             }
+
+            String baseType =
+                    type.contains("(") ? type.substring(0, type.indexOf("(")).trim() : type.trim();
+
             Domain domain;
             try {
-                domain = Domain.valueOf(type);
+                domain = Domain.valueOf(baseType.toUpperCase());
             } catch (IllegalArgumentException e) {
                 domain = null;
             }

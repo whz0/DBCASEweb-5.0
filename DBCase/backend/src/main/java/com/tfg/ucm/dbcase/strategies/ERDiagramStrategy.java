@@ -60,14 +60,23 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             attributeDTOMap.put(a.id(), a);
         }
 
+        Map<String, String> customDomainMap = new HashMap<>();
+        if (input.domains() != null) {
+            for (var d : input.domains()) {
+                if (d.baseType() != null) {
+                    customDomainMap.put(d.name().toUpperCase(), d.baseType().toUpperCase());
+                }
+            }
+        }
+
         for (ErEntityDTO erEnt : input.entities()) {
-            processOwnAttributes(erEnt, attributeDTOMap, graph);
+            processOwnAttributes(erEnt, attributeDTOMap, customDomainMap, graph);
         }
 
         for (ErRelationshipDTO erRel : input.relationships()) {
 
             if (erRel.participants().size() > 2) {
-                generateNAria(erRel, entityDTOMap, attributeDTOMap, graph);
+                generateNAria(erRel, entityDTOMap, attributeDTOMap, customDomainMap, graph);
             } else if (erRel.participants().size() == 2) {
                 ErRelationshipParticipantDTO one = erRel.participants().get(0);
                 ErRelationshipParticipantDTO other = erRel.participants().get(1);
@@ -85,7 +94,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 }
 
                 if (isNM) {
-                    generateNM(erRel, entityOne, entityOther, attributeDTOMap, graph);
+                    generateNM(
+                            erRel, entityOne, entityOther, attributeDTOMap, customDomainMap, graph);
                 } else if (isOneOne) {
                     generateOneOne(one, other, entityOne, entityOther, attributeDTOMap, graph);
                 } else {
@@ -115,6 +125,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             ErRelationshipDTO rel,
             Map<String, ErEntityDTO> entityMap,
             Map<String, ErAttributeDTO> attrMap,
+            Map<String, String> customDomainMap,
             Graph<Node, Edge> graph) {
         Node relNode = getOrCreateNode(rel.name(), graph);
         for (ErRelationshipParticipantDTO participant : rel.participants()) {
@@ -129,6 +140,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             ErEntityDTO entityOne,
             ErEntityDTO entityOther,
             Map<String, ErAttributeDTO> attrMap,
+            Map<String, String> customDomainMap,
             Graph<Node, Edge> graph) {
         Node relNode = getOrCreateNode(rel.name(), graph);
         addFkToRef(
@@ -147,7 +159,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 false,
                 false,
                 graph);
-        processAttributes(relNode, rel.attributes(), attrMap, graph);
+        processAttributes(relNode, rel.attributes(), attrMap, customDomainMap, graph);
     }
 
     private void generateOneN(
@@ -254,6 +266,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             Node owner,
             List<String> attrIds,
             Map<String, ErAttributeDTO> attributeDTOMap,
+            Map<String, String> customDomainMap,
             Graph<Node, Edge> graph) {
         for (String attrId : attrIds) {
             ErAttributeDTO erAttr = attributeDTOMap.get(attrId);
@@ -264,9 +277,13 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             attr.setNotNull(erAttr.isNotNull());
             attr.setUnique(erAttr.isUnique());
             Domain domain = null;
-            try {
-                domain = Domain.valueOf(erAttr.domainId().toUpperCase());
-            } catch (Exception ignored) {
+            if (erAttr.domain() != null) {
+                String domainKey = erAttr.domain().toUpperCase();
+                String resolved = customDomainMap.getOrDefault(domainKey, domainKey);
+                try {
+                    domain = Domain.valueOf(resolved);
+                } catch (Exception ignored) {
+                }
             }
             if (domain != null) {
                 attr.setDataType(
@@ -285,11 +302,12 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
     private void processOwnAttributes(
             ErEntityDTO entity,
             Map<String, ErAttributeDTO> attributeDTOMap,
+            Map<String, String> customDomainMap,
             Graph<Node, Edge> graph) {
 
         Node node = getOrCreateNode(entity.name(), graph);
-        processAttributes(node, entity.attributes(), attributeDTOMap, graph);
-        processAttributes(node, entity.primaryKeys(), attributeDTOMap, graph);
+        processAttributes(node, entity.attributes(), attributeDTOMap, customDomainMap, graph);
+        processAttributes(node, entity.primaryKeys(), attributeDTOMap, customDomainMap, graph);
     }
 
     @Override
@@ -436,7 +454,9 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                         false,
                                         attr.isNotNull(),
                                         attr.isUnique(),
-                                        "String",
+                                        attr.getDataType() != null
+                                                ? attr.getDataType().domain().name()
+                                                : null,
                                         attr.getDataType() != null
                                                 ? attr.getDataType().length()
                                                 : 0,
@@ -487,7 +507,9 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                     false,
                                     a.isNotNull(),
                                     a.isUnique(),
-                                    "String",
+                                    a.getDataType() != null
+                                            ? a.getDataType().domain().name()
+                                            : null,
                                     a.getDataType() != null ? a.getDataType().length() : 0,
                                     List.of()));
                     ownAttrsId.add(a.getUuid());
@@ -549,7 +571,9 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                         false,
                                         a.isNotNull(),
                                         a.isUnique(),
-                                        "String",
+                                        a.getDataType() != null
+                                                ? a.getDataType().domain().name()
+                                                : null,
                                         a.getDataType() != null ? a.getDataType().length() : 0,
                                         List.of()));
 
