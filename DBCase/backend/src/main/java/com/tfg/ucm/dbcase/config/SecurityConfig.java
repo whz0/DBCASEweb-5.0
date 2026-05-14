@@ -31,7 +31,6 @@ public class SecurityConfig {
     private final MyUserDetailsService userDetailsService;
     private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
     private final RateLimitingFilter rateLimitingFilter;
-    private final PasswordEncoder encoder;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -57,7 +56,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
+    public AuthenticationProvider authenticationProvider(PasswordEncoder encoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(encoder);
         return provider;
