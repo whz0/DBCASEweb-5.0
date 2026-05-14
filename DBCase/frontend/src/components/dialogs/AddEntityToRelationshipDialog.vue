@@ -31,14 +31,28 @@ const minVal = ref('0')
 const maxVal = ref('n')
 const role = ref('')
 
-const computedMin = computed(() => {
-  if (useMinMax.value) return minVal.value
-  return participation.value === 'total' ? '1' : '0'
-})
-const computedMax = computed(() => {
-  if (useMinMax.value) return maxVal.value
-  return cardinality.value === '1' ? '1' : 'n'
-})
+function syncRadiosToFields() {
+  minVal.value = participation.value === 'total' ? '1' : '0'
+  maxVal.value = cardinality.value === '1' ? '1' : 'n'
+}
+
+function syncFieldsToRadios() {
+  cardinality.value = maxVal.value.toLowerCase() === '1' ? '1' : 'N'
+  participation.value = minVal.value === '1' ? 'total' : 'parcial'
+}
+
+function onCardinalityChange() {
+  useMinMax.value = false
+  syncRadiosToFields()
+}
+function onParticipationChange() {
+  useMinMax.value = false
+  syncRadiosToFields()
+}
+function onUseMinMaxChange(val: boolean) {
+  useMinMax.value = val
+  if (!val) syncFieldsToRadios()
+}
 
 const closeModal = () => {
   dialogStore.close(DialogId.AddEntityToRelationship)
@@ -55,8 +69,8 @@ const save = () => {
   if (!currentRelationship.value || !selectedEntity.value) return
   erSchemaStore.addParticipantToRelationship(currentRelationship.value.id, {
     entityId: selectedEntity.value.id,
-    cardinalityMin: computedMin.value,
-    cardinalityMax: computedMax.value,
+    cardinalityMin: minVal.value,
+    cardinalityMax: maxVal.value,
     role: role.value,
   })
   closeModal()
@@ -85,11 +99,21 @@ const save = () => {
       <label class="font-semibold mt-1">{{ t('relationship.cardinality') }}</label>
       <div class="flex flex-col gap-1">
         <div class="flex items-center gap-2">
-          <RadioButton v-model="cardinality" inputId="card1" value="1" :disabled="useMinMax" />
+          <RadioButton
+            v-model="cardinality"
+            inputId="card1"
+            value="1"
+            @update:modelValue="onCardinalityChange"
+          />
           <label for="card1">1</label>
         </div>
         <div class="flex items-center gap-2">
-          <RadioButton v-model="cardinality" inputId="cardN" value="N" :disabled="useMinMax" />
+          <RadioButton
+            v-model="cardinality"
+            inputId="cardN"
+            value="N"
+            @update:modelValue="onCardinalityChange"
+          />
           <label for="cardN">N</label>
         </div>
       </div>
@@ -101,7 +125,7 @@ const save = () => {
             v-model="participation"
             inputId="parcial"
             value="parcial"
-            :disabled="useMinMax"
+            @update:modelValue="onParticipationChange"
           />
           <label for="parcial">{{ t('relationship.partial') }}</label>
         </div>
@@ -110,7 +134,7 @@ const save = () => {
             v-model="participation"
             inputId="total"
             value="total"
-            :disabled="useMinMax"
+            @update:modelValue="onParticipationChange"
           />
           <label for="total">{{ t('relationship.total') }}</label>
         </div>
@@ -118,7 +142,12 @@ const save = () => {
 
       <label class="font-semibold mt-1">{{ t('relationship.minMaxParticipation') }}</label>
       <div class="flex items-center gap-2 flex-wrap">
-        <Checkbox v-model="useMinMax" :binary="true" inputId="minmax" />
+        <Checkbox
+          :modelValue="useMinMax"
+          :binary="true"
+          inputId="minmax"
+          @update:modelValue="onUseMinMaxChange"
+        />
         <label for="minmax" class="flex items-center gap-2">
           Min
           <InputText v-model="minVal" class="w-16" :disabled="!useMinMax" @keydown.enter="save" />
