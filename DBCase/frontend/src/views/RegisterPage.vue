@@ -64,7 +64,7 @@ const handleRegister = async (data: UnwrapRef<Credential>) => {
           <img src="@/assets/logo.png" alt="Logo" class="w-32" />
         </div>
         <div>
-          <h1 class="text-5xl font-extrabold mb-4 tracking-tight">DBCase 5.0</h1>
+          <h1 class="text-5xl font-extrabold mb-4 tracking-tight">DBCASEweb 5.0</h1>
           <p class="text-xl opacity-90 font-light leading-relaxed">
             {{ t('register.subtitle') }}
           </p>
@@ -78,7 +78,7 @@ const handleRegister = async (data: UnwrapRef<Credential>) => {
         <!-- Mobile Logo -->
         <div class="flex flex-col items-center mb-8 lg:hidden">
           <img src="@/assets/logo.png" alt="Logo" class="w-16 mb-4" />
-          <h1 class="text-3xl font-bold">DBCase 5.0</h1>
+          <h1 class="text-3xl font-bold">DBCASEweb 5.0</h1>
         </div>
 
         <div class="mb-8 text-center lg:text-left">
