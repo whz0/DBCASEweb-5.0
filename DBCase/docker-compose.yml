@@ -1,14 +1,23 @@
 services:
-  app:
-    build: .
+  frontend:
+    build: ./frontend
+    container_name: DBCaseFrontend
     ports:
-      - "8080:8080"
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
+
+  app:
+    build: ./backend
+    ports:
       - "8443:8443"
       - "5005:5005"
     container_name: DBCaseApp
-    env_file: .env
+    env_file: ./backend/.env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/dbcase
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
@@ -17,6 +26,8 @@ services:
       - SSL_KEY_STORE=${SSL_KEY_STORE}
       - SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD}
       - SSL_KEY_ALIAS=${SSL_KEY_ALIAS}
+      - FRONTEND_URL=${FRONTEND_URL:-https://localhost}
+      - JWT_SECRET=${JWT_SECRET}
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
   db:
@@ -26,10 +37,16 @@ services:
       - "5431:5432"
     volumes:
       - dbcaseDB:/var/lib/postgresql/data
-      - ./db/script.sql:/docker-entrypoint-initdb.d/script.sql
+      - ./backend/db/script.sql:/docker-entrypoint-initdb.d/script.sql
     environment:
       - POSTGRES_DB=dbcase
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d dbcase"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   dbcaseDB:
