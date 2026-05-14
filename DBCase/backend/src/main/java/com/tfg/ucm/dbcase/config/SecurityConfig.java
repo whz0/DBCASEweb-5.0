@@ -31,11 +31,10 @@ public class SecurityConfig {
     private final MyUserDetailsService userDetailsService;
     private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
     private final RateLimitingFilter rateLimitingFilter;
+    private final PasswordEncoder encoder;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
-
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -84,6 +83,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(10);
     }
 }

@@ -11,7 +11,7 @@ public class CookieService {
             String name, String value, int maxAge, HttpServletResponse response) {
         Cookie cookie = new Cookie(name, value);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // TODO cambiar en prod
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
 

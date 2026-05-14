@@ -29,6 +29,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Debe usarse Long ya que si no existe devuelve null,
 
+    @Column(unique = true)
     private String username;
     private String password;
 

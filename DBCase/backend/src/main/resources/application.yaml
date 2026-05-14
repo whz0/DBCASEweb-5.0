@@ -1,6 +1,6 @@
 app:
   frontend:
-    url: https://localhost:5173
+    url: ${FRONTEND_URL:https://localhost:5173}
 
 server:
   port: 8443
@@ -16,7 +16,7 @@ spring:
   datasource:
     url: jdbc:postgresql://db:5432/dbcase
     username: ${DB_USER}
-    password: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -31,7 +31,7 @@ spring:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
 jwt:
-  secret: "SsXhO9cPI5berPvVYKr9ylOF1q0Z9snw/EzEhfwN0VY="
+  secret: ${JWT_SECRET}
 
 #logging:
 #  level:
