@@ -48,5 +48,6 @@ public class User {
 
     @ElementCollection
     @CollectionTable(name = "user_custom_domains")
+    @Builder.Default
     private List<UserDomain> customDomains = new ArrayList<>();
 }

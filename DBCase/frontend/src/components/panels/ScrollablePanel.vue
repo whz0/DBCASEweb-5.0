@@ -29,6 +29,10 @@ const savedRange = ref<Range | null>(null)
 
 const toggleUnderline = (underline: boolean) => {
   if (!savedRange.value || savedRange.value.collapsed) return
+  editable.value?.focus()
+  const sel = window.getSelection()
+  sel?.removeAllRanges()
+  sel?.addRange(savedRange.value)
   if (underline === document.queryCommandState('underline')) return
   document.execCommand('underline', false)
 }
