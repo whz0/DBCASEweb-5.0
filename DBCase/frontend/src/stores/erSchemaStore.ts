@@ -508,6 +508,27 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     future.value = []
   }
 
+  function toggleAggregation(id: string) {
+    const rel = relationships.value.find((r) => r.id === id)
+    if (rel) {
+      saveHistory()
+      if (rel.type === 'Aggregation') {
+        rel.type = 'Normal'
+        rel.aggregationName = undefined
+      } else {
+        rel.type = 'Aggregation'
+      }
+    }
+  }
+
+  function renameAggregation(id: string, name: string) {
+    const rel = relationships.value.find((r) => r.id === id)
+    if (rel) {
+      saveHistory()
+      rel.aggregationName = name
+    }
+  }
+
   return {
     entities,
     relationships,
@@ -516,7 +537,6 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     selectedElementId,
     selectedElementIds,
     lastClickPosition,
-    canUndo: computed(() => past.value.length > 0),
     canRedo: computed(() => future.value.length > 0),
     undo,
     redo,
@@ -549,5 +569,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     reset,
     convertUndefinedToEntity,
     convertUndefinedToRelationship,
+    toggleAggregation,
+    renameAggregation,
   }
 })

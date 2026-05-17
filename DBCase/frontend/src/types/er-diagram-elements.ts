@@ -35,9 +35,10 @@ export interface Attribute extends DiagramElement {
 }
 
 export interface Relationship extends DiagramElement {
-  type: 'Normal' | 'IsA' | 'Weak'
+  type: 'Normal' | 'IsA' | 'Weak' | 'Aggregation'
   participants: RelationshipParticipant[]
   attributes: string[]
+  aggregationName?: string
 }
 
 export interface SnapshotDomain {

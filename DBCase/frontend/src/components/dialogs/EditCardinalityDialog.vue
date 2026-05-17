@@ -18,10 +18,14 @@ const currentRelationship = computed(() => {
 })
 
 const participants = computed(() =>
-  (currentRelationship.value?.participants ?? []).map((p) => ({
-    ...p,
-    name: erSchemaStore.entities.find((e) => e.id === p.entityId)?.name ?? 'Unknown',
-  })),
+  (currentRelationship.value?.participants ?? []).map((p) => {
+    const entity = erSchemaStore.entities.find((e) => e.id === p.entityId)
+    if (entity) return { ...p, name: entity.name }
+    const aggRel = erSchemaStore.relationships.find(
+      (r) => r.id === p.entityId && r.type === 'Aggregation',
+    )
+    return { ...p, name: aggRel ? `[Agr] ${aggRel.aggregationName}` : 'Unknown' }
+  }),
 )
 
 const selectedEntityId = ref<string | null>(null)

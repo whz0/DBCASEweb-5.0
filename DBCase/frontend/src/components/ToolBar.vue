@@ -16,6 +16,7 @@ import EditCardinalityDialog from '@/components/dialogs/EditCardinalityDialog.vu
 import HelpDialog from '@/components/dialogs/HelpDialog.vue'
 import LayoutDialog from '@/components/dialogs/LayoutDialog.vue'
 import OpenSchemaDialog from '@/components/dialogs/OpenSchemaDialog.vue'
+import RenameAggregationDialog from '@/components/dialogs/RenameAggregationDialog.vue'
 import SaveSchemaDialog from '@/components/dialogs/SaveSchemaDialog.vue'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import { getAvatarColor, getUserInitial } from '@/utils/user'
@@ -214,6 +215,7 @@ const toggleDrawMenu = (event: Event) => {
         <EditCardinalityDialog />
         <AddIsARelationshipDialog />
         <AddDomainDialog />
+        <RenameAggregationDialog />
       </template>
 
       <template #end>

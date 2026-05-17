@@ -26,7 +26,14 @@ const participantsWithNames = computed(() => {
   if (!currentRelationship.value) return []
   return currentRelationship.value.participants.map((p) => ({
     ...p,
-    name: erSchemaStore.entities.find((e) => e.id === p.entityId)?.name ?? 'Unknown',
+    name: (() => {
+      const entity = erSchemaStore.entities.find((e) => e.id === p.entityId)
+      if (entity) return entity.name
+      const aggRel = erSchemaStore.relationships.find(
+        (r) => r.id === p.entityId && r.type === 'Aggregation',
+      )
+      return aggRel ? `[Agr] ${aggRel.aggregationName}` : 'Unknown'
+    })(),
   }))
 })
 

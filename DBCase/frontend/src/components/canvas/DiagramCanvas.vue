@@ -130,6 +130,33 @@
           />
         </template>
 
+        <!-- Aggregation boxes -->
+        <template v-for="box in aggregationBoxes" :key="'agg-' + box.id">
+          <v-rect
+            :config="{
+              x: box.x,
+              y: box.y,
+              width: box.width,
+              height: box.height,
+              fill: 'transparent',
+              stroke: strokeColor,
+              strokeWidth: 2,
+              dash: [8, 4],
+            }"
+          />
+          <v-text
+            v-if="box.name"
+            :config="{
+              text: box.name,
+              x: box.x + 6,
+              y: box.y + 4,
+              fontSize: 14,
+              fontFamily: 'arial',
+              fill: strokeColor,
+            }"
+          />
+        </template>
+
         <!-- Nodes -->
         <EntityNode
           v-for="entity in erSchemaStore.entities"
@@ -436,6 +463,28 @@ const getContextMenuItems = () => {
     const rel = erSchemaStore.relationships.find((r) => r.id === selectedId)
     const editDialogId =
       rel?.type === 'IsA' ? DialogId.EditIsARelationship : DialogId.EditRelationship
+
+    if (rel?.type === 'Aggregation') {
+      return [
+        {
+          label: t('relationship.renameAggregation'),
+          icon: 'bi bi-pencil-square',
+          command: () => dialogStore.open(DialogId.RenameAggregation),
+        },
+        {
+          label: t('relationship.editCardinality'),
+          icon: 'bi bi-123',
+          command: () => dialogStore.open(DialogId.EditCardinality),
+        },
+        { separator: true },
+        {
+          label: t('relationship.toggleAggregation'),
+          icon: 'bi bi-stop-circle',
+          command: () => erSchemaStore.toggleAggregation(selectedId),
+        },
+      ]
+    }
+
     return [
       {
         label: t('attribute.addAttribute'),
@@ -456,6 +505,11 @@ const getContextMenuItems = () => {
         label: t('relationship.editRelationship'),
         icon: 'bi bi-pencil-square',
         command: () => dialogStore.open(editDialogId),
+      },
+      {
+        label: t('relationship.toggleAggregation'),
+        icon: 'bi bi-bounding-box',
+        command: () => dialogStore.open(DialogId.RenameAggregation),
       },
       { separator: true },
       {
@@ -596,86 +650,122 @@ interface RelationshipConnection {
   isInvalid: boolean
 }
 
+const AGGREGATION_PADDING = 60
+
+const getAggregationBox = (aggRel: Relationship): RectShape => {
+  const relShape = calculateRelationshipRenderProps(aggRel)
+  const points: { x: number; y: number }[] = [{ x: relShape.cx, y: relShape.cy }]
+  aggRel.participants.forEach((p) => {
+    const e = erSchemaStore.entities.find((e) => e.id === p.entityId)
+    if (e) points.push({ x: e.position.x, y: e.position.y })
+  })
+  const minX = Math.min(...points.map((p) => p.x)) - AGGREGATION_PADDING
+  const minY = Math.min(...points.map((p) => p.y)) - AGGREGATION_PADDING
+  const maxX = Math.max(...points.map((p) => p.x)) + AGGREGATION_PADDING
+  const maxY = Math.max(...points.map((p) => p.y)) + AGGREGATION_PADDING
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY }
+}
+
 const relationshipConnections = computed(() => {
   const connections: RelationshipConnection[] = []
   erSchemaStore.relationships.forEach((rel: Relationship) => {
     rel.participants.forEach((participant: RelationshipParticipant) => {
       const entity = erSchemaStore.entities.find((e) => e.id === participant.entityId)
+      // Check if participant is an aggregation (its entityId matches an aggregation relationship)
+      const aggRel = !entity
+        ? erSchemaStore.relationships.find(
+            (r) => r.id === participant.entityId && r.type === 'Aggregation',
+          )
+        : undefined
+
+      if (!entity && !aggRel) return
+
+      const relShape = calculateRelationshipRenderProps(rel)
+      const relCenter = { x: relShape.cx, y: relShape.cy }
+
+      let entityCenter: Position
+      let endPoint: Position | null = null
+
       if (entity) {
-        const relShape = calculateRelationshipRenderProps(rel)
         const entityShape = calculateEntityRenderProps(entity)
-        const relCenter = { x: relShape.cx, y: relShape.cy }
-        const entityCenter = {
+        entityCenter = {
           x: entityShape.x + entityShape.width / 2,
           y: entityShape.y + entityShape.height / 2,
         }
+        endPoint = getLineRectangleIntersection(relCenter, entityCenter, entityShape)
+      } else {
+        const aggBox = getAggregationBox(aggRel!)
+        entityCenter = {
+          x: aggBox.x + aggBox.width / 2,
+          y: aggBox.y + aggBox.height / 2,
+        }
+        endPoint = getLineRectangleIntersection(relCenter, entityCenter, aggBox)
+      }
 
-        let startPoint: Position | null = null
-        if (rel.type === 'IsA') {
-          const isParent = participant.role === 'Parent'
-          const { cx, cy, size } = { cx: relShape.cx, cy: relShape.cy, size: 50 }
-          if (isParent) {
-            startPoint = { x: cx, y: cy - size / 2 }
-          } else {
-            startPoint = getLineTriangleIntersection(entityCenter, relCenter, { cx, cy, size })
-          }
+      let startPoint: Position | null = null
+      if (rel.type === 'IsA') {
+        const isParent = participant.role === 'Parent'
+        const { cx, cy, size } = { cx: relShape.cx, cy: relShape.cy, size: 50 }
+        if (isParent) {
+          startPoint = { x: cx, y: cy - size / 2 }
         } else {
-          startPoint = getLineDiamondIntersection(entityCenter, relCenter, relShape)
+          startPoint = getLineTriangleIntersection(entityCenter, relCenter, { cx, cy, size })
+        }
+      } else {
+        startPoint = getLineDiamondIntersection(entityCenter, relCenter, relShape)
+      }
+
+      if (startPoint && endPoint) {
+        const minCard = participant.cardinalityMin
+        const maxCard = participant.cardinalityMax
+        const isIsA = rel.type === 'IsA'
+
+        let labelAbove = ''
+        let labelBelow = ''
+        if (!isIsA) {
+          const labels: string[] = []
+          if (showNumber.value) labels.push(maxCard)
+          if (showMinMax.value) labels.push(`(${minCard},${maxCard})`)
+          labelAbove = labels[0] ?? ''
+          labelBelow = labels[1] ?? ''
         }
 
-        const endPoint = getLineRectangleIntersection(relCenter, entityCenter, entityShape)
-        if (startPoint && endPoint) {
-          const minCard = participant.cardinalityMin
-          const maxCard = participant.cardinalityMax
-          const isIsA = rel.type === 'IsA'
-
-          let labelAbove = ''
-          let labelBelow = ''
-          if (!isIsA) {
-            const labels: string[] = []
-            if (showNumber.value) labels.push(maxCard)
-            if (showMinMax.value) labels.push(`(${minCard},${maxCard})`)
-            labelAbove = labels[0] ?? ''
-            labelBelow = labels[1] ?? ''
-          }
-
-          connections.push({
-            relId: rel.id,
-            entityId: entity.id,
-            startX: startPoint.x,
-            startY: startPoint.y,
-            endX: endPoint.x,
-            endY: endPoint.y,
-            lineEndX: (() => {
-              if (!isIsA && showArrow.value && maxCard === '1') {
-                const dx = endPoint.x - startPoint.x
-                const dy = endPoint.y - startPoint.y
-                const d = Math.sqrt(dx * dx + dy * dy)
-                return d === 0 ? endPoint.x : endPoint.x - (dx / d) * 10
-              }
-              return endPoint.x
-            })(),
-            lineEndY: (() => {
-              if (!isIsA && showArrow.value && maxCard === '1') {
-                const dx = endPoint.x - startPoint.x
-                const dy = endPoint.y - startPoint.y
-                const d = Math.sqrt(dx * dx + dy * dy)
-                return d === 0 ? endPoint.y : endPoint.y - (dy / d) * 10
-              }
-              return endPoint.y
-            })(),
-            cardMax: maxCard,
-            labelAbove,
-            labelBelow,
-            isTotal:
-              !isIsA &&
-              (showArrow.value || showNumber.value) &&
-              minCard !== '' &&
-              parseInt(minCard) >= 1,
-            isParent: isIsA && participant.role === 'Parent',
-            isInvalid: minCard === '?' || maxCard === '?',
-          })
-        }
+        connections.push({
+          relId: rel.id,
+          entityId: participant.entityId,
+          startX: startPoint.x,
+          startY: startPoint.y,
+          endX: endPoint.x,
+          endY: endPoint.y,
+          lineEndX: (() => {
+            if (!isIsA && showArrow.value && maxCard === '1') {
+              const dx = endPoint!.x - startPoint!.x
+              const dy = endPoint!.y - startPoint!.y
+              const d = Math.sqrt(dx * dx + dy * dy)
+              return d === 0 ? endPoint!.x : endPoint!.x - (dx / d) * 10
+            }
+            return endPoint!.x
+          })(),
+          lineEndY: (() => {
+            if (!isIsA && showArrow.value && maxCard === '1') {
+              const dx = endPoint!.x - startPoint!.x
+              const dy = endPoint!.y - startPoint!.y
+              const d = Math.sqrt(dx * dx + dy * dy)
+              return d === 0 ? endPoint!.y : endPoint!.y - (dy / d) * 10
+            }
+            return endPoint!.y
+          })(),
+          cardMax: maxCard,
+          labelAbove,
+          labelBelow,
+          isTotal:
+            !isIsA &&
+            (showArrow.value || showNumber.value) &&
+            minCard !== '' &&
+            parseInt(minCard) >= 1,
+          isParent: isIsA && participant.role === 'Parent',
+          isInvalid: minCard === '?' || maxCard === '?',
+        })
       }
     })
   })
@@ -690,6 +780,32 @@ interface AttributeConnection {
   endX: number
   endY: number
 }
+
+const aggregationBoxes = computed(() => {
+  const PADDING = 60
+  return erSchemaStore.relationships
+    .filter((rel) => rel.type === 'Aggregation' && rel.participants.length > 0)
+    .map((rel) => {
+      const relShape = calculateRelationshipRenderProps(rel)
+      const points: { x: number; y: number }[] = [{ x: relShape.cx, y: relShape.cy }]
+      rel.participants.forEach((p) => {
+        const entity = erSchemaStore.entities.find((e) => e.id === p.entityId)
+        if (entity) points.push({ x: entity.position.x, y: entity.position.y })
+      })
+      const minX = Math.min(...points.map((p) => p.x)) - PADDING
+      const minY = Math.min(...points.map((p) => p.y)) - PADDING
+      const maxX = Math.max(...points.map((p) => p.x)) + PADDING
+      const maxY = Math.max(...points.map((p) => p.y)) + PADDING
+      return {
+        id: rel.id,
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+        name: rel.aggregationName ?? '',
+      }
+    })
+})
 
 const attributeConnections = computed(() => {
   const connections: AttributeConnection[] = []

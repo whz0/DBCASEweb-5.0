@@ -110,6 +110,11 @@ const messages = {
       partial: 'Partial',
       total: 'Total',
       minMaxParticipation: 'Min-Max Participation',
+      toggleAggregation: 'Toggle Aggregation',
+      aggregationName: 'Aggregation Name',
+      enterAggregationName: 'Enter aggregation name',
+      renameAggregation: 'Rename Aggregation',
+      addRelationshipToAggregation: 'Add Relationship',
     },
     isa: {
       parent: 'Parent',
@@ -358,6 +363,11 @@ const messages = {
       partial: 'Parcial',
       total: 'Total',
       minMaxParticipation: 'Participación mínimo-máximo',
+      toggleAggregation: 'Activar/Desactivar Agregación',
+      aggregationName: 'Nombre de la Agregación',
+      enterAggregationName: 'Introduce el nombre de la agregación',
+      renameAggregation: 'Renombrar Agregación',
+      addRelationshipToAggregation: 'Añadir Relación',
     },
     isa: {
       parent: 'Padre',

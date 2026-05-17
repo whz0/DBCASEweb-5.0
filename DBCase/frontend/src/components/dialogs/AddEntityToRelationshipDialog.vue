@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
-import type { Entity } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
 const dialogStore = useDialogStore()
@@ -17,13 +16,18 @@ const currentRelationship = computed(() => {
   return erSchemaStore.relationships.find((r) => r.id === id) ?? null
 })
 
-const availableEntities = computed(() =>
-  erSchemaStore.entities.filter(
-    (e) => !currentRelationship.value?.participants.some((p) => p.entityId === e.id),
-  ),
-)
+const availableEntities = computed(() => {
+  const alreadyIn = currentRelationship.value?.participants.map((p) => p.entityId) ?? []
+  const entities = erSchemaStore.entities
+    .filter((e) => !alreadyIn.includes(e.id))
+    .map((e) => ({ id: e.id, name: e.name }))
+  const aggregations = erSchemaStore.relationships
+    .filter((r) => r.type === 'Aggregation' && r.aggregationName && !alreadyIn.includes(r.id))
+    .map((r) => ({ id: r.id, name: `[Agr] ${r.aggregationName}` }))
+  return [...entities, ...aggregations]
+})
 
-const selectedEntity = ref<Entity | null>(null)
+const selectedEntity = ref<{ id: string; name: string } | null>(null)
 const cardinality = ref<'1' | 'N'>('N')
 const participation = ref<'parcial' | 'total'>('parcial')
 const useMinMax = ref(false)

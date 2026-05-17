@@ -21,6 +21,7 @@ export const enum DialogId {
   EditAttribute,
   EditDomain,
   EditCardinality,
+  RenameAggregation,
 }
 
 export const useDialogStore = defineStore('dialogs', () => {
