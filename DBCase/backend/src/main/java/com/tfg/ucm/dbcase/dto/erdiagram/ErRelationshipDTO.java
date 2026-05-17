@@ -7,5 +7,6 @@ public record ErRelationshipDTO(
         String name,
         Position position,
         String type,
+        String aggregationName,
         List<ErRelationshipParticipantDTO> participants,
         List<String> attributes) {}

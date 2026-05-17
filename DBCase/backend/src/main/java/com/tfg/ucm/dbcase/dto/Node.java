@@ -22,4 +22,5 @@ public class Node {
     private boolean isUnique;
     private DataType dataType;
     private String reference;
+    private String aggregationName;
 }

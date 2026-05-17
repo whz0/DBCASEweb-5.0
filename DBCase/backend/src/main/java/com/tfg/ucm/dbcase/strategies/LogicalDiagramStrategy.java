@@ -61,8 +61,10 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         Set<String> usedRefs = new HashSet<>();
 
         for (Node node : allNodes) {
+            String name =
+                    node.getAggregationName() != null ? node.getAggregationName() : node.getName();
             relationships
-                    .append(node.getName())
+                    .append(name)
                     .append(" ( ")
                     .append(buildEntry(node, graph, restrictions, lostRestrictions, usedRefs))
                     .append(")\n");

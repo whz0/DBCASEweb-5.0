@@ -123,6 +123,7 @@ class ERDiagramStrategyTest {
                                                 "Works",
                                                 null,
                                                 "Normal",
+                                                null,
                                                 List.of(
                                                         new ErRelationshipParticipantDTO(
                                                                 "e1", "1", "N", null),
@@ -157,6 +158,7 @@ class ERDiagramStrategyTest {
                                                 "R",
                                                 null,
                                                 "Normal",
+                                                null,
                                                 List.of(
                                                         new ErRelationshipParticipantDTO(
                                                                 "e1", "1", "N", "boss"),
@@ -208,6 +210,7 @@ class ERDiagramStrategyTest {
                                                 "R",
                                                 null,
                                                 "Normal",
+                                                null,
                                                 List.of(
                                                         new ErRelationshipParticipantDTO(
                                                                 "e1", "1", "N", null),
@@ -239,6 +242,7 @@ class ERDiagramStrategyTest {
                                                 "R",
                                                 null,
                                                 "Normal",
+                                                null,
                                                 List.of(
                                                         new ErRelationshipParticipantDTO(
                                                                 "e1", "1", "N", null),
@@ -336,6 +340,7 @@ class ERDiagramStrategyTest {
                                         "R",
                                         null,
                                         "Normal",
+                                        null,
                                         List.of(
                                                 new ErRelationshipParticipantDTO(
                                                         "e1", "1", "N", null),

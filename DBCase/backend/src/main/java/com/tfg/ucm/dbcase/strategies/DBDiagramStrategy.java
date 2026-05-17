@@ -170,7 +170,13 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         if (body.endsWith(",\n")) {
             body = body.substring(0, body.length() - 2) + "\n";
         }
-        return "CREATE TABLE " + entity.getName() + "(\n" + body + ");\n\n";
+
+        String tableName =
+                entity.getAggregationName() != null
+                        ? entity.getAggregationName()
+                        : entity.getName();
+
+        return "CREATE TABLE " + tableName + "(\n" + body + ");\n\n";
     }
 
     private void validateSinglePrimaryKey(CreateTable createTable, String tableName)
