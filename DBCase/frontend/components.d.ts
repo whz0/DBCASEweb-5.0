@@ -51,6 +51,7 @@ declare module 'vue' {
     ProjectInfo: typeof import('./src/components/generic/ProjectInfo.vue')['default']
     RadioButton: typeof import('primevue/radiobutton')['default']
     RelationshipNode: typeof import('./src/components/canvas/nodes/RelationshipNode.vue')['default']
+    RenameAggregationDialog: typeof import('./src/components/dialogs/RenameAggregationDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SaveSchemaDialog: typeof import('./src/components/dialogs/SaveSchemaDialog.vue')['default']
