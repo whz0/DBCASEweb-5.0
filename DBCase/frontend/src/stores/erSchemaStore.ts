@@ -537,6 +537,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     selectedElementId,
     selectedElementIds,
     lastClickPosition,
+    canUndo: computed(() => past.value.length > 0),
     canRedo: computed(() => future.value.length > 0),
     undo,
     redo,
