@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.tfg.ucm.dbcase.dto.DatabaseUrl;
 import com.tfg.ucm.dbcase.dto.ExecuteSqlRequest;
 import com.tfg.ucm.dbcase.dto.TestDatabaseRequest;
 import java.sql.Connection;
@@ -27,6 +28,12 @@ class DatabaseExecutionServiceTest {
 
     private final DatabaseExecutionService service = new DatabaseExecutionService();
 
+    private static DatabaseUrl mockDatabaseUrl() {
+        DatabaseUrl dbUrl = mock(DatabaseUrl.class);
+        when(dbUrl.buildUrl()).thenReturn("jdbc:postgresql://localhost:5432/test");
+        return dbUrl;
+    }
+
     // --- test() ---
 
     private static Stream<Arguments> testConnectionProvider() {
@@ -43,7 +50,7 @@ class DatabaseExecutionServiceTest {
             dm.when(() -> DriverManager.getConnection(anyString(), anyString(), anyString()))
                     .thenReturn(conn);
 
-            boolean result = service.test(new TestDatabaseRequest("jdbc:h2:mem:test", "sa", ""));
+            boolean result = service.test(new TestDatabaseRequest(mockDatabaseUrl(), "sa", ""));
 
             assertEquals(expected, result);
         }
@@ -58,7 +65,7 @@ class DatabaseExecutionServiceTest {
             dm.when(() -> DriverManager.getConnection(anyString(), anyString(), anyString()))
                     .thenReturn(conn);
 
-            boolean result = service.test(new TestDatabaseRequest("jdbc:bad:url", "sa", ""));
+            boolean result = service.test(new TestDatabaseRequest(mockDatabaseUrl(), "sa", ""));
 
             assertFalse(result);
         }
@@ -82,7 +89,7 @@ class DatabaseExecutionServiceTest {
             dm.when(() -> DriverManager.getConnection(anyString(), anyString(), anyString()))
                     .thenReturn(conn);
 
-            service.execute(new ExecuteSqlRequest("postgresql", "jdbc:h2:mem:test", "sa", "", sql));
+            service.execute(new ExecuteSqlRequest(mockDatabaseUrl(), "sa", "", sql));
 
             verify(conn).commit();
             verify(conn).setAutoCommit(false);
@@ -105,11 +112,7 @@ class DatabaseExecutionServiceTest {
                     () ->
                             service.execute(
                                     new ExecuteSqlRequest(
-                                            "postgresql",
-                                            "jdbc:h2:mem:test",
-                                            "sa",
-                                            "",
-                                            "INVALID SQL")));
+                                            mockDatabaseUrl(), "sa", "", "INVALID SQL")));
         }
     }
 }

@@ -20,6 +20,13 @@ export interface SqlDiagramInput {
   sql: string
 }
 
+export interface DatabaseUrl {
+  databaseType: string
+  host: string
+  port: number | null
+  databaseName: string
+}
+
 export type ConceptualDiagramInput = Snapshot
 
 export type AnyDiagramInput = ConceptualDiagramInput | LogicalDiagramInput | SqlDiagramInput

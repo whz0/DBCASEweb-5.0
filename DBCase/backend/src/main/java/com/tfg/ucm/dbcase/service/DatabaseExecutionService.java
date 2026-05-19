@@ -15,7 +15,9 @@ public class DatabaseExecutionService {
         try {
             Connection connection =
                     DriverManager.getConnection(
-                            request.getUrl(), request.getUsername(), request.getPassword());
+                            request.getDatabaseUrl().buildUrl(),
+                            request.getUsername(),
+                            request.getPassword());
             return connection.isValid(10);
         } catch (SQLException e) {
             e.printStackTrace(System.out);
@@ -26,7 +28,9 @@ public class DatabaseExecutionService {
     public void execute(ExecuteSqlRequest req) throws SQLException {
         try (Connection conn =
                         DriverManager.getConnection(
-                                req.getUrl(), req.getUsername(), req.getPassword());
+                                req.getDatabaseUrl().buildUrl(),
+                                req.getUsername(),
+                                req.getPassword());
                 Statement stmt = conn.createStatement()) {
             conn.setAutoCommit(false);
             for (String statement : req.getSql().split(";")) {

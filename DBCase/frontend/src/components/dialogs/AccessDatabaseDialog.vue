@@ -26,24 +26,37 @@ const dbName = ref('')
 const username = ref('')
 const password = ref('')
 
-const getUrl = () => {
-  const dbType = props.databaseType?.toLowerCase()
-  if (dbType === 'mysql') {
-    return `jdbc:mysql://${host.value}:${port.value ?? 3306}/${dbName.value}`
-  } else if (dbType === 'postgresql') {
-    return `jdbc:postgresql://${host.value}:${port.value ?? 5432}/${dbName.value}`
-  }
-  return ''
-}
-
 const handleDeploy = () => {
   const dbType = props.databaseType?.toLowerCase() as DatabaseType
   if (!dbType) return
-  databaseStore.desploy(dbType, getUrl(), username.value, password.value, props.code, toastMessage)
+  databaseStore.deploy(
+    {
+      databaseType: dbType,
+      host: host.value,
+      port: port.value,
+      databaseName: dbName.value,
+    },
+    username.value,
+    password.value,
+    props.code,
+    toastMessage,
+  )
 }
 
 const handleTest = () => {
-  databaseStore.test(getUrl(), username.value, password.value, toastMessage)
+  const dbType = props.databaseType?.toLowerCase() as DatabaseType
+  if (!dbType) return
+  databaseStore.test(
+    {
+      databaseType: dbType,
+      host: host.value,
+      port: port.value,
+      databaseName: dbName.value,
+    },
+    username.value,
+    password.value,
+    toastMessage,
+  )
 }
 </script>
 

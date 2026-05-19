@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExecuteSqlRequest {
-    private String dbType;
-    private String url;
+    private DatabaseUrl databaseUrl;
     private String username;
     private String password;
     private String sql;

@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestDatabaseRequest {
-
-    String url;
-    String username;
-    String password;
+    private DatabaseUrl databaseUrl;
+    private String username;
+    private String password;
 }

@@ -1,8 +1,7 @@
 import axios from 'axios'
 
-import type { DatabaseType } from '@/stores/databaseStore.ts'
 import { DiagramType } from '@/stores/diagramStore'
-import type { AnyDiagramInput, CustomDomain, UserSettings } from '@/types/api'
+import type { AnyDiagramInput, CustomDomain, DatabaseUrl, UserSettings } from '@/types/api'
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -39,16 +38,15 @@ export const api = {
       }),
   },
   database: {
-    test: (url: string, username: string, password: string) =>
+    test: (databaseUrl: DatabaseUrl, username: string, password: string) =>
       http.post('/database/test', {
-        url,
+        databaseUrl,
         username,
         password,
       }),
-    execute: (dbType: DatabaseType, url: string, username: string, password: string, sql: string) =>
+    execute: (databaseUrl: DatabaseUrl, username: string, password: string, sql: string) =>
       http.post('/database/execute', {
-        dbType,
-        url,
+        databaseUrl,
         username,
         password,
         sql,

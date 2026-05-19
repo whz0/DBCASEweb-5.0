@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tfg.ucm.dbcase.config.JWTFilter;
 import com.tfg.ucm.dbcase.config.RateLimitingFilter;
 import com.tfg.ucm.dbcase.config.SecurityConfig;
+import com.tfg.ucm.dbcase.dto.DatabaseUrl;
 import com.tfg.ucm.dbcase.dto.ExecuteSqlRequest;
 import com.tfg.ucm.dbcase.dto.TestDatabaseRequest;
 import com.tfg.ucm.dbcase.service.DatabaseExecutionService;
@@ -43,6 +44,9 @@ class DatabaseControllerTest {
     @Autowired private ObjectMapper objectMapper;
     @MockitoBean private DatabaseExecutionService databaseExecutionService;
 
+    private static final DatabaseUrl DB_URL =
+            new DatabaseUrl("POSTGRESQL", "localhost", 5432, "test");
+
     private static Stream<Arguments> testConnectionProvider() {
         return Stream.of(
                 Arguments.of(true, 200, "Se ha realizado la conexión con la base de datos"),
@@ -54,7 +58,7 @@ class DatabaseControllerTest {
     @WithMockUser
     void testTestEndpoint(boolean serviceResult, int expectedStatus, String expectedBody)
             throws Exception {
-        TestDatabaseRequest request = new TestDatabaseRequest("jdbc:h2:mem:test", "sa", "");
+        TestDatabaseRequest request = new TestDatabaseRequest(DB_URL, "sa", "");
         when(databaseExecutionService.test(any())).thenReturn(serviceResult);
 
         mockMvc.perform(
@@ -77,8 +81,7 @@ class DatabaseControllerTest {
     void testExecuteEndpoint(boolean throws_, String expectedBody, int expectedStatus)
             throws Exception {
         ExecuteSqlRequest request =
-                new ExecuteSqlRequest(
-                        "postgresql", "jdbc:h2:mem:test", "sa", "", "CREATE TABLE T(id INT)");
+                new ExecuteSqlRequest(DB_URL, "sa", "", "CREATE TABLE T(id INT)");
 
         if (throws_) {
             doThrow(new SQLException(expectedBody)).when(databaseExecutionService).execute(any());

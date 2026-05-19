@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { api } from '@/plugins/axios.ts'
+import type { DatabaseUrl } from '@/types/api.ts'
 
 export enum DatabaseType {
   mysql = 'mysql',
@@ -9,16 +10,15 @@ export enum DatabaseType {
 }
 
 export const useDatabaseStore = defineStore('database', () => {
-  async function desploy(
-    dbType: DatabaseType,
-    url: string,
+  async function deploy(
+    url: DatabaseUrl,
     username: string,
     password: string,
     code: string,
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
   ) {
     return api.database
-      .execute(dbType, url, username, password, code)
+      .execute(url, username, password, code)
       .then(() => {
         toast('Se ha generado la tablas correctamente', 'success')
       })
@@ -31,7 +31,7 @@ export const useDatabaseStore = defineStore('database', () => {
   }
 
   async function test(
-    url: string,
+    url: DatabaseUrl,
     username: string,
     password: string,
     toast: (message: string, severity: 'error' | 'warn' | 'info' | 'success') => void,
@@ -45,7 +45,7 @@ export const useDatabaseStore = defineStore('database', () => {
   }
 
   return {
-    desploy,
+    deploy,
     test,
   }
 })
