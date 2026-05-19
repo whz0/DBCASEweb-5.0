@@ -22,7 +22,6 @@ const emit = defineEmits<{
     @update:visible="emit('update:visible', $event)"
     modal
     :dismissable-mask="true"
-    :draggable="false"
     :header="t('schema.transform')"
     :style="{ width: '25rem' }"
   >

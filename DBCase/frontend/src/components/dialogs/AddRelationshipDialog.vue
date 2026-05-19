@@ -56,7 +56,6 @@ const save = () => {
     @update:visible="closeModal"
     modal
     :dismissable-mask="true"
-    :draggable="false"
     :style="{ width: '30rem' }"
     :header="isEditMode ? t('relationship.editRelationship') : t('relationship.addRelationship')"
   >

@@ -55,7 +55,6 @@ const openSchema = () => {
     :visible="visible"
     @update:visible="closeModal"
     :dismissable-mask="true"
-    :draggable="false"
     modal
     :style="{ width: '30rem' }"
   >

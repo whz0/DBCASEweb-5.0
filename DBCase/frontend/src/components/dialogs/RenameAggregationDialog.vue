@@ -40,7 +40,6 @@ const save = () => {
     @update:visible="closeModal"
     modal
     :dismissable-mask="true"
-    :draggable="false"
     :style="{ width: '26rem' }"
     :header="t('relationship.aggregationName')"
   >

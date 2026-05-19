@@ -29,7 +29,6 @@ const selectLayout = (layout: 'horizontal' | 'vertical') => {
     @update:visible="closeModal"
     modal
     :dismissable-mask="true"
-    :draggable="false"
     :header="t('layout.chooseLayout')"
     :style="{ width: '30rem' }"
   >

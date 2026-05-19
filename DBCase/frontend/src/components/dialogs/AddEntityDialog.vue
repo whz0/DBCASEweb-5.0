@@ -82,7 +82,6 @@ const saveEntity = () => {
     @update:visible="closeModal"
     modal
     :dismissable-mask="true"
-    :draggable="false"
     :style="{ width: '30rem' }"
     :header="isEditMode ? t('entity.editEntity') : t('entity.addEntity')"
   >

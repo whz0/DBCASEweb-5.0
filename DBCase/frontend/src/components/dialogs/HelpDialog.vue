@@ -18,7 +18,6 @@ const closeModal = () => dialogStore.close(DialogId.Help)
     maximizable
     modal
     :dismissable-mask="true"
-    :draggable="false"
     :header="t('help.header')"
     :style="{ width: '50rem' }"
     :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"

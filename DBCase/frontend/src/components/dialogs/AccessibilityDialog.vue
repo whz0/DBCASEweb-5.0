@@ -46,7 +46,6 @@ const closeModal = () => {
     @update:visible="closeModal"
     modal
     :dismissable-mask="true"
-    :draggable="false"
     :header="t('settings.title')"
     :style="{ width: '30rem' }"
   >

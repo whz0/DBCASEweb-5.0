@@ -48,7 +48,6 @@ const saveDomain = async () => {
     @update:visible="closeModal"
     modal
     :dismissable-mask="true"
-    :draggable="false"
     :style="{ width: '25rem' }"
     :header="t('panels.createDomain')"
   >
