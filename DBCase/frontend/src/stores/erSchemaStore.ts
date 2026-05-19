@@ -377,6 +377,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
       isComposite: boolean
       isNotNull: boolean
       isUnique: boolean
+      isDerived: boolean
       size: number
       domain?: string
     },

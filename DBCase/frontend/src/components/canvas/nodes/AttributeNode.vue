@@ -18,6 +18,7 @@
         fill: '#22bdb1',
         stroke: isSelected ? 'blue' : '#078980',
         strokeWidth: isSelected ? 4 : 2,
+        dash: attribute.isDerived ? [6, 4] : [],
         zIndex: 1,
       }"
     />
@@ -37,7 +38,7 @@
         text: attribute.isKey || attribute.isNotNull ? attribute.name : attribute.name + '*',
         fontSize: 16,
         fontFamily: 'arial',
-        textDecoration: attribute.isKey ? 'underline' : '',
+        textDecoration: attribute.isKey && !isWeakEntityKey ? 'underline' : '',
         fill: 'black',
         x: -effectiveRadiusX,
         y: -effectiveRadiusY,
@@ -45,6 +46,16 @@
         height: effectiveRadiusY * 2,
         align: 'center',
         verticalAlign: 'middle',
+      }"
+    />
+    <!-- Dashed underline for primary key of a weak entity -->
+    <v-line
+      v-if="isWeakEntityKey"
+      :config="{
+        points: [-textWidth / 2, 9, textWidth / 2, 9],
+        stroke: 'black',
+        strokeWidth: 1,
+        dash: [4, 3],
       }"
     />
   </v-group>
@@ -64,6 +75,12 @@ const props = defineProps<{
 const erSchemaStore = useErSchemaStore()
 
 const isSelected = computed(() => erSchemaStore.isSelected(props.attribute.id))
+
+const isWeakEntityKey = computed(() => {
+  if (!props.attribute.isKey) return false
+  const parentEntity = erSchemaStore.entities.find((e) => e.id === props.attribute.parentId)
+  return parentEntity?.isWeak === true
+})
 
 const emit = defineEmits(['dragmove'])
 
@@ -98,4 +115,10 @@ const effectiveRadiusX = computed(() =>
   props.attribute.name.length < 8 ? 50 : props.attribute.name.length * 5.5,
 )
 const effectiveRadiusY = 25
+
+// Approximate text width to center the dashed underline
+const textWidth = computed(() => {
+  const charWidth = 8.5
+  return props.attribute.name.length * charWidth
+})
 </script>

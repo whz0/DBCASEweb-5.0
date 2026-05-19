@@ -29,6 +29,7 @@ export interface Attribute extends DiagramElement {
   isMultivalued?: boolean
   isNotNull?: boolean
   isUnique?: boolean
+  isDerived?: boolean
   domain?: string
   size?: number
   components?: string[]

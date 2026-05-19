@@ -22,6 +22,7 @@ const isMultivalued = ref(false)
 const isComposite = ref(false)
 const isNotNull = ref(false)
 const isUnique = ref(false)
+const isDerived = ref(false)
 const size = ref(20)
 const selectedDomain = ref<string | null>(null)
 
@@ -64,6 +65,7 @@ watch(visible, (isNowVisible) => {
       isComposite.value = !!attr.isComposite
       isNotNull.value = !!attr.isNotNull
       isUnique.value = !!attr.isUnique
+      isDerived.value = !!attr.isDerived
       size.value = attr.size ?? 20
       selectedDomain.value = attr.domain || null
     } else {
@@ -82,7 +84,7 @@ watch(visible, (isNowVisible) => {
       isKey.value = false
       isMultivalued.value = false
       isComposite.value = false
-      isNotNull.value = false
+      isNotNull.value = true
       isUnique.value = false
       size.value = 20
       selectedDomain.value = null
@@ -101,6 +103,7 @@ const saveAttribute = () => {
         isComposite: isComposite.value,
         isNotNull: isNotNull.value,
         isUnique: isUnique.value,
+        isDerived: isDerived.value,
         size: size.value,
         domain: selectedDomain.value || undefined,
       },
@@ -117,7 +120,6 @@ const saveAttribute = () => {
     @update:visible="closeModal"
     modal
     :dismissable-mask="true"
-    :draggable="false"
     :style="{ width: '30rem' }"
     :header="isEditMode ? t('attribute.editAttribute') : t('attribute.addAttribute')"
   >
@@ -175,6 +177,10 @@ const saveAttribute = () => {
         <div class="flex items-center gap-2">
           <Checkbox v-model="isUnique" :binary="true" inputId="isUnique" />
           <label for="isUnique">{{ t('attribute.unique') }}</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="isDerived" :binary="true" inputId="isDerived" />
+          <label for="isUnique">{{ t('attribute.derived') }}</label>
         </div>
       </div>
     </div>

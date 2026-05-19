@@ -655,9 +655,20 @@ const AGGREGATION_PADDING = 60
 const getAggregationBox = (aggRel: Relationship): RectShape => {
   const relShape = calculateRelationshipRenderProps(aggRel)
   const points: { x: number; y: number }[] = [{ x: relShape.cx, y: relShape.cy }]
+  const entityIds = new Set<string>()
   aggRel.participants.forEach((p) => {
     const e = erSchemaStore.entities.find((e) => e.id === p.entityId)
-    if (e) points.push({ x: e.position.x, y: e.position.y })
+    if (e) {
+      points.push({ x: e.position.x, y: e.position.y })
+      entityIds.add(e.id)
+    }
+  })
+  erSchemaStore.attributes.forEach((attr) => {
+    if (attr.parentId === aggRel.id || entityIds.has(attr.parentId)) {
+      const shape = calculateAttributeRenderProps(attr)
+      points.push({ x: shape.cx - shape.rx, y: shape.cy - shape.ry })
+      points.push({ x: shape.cx + shape.rx, y: shape.cy + shape.ry })
+    }
   })
   const minX = Math.min(...points.map((p) => p.x)) - AGGREGATION_PADDING
   const minY = Math.min(...points.map((p) => p.y)) - AGGREGATION_PADDING
@@ -788,10 +799,25 @@ const aggregationBoxes = computed(() => {
     .map((rel) => {
       const relShape = calculateRelationshipRenderProps(rel)
       const points: { x: number; y: number }[] = [{ x: relShape.cx, y: relShape.cy }]
+
+      const entityIds = new Set<string>()
       rel.participants.forEach((p) => {
         const entity = erSchemaStore.entities.find((e) => e.id === p.entityId)
-        if (entity) points.push({ x: entity.position.x, y: entity.position.y })
+        if (entity) {
+          points.push({ x: entity.position.x, y: entity.position.y })
+          entityIds.add(entity.id)
+        }
       })
+
+      // Include attributes of the relationship and its participant entities
+      erSchemaStore.attributes.forEach((attr) => {
+        if (attr.parentId === rel.id || entityIds.has(attr.parentId)) {
+          const shape = calculateAttributeRenderProps(attr)
+          points.push({ x: shape.cx - shape.rx, y: shape.cy - shape.ry })
+          points.push({ x: shape.cx + shape.rx, y: shape.cy + shape.ry })
+        }
+      })
+
       const minX = Math.min(...points.map((p) => p.x)) - PADDING
       const minY = Math.min(...points.map((p) => p.y)) - PADDING
       const maxX = Math.max(...points.map((p) => p.x)) + PADDING
@@ -886,6 +912,14 @@ function handleKeydown(e: KeyboardEvent) {
   if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return
   if (e.key === 'Backspace' || e.key === 'Delete') {
     erSchemaStore.deleteSelected()
+  }
+  if (e.ctrlKey && e.key === 'z') {
+    e.preventDefault()
+    erSchemaStore.undo()
+  }
+  if (e.ctrlKey && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+    e.preventDefault()
+    erSchemaStore.redo()
   }
 }
 
