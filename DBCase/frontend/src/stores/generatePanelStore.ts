@@ -8,7 +8,9 @@ export const enum PanelId {
 }
 
 export const useGeneratePanelStore = defineStore('panel', () => {
-  const visible = ref<Set<PanelId>>(new Set())
+  const visible = ref<Set<PanelId>>(
+    new Set([PanelId.ERScheme, PanelId.LogicalScheme, PanelId.BDScheme]),
+  )
 
   const open = (id: PanelId) => {
     visible.value.add(id)
