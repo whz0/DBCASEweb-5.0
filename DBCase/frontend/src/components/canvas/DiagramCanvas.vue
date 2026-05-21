@@ -467,6 +467,11 @@ const getContextMenuItems = () => {
     if (rel?.type === 'Aggregation') {
       return [
         {
+          label: t('attribute.addAttribute'),
+          icon: 'bi bi-circle',
+          command: () => dialogStore.open(DialogId.AddAttribute),
+        },
+        {
           label: t('relationship.renameAggregation'),
           icon: 'bi bi-pencil-square',
           command: () => dialogStore.open(DialogId.RenameAggregation),

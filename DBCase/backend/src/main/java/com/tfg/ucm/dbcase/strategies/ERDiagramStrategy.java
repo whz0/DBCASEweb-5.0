@@ -3,6 +3,7 @@ package com.tfg.ucm.dbcase.strategies;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.addEdge;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.addForeignAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.addPrimaryAttr;
+import static com.tfg.ucm.dbcase.strategies.Auxiliary.editFk;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateAttr;
 import static com.tfg.ucm.dbcase.strategies.Auxiliary.getOrCreateNode;
 
@@ -82,20 +83,36 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         Set<String> originalEntityIds = new HashSet<>(entityDTOMap.keySet());
 
+        List<ErRelationshipDTO> aggregations = new ArrayList<>();
         for (ErRelationshipDTO erRel : otherRel) {
             if (erRel.type().equalsIgnoreCase("aggregation")) {
                 generateAggregation(erRel, entityDTOMap, attributeDTOMap, customDomainMap, graph);
+                aggregations.add(erRel);
             } else if (erRel.type().equalsIgnoreCase("isa")) {
                 generateIsA(erRel, entityDTOMap, attributeDTOMap, customDomainMap, graph);
             }
         }
 
-        for (ErRelationshipDTO erRel : normalRel) {
-            processRel(erRel, entityDTOMap, attributeDTOMap, customDomainMap, graph, false);
-        }
-
+        // Process own attributes of original entities BEFORE building aggregation PKs,
+        // so that addPksToAggregation can find the real PK nodes already in the graph.
         for (ErEntityDTO erEnt : input.entities()) {
             processOwnAttributes(erEnt, attributeDTOMap, customDomainMap, graph);
+        }
+
+        // Now that entity PKs are in the graph, build the synthetic aggregation entity entries.
+        for (ErRelationshipDTO erRel : aggregations) {
+            addPksToAggregation(
+                    erRel.id(), erRel.aggregationName(), entityDTOMap, attributeDTOMap, graph);
+        }
+
+        for (ErRelationshipDTO erRel : normalRel) {
+            processRel(
+                    erRel,
+                    entityDTOMap,
+                    attributeDTOMap,
+                    customDomainMap,
+                    graph,
+                    !erRel.attributes().isEmpty());
         }
 
         for (Map.Entry<String, ErEntityDTO> entry : entityDTOMap.entrySet()) {
@@ -117,11 +134,15 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             Map<String, ErAttributeDTO> attributeDTOMap,
             Map<String, String> customDomainMap,
             Graph<Node, Edge> graph,
-            boolean isAggregation) {
+            boolean createIntermediate) {
+
+        String name = erRel.aggregationName() != null ? erRel.aggregationName() : erRel.name();
+        Node relationship = getOrCreateNode(name, graph);
+        processAttributes(
+                relationship, erRel.attributes(), attributeDTOMap, customDomainMap, graph);
 
         if (erRel.participants().size() > 2) {
-            generateNAria(
-                    erRel, entityDTOMap, attributeDTOMap, customDomainMap, graph, isAggregation);
+            generateNAria(relationship, erRel, entityDTOMap, attributeDTOMap, graph);
         } else if (erRel.participants().size() == 2) {
             ErRelationshipParticipantDTO one = erRel.participants().get(0);
             ErRelationshipParticipantDTO other = erRel.participants().get(1);
@@ -139,27 +160,17 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
 
             if (isNM) {
-                generateNM(
-                        erRel,
-                        entityOne,
-                        entityOther,
-                        entityDTOMap,
-                        attributeDTOMap,
-                        customDomainMap,
-                        graph,
-                        isAggregation);
+                generateNM(relationship, entityOne, entityOther, attributeDTOMap, graph);
             } else if (isOneOne) {
                 generateOneOne(
+                        relationship,
                         one,
                         other,
                         entityOne,
                         entityOther,
-                        entityDTOMap,
                         attributeDTOMap,
                         graph,
-                        isAggregation,
-                        erRel.aggregationName(),
-                        erRel.id());
+                        createIntermediate);
             } else {
                 ErRelationshipParticipantDTO oneSide =
                         one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
@@ -167,17 +178,48 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         !one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
 
                 generateOneN(
+                        relationship,
                         entityDTOMap.get(oneSide.entityId()),
                         entityDTOMap.get(nSide.entityId()),
                         nSide.cardinalityMin(),
-                        entityDTOMap,
                         attributeDTOMap,
                         graph,
-                        isAggregation,
-                        erRel.aggregationName(),
-                        erRel.id());
+                        createIntermediate);
             }
         }
+    }
+
+    private void addPksToAggregation(
+            String id,
+            String name,
+            Map<String, ErEntityDTO> entityDTOMap,
+            Map<String, ErAttributeDTO> attributeDTOMap,
+            Graph<Node, Edge> graph) {
+
+        Node node = getOrCreateNode(name, graph);
+
+        List<Node> pks = Graphs.successorListOf(graph, node).stream().filter(Node::isPk).toList();
+
+        List<String> pksId = new ArrayList<>();
+        for (Node pk : pks) {
+            attributeDTOMap.put(
+                    pk.getUuid(),
+                    new ErAttributeDTO(
+                            pk.getUuid(),
+                            pk.getName(),
+                            null,
+                            null,
+                            true,
+                            false,
+                            false,
+                            false,
+                            false,
+                            pk.getDataType().toString(),
+                            pk.getDataType().length(),
+                            List.of()));
+            pksId.add(pk.getUuid());
+        }
+        entityDTOMap.put(id, new ErEntityDTO(id, name, null, false, List.of(), pksId));
     }
 
     private void generateIsA(
@@ -223,327 +265,141 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
     }
 
     private void generateNAria(
+            Node relationshipNode,
             ErRelationshipDTO rel,
             Map<String, ErEntityDTO> entityMap,
             Map<String, ErAttributeDTO> attrMap,
-            Map<String, String> customDomainMap,
-            Graph<Node, Edge> graph,
-            boolean isAggregation) {
-        Node relNode = getOrCreateNode(rel.name(), graph);
+            Graph<Node, Edge> graph) {
 
-        List<String> pks = new ArrayList<>();
         for (ErRelationshipParticipantDTO participant : rel.participants()) {
             ErEntityDTO entity = entityMap.get(participant.entityId());
-            if (isAggregation) {
-                for (String pkEntity : entity.primaryKeys()) {
-
-                    ErAttributeDTO pk = attrMap.get(pkEntity);
-                    String id = UUID.randomUUID().toString();
-                    attrMap.put(
-                            id,
-                            new ErAttributeDTO(
-                                    id,
-                                    pk.name(),
-                                    null,
-                                    null,
-                                    true,
-                                    false,
-                                    false,
-                                    false,
-                                    false,
-                                    pk.domain(),
-                                    pk.size(),
-                                    List.of()));
-                    pks.add(id);
-                }
+            List<String> pksName = getPksName(entity, attrMap);
+            for (String pk : pksName) {
+                addFkToRef(pk, relationshipNode, entity.name(), true, false, false, graph);
             }
-            addFkToRef(
-                    getPkName(entity, attrMap), relNode, entity.name(), true, false, false, graph);
-        }
-
-        if (isAggregation) {
-            entityMap.put(
-                    rel.id(),
-                    new ErEntityDTO(rel.id(), rel.aggregationName(), null, false, List.of(), pks));
         }
     }
 
     private void generateNM(
-            ErRelationshipDTO rel,
+            Node relationshipNode,
             ErEntityDTO entityOne,
             ErEntityDTO entityOther,
-            Map<String, ErEntityDTO> entityMap,
             Map<String, ErAttributeDTO> attrMap,
-            Map<String, String> customDomainMap,
-            Graph<Node, Edge> graph,
-            boolean isAggregation) {
-        Node relNode = getOrCreateNode(rel.name(), graph);
+            Graph<Node, Edge> graph) {
 
-        if (isAggregation) {
-
-            List<String> pks = new ArrayList<>();
-            for (String pkNSide : entityOne.primaryKeys()) {
-
-                ErAttributeDTO pk = attrMap.get(pkNSide);
-                String id = UUID.randomUUID().toString();
-                attrMap.put(
-                        id,
-                        new ErAttributeDTO(
-                                id,
-                                pk.name(),
-                                null,
-                                null,
-                                true,
-                                false,
-                                false,
-                                false,
-                                false,
-                                pk.domain(),
-                                pk.size(),
-                                List.of()));
-                pks.add(id);
-            }
-
-            for (String pkOneSide : entityOther.primaryKeys()) {
-
-                ErAttributeDTO pk = attrMap.get(pkOneSide);
-                String id = UUID.randomUUID().toString();
-                attrMap.put(
-                        id,
-                        new ErAttributeDTO(
-                                UUID.randomUUID().toString(),
-                                pk.name(),
-                                null,
-                                null,
-                                true,
-                                false,
-                                false,
-                                false,
-                                false,
-                                pk.domain(),
-                                pk.size(),
-                                List.of()));
-                pks.add(id);
-            }
-
-            entityMap.put(
-                    rel.id(),
-                    new ErEntityDTO(rel.id(), rel.aggregationName(), null, false, List.of(), pks));
+        List<String> pksName = getPksName(entityOne, attrMap);
+        for (String pk : pksName) {
+            addFkToRef(pk, relationshipNode, entityOne.name(), true, false, false, graph);
         }
 
-        addFkToRef(
-                getPkName(entityOne, attrMap),
-                relNode,
-                entityOne.name(),
-                true,
-                false,
-                false,
-                graph);
-        addFkToRef(
-                getPkName(entityOther, attrMap),
-                relNode,
-                entityOther.name(),
-                true,
-                false,
-                false,
-                graph);
-        processAttributes(relNode, rel.attributes(), attrMap, customDomainMap, graph);
+        pksName = getPksName(entityOther, attrMap);
+        for (String pk : pksName) {
+            addFkToRef(pk, relationshipNode, entityOther.name(), true, false, false, graph);
+        }
     }
 
     private void generateOneN(
+            Node relationshipNode,
             ErEntityDTO oneSide,
             ErEntityDTO nSide,
             String minCard,
-            Map<String, ErEntityDTO> entityMap,
             Map<String, ErAttributeDTO> attrMap,
             Graph<Node, Edge> graph,
-            boolean isAggregation,
-            String aggrName,
-            String aggrId) {
+            boolean createIntermediate) {
 
         boolean nIsTotal = !minCard.equals("0");
-
-        if (isAggregation) {
-
-            List<String> pks = new ArrayList<>();
-            List<String> refs = new ArrayList<>();
-            for (String pkNSide : nSide.primaryKeys()) {
-
-                ErAttributeDTO pk = attrMap.get(pkNSide);
-                String id = UUID.randomUUID().toString();
-                attrMap.put(
-                        id,
-                        new ErAttributeDTO(
-                                id,
-                                pk.name(),
-                                null,
-                                null,
-                                true,
-                                false,
-                                false,
-                                false,
-                                false,
-                                pk.domain(),
-                                pk.size(),
-                                List.of()));
-                pks.add(id);
+        Node node = createIntermediate ? relationshipNode : getOrCreateNode(nSide.name(), graph);
+        List<String> pksName = null;
+        if (createIntermediate) {
+            pksName = getPksName(nSide, attrMap);
+            for (String pk : pksName) {
+                addFkToRef(pk, node, nSide.name(), true, false, false, graph);
             }
-
-            for (String pkOneSide : oneSide.primaryKeys()) {
-
-                ErAttributeDTO pk = attrMap.get(pkOneSide);
-                String id = UUID.randomUUID().toString();
-                attrMap.put(
-                        id,
-                        new ErAttributeDTO(
-                                UUID.randomUUID().toString(),
-                                pk.name(),
-                                null,
-                                null,
-                                false,
-                                false,
-                                false,
-                                nIsTotal,
-                                false,
-                                pk.domain(),
-                                pk.size(),
-                                List.of()));
-                refs.add(id);
-            }
-            entityMap.put(aggrId, new ErEntityDTO(aggrId, aggrName, null, false, refs, pks));
         }
-
-        Node nNode = getOrCreateNode(nSide.name(), graph);
-
-        addFkToRef(
-                getPkName(oneSide, attrMap), nNode, oneSide.name(), false, false, nIsTotal, graph);
+        pksName = getPksName(oneSide, attrMap);
+        for (String pk : pksName) {
+            addFkToRef(pk, node, oneSide.name(), false, false, nIsTotal, graph);
+        }
     }
 
     private void generateOneOne(
+            Node relationship,
             ErRelationshipParticipantDTO participantOne,
             ErRelationshipParticipantDTO participantOther,
             ErEntityDTO entityOne,
             ErEntityDTO entityOther,
-            Map<String, ErEntityDTO> entityMap,
             Map<String, ErAttributeDTO> attrMap,
             Graph<Node, Edge> graph,
-            boolean isAggregation,
-            String aggrName,
-            String aggrId) {
+            boolean createIntermediate) {
 
         boolean oneIsTotal = !participantOne.cardinalityMin().equals("0");
         boolean otherIsTotal = !participantOther.cardinalityMin().equals("0");
-        Node nodeOne = getOrCreateNode(entityOne.name(), graph);
-        Node nodeOther = getOrCreateNode(entityOther.name(), graph);
+        Node nodeOne = createIntermediate ? relationship : getOrCreateNode(entityOne.name(), graph);
+        Node nodeOther =
+                createIntermediate ? relationship : getOrCreateNode(entityOther.name(), graph);
 
-        if (isAggregation) {
-            List<String> pks = new ArrayList<>();
-            List<String> refs = new ArrayList<>();
+        List<String> pksName = null;
+        if (createIntermediate) {
+            boolean onePk = oneIsTotal || !otherIsTotal;
 
+            pksName = getPksName(entityOther, attrMap);
+            for (String pk : pksName) {
+                addFkToRef(pk, relationship, entityOther.name(), onePk, !onePk, oneIsTotal, graph);
+            }
+
+            pksName = getPksName(entityOne, attrMap);
+            for (String pk : pksName) {
+                addFkToRef(pk, relationship, entityOne.name(), !onePk, onePk, otherIsTotal, graph);
+            }
+        } else {
             if (oneIsTotal || !otherIsTotal) {
-                for (String pkId : entityOther.primaryKeys()) {
-                    ErAttributeDTO pk = attrMap.get(pkId);
-                    String id = UUID.randomUUID().toString();
-                    attrMap.put(
-                            id,
-                            new ErAttributeDTO(
-                                    id,
-                                    pk.name(),
-                                    null,
-                                    null,
-                                    true,
-                                    false,
-                                    false,
-                                    oneIsTotal,
-                                    false,
-                                    pk.domain(),
-                                    pk.size(),
-                                    List.of()));
-                    pks.add(id);
+                pksName = getPksName(entityOther, attrMap);
+                for (String pk : pksName) {
+                    addFkToRef(pk, nodeOne, entityOther.name(), false, true, oneIsTotal, graph);
                 }
             }
             if (!oneIsTotal || otherIsTotal) {
-                for (String pkId : entityOne.primaryKeys()) {
-                    ErAttributeDTO pk = attrMap.get(pkId);
-                    String id = UUID.randomUUID().toString();
-                    attrMap.put(
-                            id,
-                            new ErAttributeDTO(
-                                    id,
-                                    pk.name(),
-                                    null,
-                                    null,
-                                    true,
-                                    false,
-                                    false,
-                                    otherIsTotal,
-                                    false,
-                                    pk.domain(),
-                                    pk.size(),
-                                    List.of()));
-                    pks.add(id);
+                pksName = getPksName(entityOne, attrMap);
+                for (String pk : pksName) {
+                    addFkToRef(pk, nodeOther, entityOne.name(), false, true, otherIsTotal, graph);
                 }
             }
-            entityMap.put(aggrId, new ErEntityDTO(aggrId, aggrName, null, false, refs, pks));
-        }
-
-        if (oneIsTotal || !otherIsTotal) {
-            addFkToRef(
-                    getPkName(entityOther, attrMap),
-                    nodeOne,
-                    entityOther.name(),
-                    false,
-                    true,
-                    oneIsTotal,
-                    graph);
-        }
-        if (!oneIsTotal || otherIsTotal) {
-            addFkToRef(
-                    getPkName(entityOne, attrMap),
-                    nodeOther,
-                    entityOne.name(),
-                    false,
-                    true,
-                    otherIsTotal,
-                    graph);
         }
     }
 
     private void generateSelfRel() {}
 
-    private String getPkName(ErEntityDTO entity, Map<String, ErAttributeDTO> attrMap) {
+    private List<String> getPksName(ErEntityDTO entity, Map<String, ErAttributeDTO> attrMap) {
+        List<String> pks = new ArrayList<>();
+
         if (entity.primaryKeys().isEmpty()) {
-            return entity.name().toLowerCase() + "Id";
+            pks.add("id_" + entity.name().toLowerCase());
+        } else {
+            for (String pkId : entity.primaryKeys()) {
+                pks.add(attrMap.get(pkId).name());
+            }
         }
-        String pkId = entity.primaryKeys().getFirst();
-        ErAttributeDTO pkAttr = attrMap.get(pkId);
-        return pkAttr != null ? pkAttr.name() : pkId;
+
+        return pks;
     }
 
     private void addFkToRef(
             String attrName,
             Node owner,
-            String refEntityName,
+            String ref,
             boolean isPk,
             boolean isUnique,
             boolean isNotNull,
             Graph<Node, Edge> graph) {
-        Node refEntity = getOrCreateNode(refEntityName, graph);
-        Node refAttr = getOrCreateAttr(attrName, refEntity, graph);
-        addPrimaryAttr(refAttr, refEntity, graph);
+        Node attrNode = getOrCreateAttr(attrName, owner, graph);
+        editFk(attrNode, isPk, isUnique, isNotNull);
+        addForeignAttr(attrNode, owner, ref, graph);
 
-        Node fkAttr = getOrCreateAttr(attrName, owner, graph);
-        addForeignAttr(fkAttr, owner, refEntityName, graph);
-        if (isPk) {
-            fkAttr.setPk(true);
-        }
-        if (isUnique) {
-            fkAttr.setUnique(true);
-        }
-        if (isNotNull) {
-            fkAttr.setNotNull(true);
-        }
-        addEdge(fkAttr, refAttr, graph);
+        Node refNode = getOrCreateNode(ref, graph);
+        Node attrRef = getOrCreateAttr(attrName, refNode, graph);
+        addPrimaryAttr(attrRef, refNode, graph);
+
+        addEdge(attrNode, attrRef, graph);
     }
 
     private void processAttributes(
@@ -951,7 +807,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         node.getUuid(),
                         node.getName(),
                         pos,
-                        "String",
+                        "Normal",
                         null,
                         participants,
                         ownAttrsId));
@@ -1023,7 +879,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                             node.getUuid(),
                             node.getName(),
                             pos,
-                            "String",
+                            "Normal",
                             null,
                             participants,
                             ownAttrsId));
@@ -1102,7 +958,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         UUID.randomUUID().toString(),
                         node.getName() + ref.getName(),
                         pos,
-                        "String",
+                        "Normal",
                         null,
                         participants,
                         List.of()));
@@ -1147,7 +1003,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         UUID.randomUUID().toString(),
                         node.getName() + ref.getName(),
                         pos,
-                        "String",
+                        "Normal",
                         null,
                         participants,
                         List.of()));

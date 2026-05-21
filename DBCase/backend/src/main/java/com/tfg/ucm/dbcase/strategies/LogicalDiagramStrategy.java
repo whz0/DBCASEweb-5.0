@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
     private static final Pattern PK_PATTERN = Pattern.compile("^__([a-zA-Z0-9_]+)__$");
-    private static final Pattern NULLABLE_PATTERN = Pattern.compile("^\\*([a-zA-Z0-9_]+)\\*$");
+    private static final Pattern NULLABLE_PATTERN = Pattern.compile("([a-zA-Z0-9_]+)\\*$");
 
     @Override
     public DiagramType getType() {
@@ -63,11 +63,11 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         for (Node node : allNodes) {
             String name =
                     node.getAggregationName() != null ? node.getAggregationName() : node.getName();
-            relationships
-                    .append(name)
-                    .append(" ( ")
-                    .append(buildEntry(node, graph, restrictions, lostRestrictions, usedRefs))
-                    .append(")\n");
+            String entry = buildEntry(node, graph, restrictions, lostRestrictions, usedRefs);
+
+            if (!entry.isBlank()) {
+                relationships.append(name).append(" ( ").append(entry).append(")\n");
+            }
         }
 
         return new LinkedHashMap<>(
@@ -109,7 +109,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 if (!others.isEmpty()) {
                     others.append(", ");
                 }
-                others.append(!attr.isNotNull() ? "*" + attr.getName() + "*" : attr.getName());
+                others.append(!attr.isNotNull() ? attr.getName() + "*" : attr.getName());
             }
         }
         if (!pks.isEmpty() && !others.isEmpty()) {

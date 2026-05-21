@@ -45,6 +45,13 @@ public class Auxiliary {
                         });
     }
 
+    static void editFk(Node attr, boolean isPk, boolean isUnique, boolean isNotNull) {
+
+        attr.setPk(isPk);
+        attr.setUnique(isUnique);
+        attr.setNotNull(isNotNull);
+    }
+
     static void addForeignAttr(Node attr, Node node, String ref, Graph<Node, Edge> diagram) {
 
         attr.setFk(true);
@@ -66,7 +73,10 @@ public class Auxiliary {
             diagram.addEdge(
                     src,
                     target,
-                    Edge.builder().label("edge" + src.getName() + target.getName()).build());
+                    Edge.builder()
+                            .uuid(UUID.randomUUID().toString())
+                            .label("edge" + src.getName() + target.getName())
+                            .build());
         }
     }
 }

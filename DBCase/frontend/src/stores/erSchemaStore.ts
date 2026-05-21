@@ -208,12 +208,27 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     entities.value.splice(entityIndex, 1)
   }
 
+  function removeAttributeRef(attrId: string) {
+    entities.value.forEach((e) => {
+      e.attributes = e.attributes.filter((a) => a !== attrId)
+      e.primaryKeys = e.primaryKeys.filter((k) => k !== attrId)
+    })
+    relationships.value.forEach((r) => {
+      r.attributes = r.attributes.filter((a) => a !== attrId)
+    })
+    undefineds.value.forEach((u) => {
+      u.attributes = u.attributes.filter((a) => a !== attrId)
+    })
+  }
+
   function deleteElement(id: string) {
     saveHistory()
     const entityIndex = entities.value.findIndex((e) => e.id === id)
     if (entityIndex !== -1) {
       deleteEntity(entityIndex, id)
     } else {
+      const isAttr = attributes.value.some((a) => a.id === id)
+      if (isAttr) removeAttributeRef(id)
       relationships.value = relationships.value.filter((r) => r.id !== id)
       attributes.value = attributes.value.filter((a) => a.id !== id)
       undefineds.value = undefineds.value.filter((u) => u.id !== id)
@@ -233,6 +248,8 @@ export const useErSchemaStore = defineStore('erSchema', () => {
       if (entityIndex !== -1) {
         deleteEntity(entityIndex, id)
       } else {
+        const isAttr = attributes.value.some((a) => a.id === id)
+        if (isAttr) removeAttributeRef(id)
         relationships.value = relationships.value.filter((r) => r.id !== id)
         attributes.value = attributes.value.filter((a) => a.id !== id)
         undefineds.value = undefineds.value.filter((u) => u.id !== id)
