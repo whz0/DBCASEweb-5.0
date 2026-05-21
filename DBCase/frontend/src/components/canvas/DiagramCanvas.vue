@@ -704,10 +704,9 @@ const relationshipConnections = computed(() => {
       if (!entity && !aggRel) return
 
       // Track occurrence index for this entityId within this relationship
-      entityOccurrence[participant.entityId] = entityOccurrence[participant.entityId] ?? 0
-      const occurrenceIndex = entityOccurrence[participant.entityId]
-      entityOccurrence[participant.entityId]++
-      const isRecursive = entityCount[participant.entityId] > 1
+      const occurrenceIndex: number = entityOccurrence[participant.entityId] ?? 0
+      entityOccurrence[participant.entityId] = occurrenceIndex + 1
+      const isRecursive: boolean = (entityCount[participant.entityId] ?? 1) > 1
 
       const relShape = calculateRelationshipRenderProps(rel)
       const relCenter = { x: relShape.cx, y: relShape.cy }

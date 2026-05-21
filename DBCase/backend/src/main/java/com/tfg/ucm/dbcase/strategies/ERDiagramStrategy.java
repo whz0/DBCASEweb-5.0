@@ -20,7 +20,6 @@ import com.tfg.ucm.dbcase.dto.erdiagram.ErUndefinedDTO;
 import com.tfg.ucm.dbcase.dto.erdiagram.Position;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.ErInput;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +29,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DirectedPseudograph;
@@ -140,7 +138,12 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         processAttributes(
                 relationship, erRel.attributes(), attributeDTOMap, customDomainMap, graph);
 
-        boolean self = erRel.participants().stream().map(ErRelationshipParticipantDTO::entityId).distinct().count() == 1;
+        boolean self =
+                erRel.participants().stream()
+                                .map(ErRelationshipParticipantDTO::entityId)
+                                .distinct()
+                                .count()
+                        == 1;
 
         if (erRel.participants().size() > 2) {
             generateNAria(relationship, erRel, entityDTOMap, attributeDTOMap, graph, self);
@@ -161,7 +164,15 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
 
             if (isNM) {
-                generateNM(relationship, one, other, entityOne, entityOther, attributeDTOMap, graph, self);
+                generateNM(
+                        relationship,
+                        one,
+                        other,
+                        entityOne,
+                        entityOther,
+                        attributeDTOMap,
+                        graph,
+                        self);
             } else if (isOneOne) {
                 generateOneOne(
                         relationship,
@@ -363,27 +374,52 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             pksName = getPksName(entityOther, attrMap);
             for (String pk : pksName) {
                 String role = self ? participantOther.role() : "";
-                addFkToRef(pk, relationship, entityOther.name(), onePk, !onePk, oneIsTotal, graph, role);
+                addFkToRef(
+                        pk,
+                        relationship,
+                        entityOther.name(),
+                        onePk,
+                        !onePk,
+                        oneIsTotal,
+                        graph,
+                        role);
             }
 
             pksName = getPksName(entityOne, attrMap);
             for (String pk : pksName) {
                 String role = self ? participantOne.role() : "";
-                addFkToRef(pk, relationship, entityOne.name(), !onePk, onePk, otherIsTotal, graph, role);
+                addFkToRef(
+                        pk,
+                        relationship,
+                        entityOne.name(),
+                        !onePk,
+                        onePk,
+                        otherIsTotal,
+                        graph,
+                        role);
             }
         } else {
             if (oneIsTotal || !otherIsTotal) {
                 pksName = getPksName(entityOther, attrMap);
                 for (String pk : pksName) {
                     String role = self ? participantOther.role() : "";
-                    addFkToRef(pk, nodeOne, entityOther.name(), false, true, oneIsTotal, graph, role);
+                    addFkToRef(
+                            pk, nodeOne, entityOther.name(), false, true, oneIsTotal, graph, role);
                 }
             }
             if (!oneIsTotal || otherIsTotal) {
                 pksName = getPksName(entityOne, attrMap);
                 for (String pk : pksName) {
                     String role = self ? participantOne.role() : "";
-                    addFkToRef(pk, nodeOther, entityOne.name(), false, true, otherIsTotal, graph, role);
+                    addFkToRef(
+                            pk,
+                            nodeOther,
+                            entityOne.name(),
+                            false,
+                            true,
+                            otherIsTotal,
+                            graph,
+                            role);
                 }
             }
         }
@@ -558,7 +594,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                                 ref -> {
                                                     Node first =
                                                             node.getName().compareTo(ref.getName())
-                                                                    <= 0
+                                                                            <= 0
                                                                     ? node
                                                                     : ref;
                                                     Node second = first == node ? ref : node;
@@ -848,8 +884,11 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
             List<String> ownAttrsId = new ArrayList<>();
 
-            List<Node> ownAttrsList = Graphs.neighborListOf(graph, node).stream()
-                    .filter(attr -> attr.isAttribute() && !attr.isPk()).distinct().toList();
+            List<Node> ownAttrsList =
+                    Graphs.neighborListOf(graph, node).stream()
+                            .filter(attr -> attr.isAttribute() && !attr.isPk())
+                            .distinct()
+                            .toList();
             int nmAttrTotal = ownAttrsList.size();
             AtomicInteger nmAttrIdx = new AtomicInteger(0);
             ownAttrsList.forEach(
@@ -943,24 +982,24 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         String minNode =
                 Graphs.successorListOf(graph, node).stream()
-                        .filter(
-                                a ->
-                                        a.isAttribute()
-                                                && a.isFk()
-                                                && a.isUnique()
-                                                && ref.getName().equals(a.getReference()))
-                        .anyMatch(Node::isNotNull)
+                                .filter(
+                                        a ->
+                                                a.isAttribute()
+                                                        && a.isFk()
+                                                        && a.isUnique()
+                                                        && ref.getName().equals(a.getReference()))
+                                .anyMatch(Node::isNotNull)
                         ? "1"
                         : "0";
         String minRef =
                 Graphs.successorListOf(graph, ref).stream()
-                        .filter(
-                                a ->
-                                        a.isAttribute()
-                                                && a.isFk()
-                                                && a.isUnique()
-                                                && node.getName().equals(a.getReference()))
-                        .anyMatch(Node::isNotNull)
+                                .filter(
+                                        a ->
+                                                a.isAttribute()
+                                                        && a.isFk()
+                                                        && a.isUnique()
+                                                        && node.getName().equals(a.getReference()))
+                                .anyMatch(Node::isNotNull)
                         ? "1"
                         : "0";
 
@@ -1000,13 +1039,13 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         String min =
                 Graphs.successorListOf(graph, node).stream()
-                        .filter(
-                                a ->
-                                        a.getReference() != null
-                                                && a.getReference().equals(ref.getName())
-                                                && a.isNotNull())
-                        .collect(Collectors.toSet())
-                        .isEmpty()
+                                .filter(
+                                        a ->
+                                                a.getReference() != null
+                                                        && a.getReference().equals(ref.getName())
+                                                        && a.isNotNull())
+                                .collect(Collectors.toSet())
+                                .isEmpty()
                         ? "0"
                         : "1";
         participants.add(new ErRelationshipParticipantDTO(node.getUuid(), min, "n", ""));
