@@ -19,7 +19,7 @@
         <!-- Connections -->
         <template
           v-for="connection in relationshipConnections"
-          :key="connection.relId + '-' + connection.entityId"
+          :key="connection.relId + '-' + connection.entityId + '-' + connection.offsetIndex"
         >
           <!-- Main Connection Line (IsA parent uses arrow) -->
           <v-arrow
@@ -653,6 +653,7 @@ interface RelationshipConnection {
   isTotal: boolean
   isParent: boolean
   isInvalid: boolean
+  offsetIndex: number
 }
 
 const AGGREGATION_PADDING = 60
@@ -685,9 +686,15 @@ const getAggregationBox = (aggRel: Relationship): RectShape => {
 const relationshipConnections = computed(() => {
   const connections: RelationshipConnection[] = []
   erSchemaStore.relationships.forEach((rel: Relationship) => {
+    // Count occurrences of each entityId to detect recursive participants
+    const entityCount: Record<string, number> = {}
+    rel.participants.forEach((p) => {
+      entityCount[p.entityId] = (entityCount[p.entityId] ?? 0) + 1
+    })
+    const entityOccurrence: Record<string, number> = {}
+
     rel.participants.forEach((participant: RelationshipParticipant) => {
       const entity = erSchemaStore.entities.find((e) => e.id === participant.entityId)
-      // Check if participant is an aggregation (its entityId matches an aggregation relationship)
       const aggRel = !entity
         ? erSchemaStore.relationships.find(
             (r) => r.id === participant.entityId && r.type === 'Aggregation',
@@ -695,6 +702,12 @@ const relationshipConnections = computed(() => {
         : undefined
 
       if (!entity && !aggRel) return
+
+      // Track occurrence index for this entityId within this relationship
+      entityOccurrence[participant.entityId] = entityOccurrence[participant.entityId] ?? 0
+      const occurrenceIndex = entityOccurrence[participant.entityId]
+      entityOccurrence[participant.entityId]++
+      const isRecursive = entityCount[participant.entityId] > 1
 
       const relShape = calculateRelationshipRenderProps(rel)
       const relCenter = { x: relShape.cx, y: relShape.cy }
@@ -732,16 +745,29 @@ const relationshipConnections = computed(() => {
       }
 
       if (startPoint && endPoint) {
+        // Apply perpendicular offset for recursive connections (non-first occurrences)
+        if (isRecursive && occurrenceIndex > 0) {
+          const dx = endPoint.x - startPoint.x
+          const dy = endPoint.y - startPoint.y
+          const d = Math.sqrt(dx * dx + dy * dy) || 1
+          const perpX = (-dy / d) * 20 * occurrenceIndex
+          const perpY = (dx / d) * 20 * occurrenceIndex
+          startPoint = { x: startPoint.x + perpX, y: startPoint.y + perpY }
+          endPoint = { x: endPoint.x + perpX, y: endPoint.y + perpY }
+        }
+
         const minCard = participant.cardinalityMin
         const maxCard = participant.cardinalityMax
+        const role = participant.role ?? ''
         const isIsA = rel.type === 'IsA'
 
         let labelAbove = ''
         let labelBelow = ''
         if (!isIsA) {
+          const rolePrefix = role ? `[${role}] ` : ''
           const labels: string[] = []
-          if (showNumber.value) labels.push(maxCard)
-          if (showMinMax.value) labels.push(`(${minCard},${maxCard})`)
+          if (showNumber.value) labels.push(`${rolePrefix}${maxCard}`)
+          if (showMinMax.value) labels.push(`${rolePrefix}(${minCard},${maxCard})`)
           labelAbove = labels[0] ?? ''
           labelBelow = labels[1] ?? ''
         }
@@ -781,6 +807,7 @@ const relationshipConnections = computed(() => {
             parseInt(minCard) >= 1,
           isParent: isIsA && participant.role === 'Parent',
           isInvalid: minCard === '?' || maxCard === '?',
+          offsetIndex: occurrenceIndex,
         })
       }
     })

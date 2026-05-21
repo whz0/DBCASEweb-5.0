@@ -20,15 +20,26 @@ const currentRelationship = computed(() => {
 const participants = computed(() =>
   (currentRelationship.value?.participants ?? []).map((p) => {
     const entity = erSchemaStore.entities.find((e) => e.id === p.entityId)
-    if (entity) return { ...p, name: entity.name }
-    const aggRel = erSchemaStore.relationships.find(
-      (r) => r.id === p.entityId && r.type === 'Aggregation',
-    )
-    return { ...p, name: aggRel ? `[Agr] ${aggRel.aggregationName}` : 'Unknown' }
+    const rolePart = p.role ? `[${p.role}] ` : ''
+    const aggRel = !entity
+      ? erSchemaStore.relationships.find((r) => r.id === p.entityId && r.type === 'Aggregation')
+      : undefined
+    const name = entity
+      ? `${rolePart}${entity.name}`
+      : aggRel
+        ? `${rolePart}[Agr] ${aggRel.aggregationName}`
+        : 'Unknown'
+    return { ...p, name, key: `${p.entityId}:${p.role ?? ''}` }
   }),
 )
 
-const selectedEntityId = ref<string | null>(null)
+const selectedKey = ref<string | null>(null)
+const selectedEntityId = computed(() => selectedKey.value?.split(':')[0] ?? null)
+const selectedRole = computed(() => selectedKey.value?.split(':').slice(1).join(':') ?? '')
+
+const isSelectedWeak = computed(
+  () => erSchemaStore.entities.find((e) => e.id === selectedEntityId.value)?.isWeak ?? false,
+)
 const cardinality = ref<'1' | 'N'>('N')
 const participation = ref<'parcial' | 'total'>('parcial')
 const useMinMax = ref(false)
@@ -63,36 +74,50 @@ function onUseMinMaxChange(val: boolean) {
   if (!val) syncFieldsToRadios()
 }
 
-function loadParticipant(entityId: string | null) {
-  selectedEntityId.value = entityId
-  if (!entityId || !currentRelationship.value) return
-  const p = currentRelationship.value.participants.find((p) => p.entityId === entityId)
+function loadByKey(key: string | null) {
+  selectedKey.value = key
+  if (!key || !currentRelationship.value) return
+  const [eId, ...roleParts] = key.split(':')
+  const r = roleParts.join(':')
+  const p = currentRelationship.value.participants.find(
+    (p) => p.entityId === eId && (p.role ?? '') === r,
+  )
   if (!p) return
   role.value = p.role ?? ''
   minVal.value = p.cardinalityMin
   maxVal.value = p.cardinalityMax
   const min = p.cardinalityMin
   const max = p.cardinalityMax.toLowerCase()
+  const isWeak = erSchemaStore.entities.find((e) => e.id === eId)?.isWeak ?? false
   const isStandard = (min === '0' || min === '1') && (max === '1' || max === 'n')
   useMinMax.value = !isStandard
   cardinality.value = max === '1' ? '1' : 'N'
-  participation.value = min === '1' ? 'total' : 'parcial'
+  participation.value = isWeak ? 'total' : min === '1' ? 'total' : 'parcial'
+  if (isWeak) minVal.value = '1'
 }
 
 watch(visible, (v) => {
-  if (v) loadParticipant(targetParticipantId.value ?? participants.value[0]?.entityId ?? null)
+  if (v) {
+    const targetId = targetParticipantId.value
+    const first = participants.value[0]
+    const initialKey = targetId
+      ? (participants.value.find((p) => p.entityId === targetId)?.key ?? first?.key ?? null)
+      : (first?.key ?? null)
+    loadByKey(initialKey)
+  }
 })
-watch(selectedEntityId, loadParticipant)
+watch(selectedKey, loadByKey)
 
 const closeModal = () => dialogStore.close(DialogId.EditCardinality)
 
 const save = () => {
   if (!currentRelationship.value || !selectedEntityId.value) return
-  erSchemaStore.updateParticipant(currentRelationship.value.id, selectedEntityId.value, {
-    cardinalityMin: minVal.value,
-    cardinalityMax: maxVal.value,
-    role: role.value,
-  })
+  erSchemaStore.updateParticipant(
+    currentRelationship.value.id,
+    selectedEntityId.value,
+    { cardinalityMin: minVal.value, cardinalityMax: maxVal.value, role: role.value },
+    selectedRole.value,
+  )
   closeModal()
 }
 </script>
@@ -112,11 +137,11 @@ const save = () => {
     <div class="flex flex-col gap-3">
       <label class="font-semibold">{{ t('relationship.entity') }}</label>
       <Select
-        :modelValue="selectedEntityId"
-        @update:modelValue="selectedEntityId = $event"
+        :modelValue="selectedKey"
+        @update:modelValue="selectedKey = $event"
         :options="participants"
         optionLabel="name"
-        optionValue="entityId"
+        optionValue="key"
       />
 
       <label class="font-semibold mt-1">{{ t('relationship.cardinality') }}</label>
@@ -148,6 +173,7 @@ const save = () => {
             v-model="participation"
             inputId="eparcial"
             value="parcial"
+            :disabled="isSelectedWeak"
             @update:modelValue="onParticipationChange"
           />
           <label for="eparcial">{{ t('relationship.partial') }}</label>
@@ -157,6 +183,7 @@ const save = () => {
             v-model="participation"
             inputId="etotal"
             value="total"
+            :disabled="isSelectedWeak"
             @update:modelValue="onParticipationChange"
           />
           <label for="etotal">{{ t('relationship.total') }}</label>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
@@ -17,19 +17,26 @@ const currentRelationship = computed(() => {
 })
 
 const availableEntities = computed(() => {
-  const alreadyIn = currentRelationship.value?.participants.map((p) => p.entityId) ?? []
-  const entities = erSchemaStore.entities
-    .filter((e) => !alreadyIn.includes(e.id))
-    .map((e) => ({ id: e.id, name: e.name }))
+  const entities = erSchemaStore.entities.map((e) => ({ id: e.id, name: e.name }))
   const aggregations = erSchemaStore.relationships
-    .filter((r) => r.type === 'Aggregation' && r.aggregationName && !alreadyIn.includes(r.id))
+    .filter((r) => r.type === 'Aggregation' && r.aggregationName)
     .map((r) => ({ id: r.id, name: `[Agr] ${r.aggregationName}` }))
   return [...entities, ...aggregations]
+})
+
+const alreadyParticipates = computed(() => {
+  if (!selectedEntity.value || !currentRelationship.value) return false
+  return currentRelationship.value.participants.some((p) => p.entityId === selectedEntity.value!.id)
 })
 
 const selectedEntity = ref<{ id: string; name: string } | null>(null)
 const cardinality = ref<'1' | 'N'>('N')
 const participation = ref<'parcial' | 'total'>('parcial')
+
+const isSelectedWeak = computed(() => {
+  if (!selectedEntity.value) return false
+  return erSchemaStore.entities.find((e) => e.id === selectedEntity.value!.id)?.isWeak ?? false
+})
 const useMinMax = ref(false)
 const minVal = ref('0')
 const maxVal = ref('n')
@@ -58,6 +65,14 @@ function onUseMinMaxChange(val: boolean) {
   if (!val) syncFieldsToRadios()
 }
 
+watch(isSelectedWeak, (weak) => {
+  if (weak) {
+    participation.value = 'total'
+    useMinMax.value = false
+    syncRadiosToFields()
+  }
+})
+
 const closeModal = () => {
   dialogStore.close(DialogId.AddEntityToRelationship)
   selectedEntity.value = null
@@ -71,6 +86,7 @@ const closeModal = () => {
 
 const save = () => {
   if (!currentRelationship.value || !selectedEntity.value) return
+  if (alreadyParticipates.value && !role.value.trim()) return
   erSchemaStore.addParticipantToRelationship(currentRelationship.value.id, {
     entityId: selectedEntity.value.id,
     cardinalityMin: minVal.value,
@@ -128,6 +144,7 @@ const save = () => {
             v-model="participation"
             inputId="parcial"
             value="parcial"
+            :disabled="isSelectedWeak"
             @update:modelValue="onParticipationChange"
           />
           <label for="parcial">{{ t('relationship.partial') }}</label>
@@ -137,6 +154,7 @@ const save = () => {
             v-model="participation"
             inputId="total"
             value="total"
+            :disabled="isSelectedWeak"
             @update:modelValue="onParticipationChange"
           />
           <label for="total">{{ t('relationship.total') }}</label>
@@ -161,6 +179,9 @@ const save = () => {
 
       <label class="font-semibold mt-1">{{ t('relationship.role') }}</label>
       <InputText v-model="role" :placeholder="t('relationship.enterRole')" @keydown.enter="save" />
+      <small v-if="alreadyParticipates && !role.trim()" class="text-red-500">
+        {{ t('relationship.roleRequiredForRecursive') }}
+      </small>
     </div>
 
     <template #footer>
@@ -173,7 +194,7 @@ const save = () => {
       <Button
         :label="t('common.add')"
         icon="bi bi-check-lg"
-        :disabled="!selectedEntity"
+        :disabled="!selectedEntity || (alreadyParticipates && !role.trim())"
         @click="save"
       />
     </template>

@@ -11,6 +11,7 @@ const messages = {
       aboutUs: 'About Us',
       undo: 'Undo',
       redo: 'Redo',
+      new: 'New diagram',
       saveSchema: 'Save schema',
       openSchema: 'Open schema',
       greeting: 'Hello {name}',
@@ -102,6 +103,8 @@ const messages = {
       entity: 'Entity',
       role: 'Role (Optional)',
       enterRole: 'e.g. Manager, Employee',
+      roleRequiredForRecursive:
+        'A role is required when the entity already participates in this relationship.',
       currentParticipants: 'Current Participants',
       noParticipants: 'No participants yet',
       editParticipant: 'Edit Participant',
@@ -263,6 +266,7 @@ const messages = {
       aboutUs: 'Acerca de',
       undo: 'Deshacer',
       redo: 'Rehacer',
+      new: 'Nuevo diagrama',
       saveSchema: 'Guardar esquema',
       openSchema: 'Abrir esquema',
       greeting: 'Hola {name}',
@@ -355,6 +359,8 @@ const messages = {
       entity: 'Entidad',
       role: 'Rol (Opcional)',
       enterRole: 'p.ej. Gerente, Empleado',
+      roleRequiredForRecursive:
+        'Se requiere un rol cuando la entidad ya participa en esta relación.',
       currentParticipants: 'Participantes Actuales',
       noParticipants: 'Sin participantes aún',
       editParticipant: 'Editar Participante',

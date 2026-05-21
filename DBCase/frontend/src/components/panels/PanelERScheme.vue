@@ -52,6 +52,13 @@ const handleTransform = async (value: DiagramType) => {
           v-tooltip.bottom="t('toolbar.redo')"
           text
         />
+        <Button
+          severity="secondary"
+          class="bi bi-file-earmark"
+          @click="erSchemaStore.newDiagram()"
+          v-tooltip.bottom="t('toolbar.new')"
+          text
+        />
       </div>
       <div class="text-3xl">
         <h1>{{ t('panels.conceptual') }}</h1>

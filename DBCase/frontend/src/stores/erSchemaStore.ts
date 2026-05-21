@@ -149,7 +149,11 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     saveHistory()
     const relationship = relationships.value.find((r) => r.id === relationshipId)
     if (relationship) {
-      if (!relationship.participants.some((p) => p.entityId === participant.entityId)) {
+      if (
+        !relationship.participants.some(
+          (p) => p.entityId === participant.entityId && p.role === participant.role,
+        )
+      ) {
         relationship.participants.push(participant)
       }
     }
@@ -167,11 +171,15 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     relationshipId: string,
     entityId: string,
     data: { cardinalityMin: string; cardinalityMax: string; role: string },
+    originalRole?: string,
   ) {
     saveHistory()
     const relationship = relationships.value.find((r) => r.id === relationshipId)
     if (!relationship) return
-    const participant = relationship.participants.find((p) => p.entityId === entityId)
+    const participant = relationship.participants.find(
+      (p) =>
+        p.entityId === entityId && (originalRole === undefined || (p.role ?? '') === originalRole),
+    )
     if (participant) {
       participant.cardinalityMin = data.cardinalityMin
       participant.cardinalityMax = data.cardinalityMax
@@ -526,6 +534,16 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     future.value = []
   }
 
+  function newDiagram() {
+    saveHistory()
+    entities.value = []
+    relationships.value = []
+    attributes.value = []
+    undefineds.value = []
+    selectedElementIds.value = new Set()
+    future.value = []
+  }
+
   function toggleAggregation(id: string) {
     const rel = relationships.value.find((r) => r.id === id)
     if (rel) {
@@ -586,6 +604,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     stageRef,
     exportToPDF,
     reset,
+    newDiagram,
     convertUndefinedToEntity,
     convertUndefinedToRelationship,
     toggleAggregation,
