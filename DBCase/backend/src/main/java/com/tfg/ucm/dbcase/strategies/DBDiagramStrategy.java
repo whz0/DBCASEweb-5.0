@@ -28,7 +28,7 @@ import net.sf.jsqlparser.statement.create.table.ForeignKeyIndex;
 import net.sf.jsqlparser.statement.create.table.Index;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.DirectedPseudograph;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -45,7 +45,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
 
     @Override
     public Diagram generate(PhysicalInput diagram) throws Exception {
-        Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
+        Graph<Node, Edge> result = new DirectedPseudograph<>(Edge.class);
 
         for (String statement : diagram.sql().split(";")) {
 

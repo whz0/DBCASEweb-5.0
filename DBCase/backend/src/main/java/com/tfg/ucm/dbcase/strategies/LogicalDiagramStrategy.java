@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.DirectedPseudograph;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -39,7 +39,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
     @Override
     public Diagram generate(LogicalInput diagram) {
-        Graph<Node, Edge> result = new DirectedMultigraph<>(Edge.class);
+        Graph<Node, Edge> result = new DirectedPseudograph<>(Edge.class);
         parseRestriction(diagram.restriction(), false, result);
         parseRestriction(diagram.lossRestriction(), true, result);
         parseRelationship(diagram.relationship(), result);
