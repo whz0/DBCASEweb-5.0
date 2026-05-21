@@ -58,16 +58,14 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         StringBuilder restrictions = new StringBuilder();
         StringBuilder lostRestrictions = new StringBuilder();
 
+        Set<Node> visited = new HashSet<>();
         Set<String> usedRefs = new HashSet<>();
 
         for (Node node : allNodes) {
-            String name =
-                    node.getAggregationName() != null ? node.getAggregationName() : node.getName();
-            String entry = buildEntry(node, graph, restrictions, lostRestrictions, usedRefs);
 
-            if (!entry.isBlank()) {
-                relationships.append(name).append(" ( ").append(entry).append(")\n");
-            }
+            String entry =
+                    buildEntry(node, graph, restrictions, lostRestrictions, visited, usedRefs);
+            relationships.append(entry);
         }
 
         return new LinkedHashMap<>(
@@ -82,8 +80,16 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
             Graph<Node, Edge> graph,
             StringBuilder restrictions,
             StringBuilder lostRestrictions,
+            Set<Node> visited,
             Set<String> usedRefs) {
 
+        if (visited.contains(node)) {
+            return "";
+        }
+        visited.add(node);
+
+        StringBuilder entry = new StringBuilder();
+        StringBuilder attributes = new StringBuilder();
         StringBuilder pks = new StringBuilder();
         StringBuilder others = new StringBuilder();
 
@@ -99,6 +105,19 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                     usedRefs.add(node.getName());
                     appendRestriction(attr, node, graph, restrictions);
                 }
+                graph.vertexSet().stream()
+                        .filter(n -> n.getName().equals(attr.getReference()))
+                        .findFirst()
+                        .ifPresent(
+                                ref ->
+                                        entry.append(
+                                                buildEntry(
+                                                        ref,
+                                                        graph,
+                                                        restrictions,
+                                                        lostRestrictions,
+                                                        visited,
+                                                        usedRefs)));
             }
             if (attr.isPk()) {
                 if (!pks.isEmpty()) {
@@ -113,9 +132,15 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
             }
         }
         if (!pks.isEmpty() && !others.isEmpty()) {
-            return pks + ", " + others;
+            attributes.append(pks).append(", ").append(others);
+        } else {
+            attributes.append(pks.isEmpty() ? others.toString() : pks.toString());
         }
-        return pks.isEmpty() ? others.toString() : pks.toString();
+
+        if (!attributes.isEmpty()) {
+            entry.append(node.getName()).append(" ( ").append(attributes).append(")\n");
+        }
+        return entry.toString();
     }
 
     private void appendRestriction(

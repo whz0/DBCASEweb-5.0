@@ -93,13 +93,10 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
         }
 
-        // Process own attributes of original entities BEFORE building aggregation PKs,
-        // so that addPksToAggregation can find the real PK nodes already in the graph.
         for (ErEntityDTO erEnt : input.entities()) {
             processOwnAttributes(erEnt, attributeDTOMap, customDomainMap, graph);
         }
 
-        // Now that entity PKs are in the graph, build the synthetic aggregation entity entries.
         for (ErRelationshipDTO erRel : aggregations) {
             addPksToAggregation(
                     erRel.id(), erRel.aggregationName(), entityDTOMap, attributeDTOMap, graph);

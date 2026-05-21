@@ -88,19 +88,28 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
 
         StringBuilder sql = new StringBuilder();
         Set<String> usedRefs = new HashSet<>();
+        Set<Node> visited = new HashSet<>();
         for (Node node : allNodes) {
-            sql.append(buildTable(node, graph, usedRefs));
+            sql.append(buildTable(node, graph, usedRefs, visited));
         }
         return sql;
     }
 
-    private String buildTable(Node entity, Graph<Node, Edge> graph, Set<String> usedRefs) {
+    private String buildTable(
+            Node entity, Graph<Node, Edge> graph, Set<String> usedRefs, Set<Node> visited) {
+
+        if (visited.contains(entity)) {
+            return "";
+        }
+        visited.add(entity);
+
         List<Node> attrs =
                 Graphs.successorListOf(graph, entity).stream().filter(Node::isAttribute).toList();
 
         long pkCount = attrs.stream().filter(Node::isPk).count();
         boolean compositePk = pkCount > 1;
 
+        StringBuilder table = new StringBuilder();
         StringBuilder pkColumns = new StringBuilder();
         List<String> pkNames = new ArrayList<>();
         StringBuilder pkConstraints = new StringBuilder();
@@ -139,6 +148,11 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                             .append(successors.getFirst().getName())
                             .append("),\n");
                 }
+                graph.vertexSet().stream()
+                        .filter(n -> n.getName().equals(attr.getReference()))
+                        .findFirst()
+                        .ifPresent(
+                                node -> table.append(buildTable(node, graph, usedRefs, visited)));
             }
 
             if (!attr.isPk()) {
@@ -171,12 +185,13 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             body = body.substring(0, body.length() - 2) + "\n";
         }
 
-        String tableName =
-                entity.getAggregationName() != null
-                        ? entity.getAggregationName()
-                        : entity.getName();
+        table.append("CREATE TABLE ")
+                .append(entity.getName())
+                .append("(\n")
+                .append(body)
+                .append(");\n\n");
 
-        return "CREATE TABLE " + tableName + "(\n" + body + ");\n\n";
+        return table.toString();
     }
 
     private void validateSinglePrimaryKey(CreateTable createTable, String tableName)
