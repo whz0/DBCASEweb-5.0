@@ -185,9 +185,9 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         createIntermediate,
                         self);
             } else {
-                ErRelationshipParticipantDTO oneSide =
-                        one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
                 ErRelationshipParticipantDTO nSide =
+                        one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
+                ErRelationshipParticipantDTO oneSide =
                         !one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
 
                 generateOneN(
@@ -1048,9 +1048,9 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                 .isEmpty()
                         ? "0"
                         : "1";
-        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), min, "n", ""));
+        participants.add(new ErRelationshipParticipantDTO(node.getUuid(), min, "1", ""));
 
-        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), "0", "1", ""));
+        participants.add(new ErRelationshipParticipantDTO(ref.getUuid(), "0", "n", ""));
 
         buildEntity(node, graph, visited, circlePos(pos, 0, 2, 120), entities, attributes);
         buildEntity(ref, graph, visited, circlePos(pos, 1, 2, 120), entities, attributes);
