@@ -225,7 +225,7 @@ import type { Shape as KonvaShape } from 'konva/lib/Shape'
 import type { Stage } from 'konva/lib/Stage'
 import ContextMenu from 'primevue/contextmenu'
 import type { MenuItem } from 'primevue/menuitem'
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { showArrow, showMinMax, showNumber } from '@/composables/useCardinalityMode'
@@ -953,6 +953,13 @@ function handleKeydown(e: KeyboardEvent) {
     erSchemaStore.redo()
   }
 }
+
+watch(stageRef, (newRef) => {
+  if (newRef && !mainStage.value) {
+    mainStage.value = newRef.getStage()
+    erSchemaStore.stageRef = mainStage.value
+  }
+})
 
 onMounted(() => {
   if (stageRef.value) {

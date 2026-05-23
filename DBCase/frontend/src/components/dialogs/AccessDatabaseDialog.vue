@@ -75,7 +75,7 @@ const handleTest = () => {
       </div>
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium">Port</label>
-        <InputNumber v-model="port" />
+        <InputNumber v-model="port" :useGrouping="false" />
       </div>
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium">Database name</label>

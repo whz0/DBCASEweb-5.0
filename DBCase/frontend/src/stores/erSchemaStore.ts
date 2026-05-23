@@ -342,8 +342,8 @@ export const useErSchemaStore = defineStore('erSchema', () => {
       if (existingIdRel) {
         existingIdRel.name = relationName.trim() || 'Identifying'
         existingIdRel.participants = [
-          { entityId: entity.id, cardinalityMin: '1', cardinalityMax: '1' },
-          { entityId: strongEntity.id, cardinalityMin: '1', cardinalityMax: 'N' },
+          { entityId: entity.id, cardinalityMin: '1', cardinalityMax: 'N' },
+          { entityId: strongEntity.id, cardinalityMin: '1', cardinalityMax: '1' },
         ]
       } else {
         addRelationship({
@@ -352,8 +352,8 @@ export const useErSchemaStore = defineStore('erSchema', () => {
           position: { x: entity.position.x + 150, y: entity.position.y },
           type: 'Weak' as const,
           participants: [
-            { entityId: entity.id, cardinalityMin: '1', cardinalityMax: '1' },
-            { entityId: strongEntity.id, cardinalityMin: '1', cardinalityMax: 'N' },
+            { entityId: entity.id, cardinalityMin: '1', cardinalityMax: 'N' },
+            { entityId: strongEntity.id, cardinalityMin: '1', cardinalityMax: '1' },
           ],
           attributes: [],
         })
