@@ -9,7 +9,6 @@ import PanelLogicalScheme from '@/components/panels/PanelLogicalScheme.vue'
 import ToolBar from '@/components/ToolBar.vue'
 import { useLayout } from '@/composables/useLayout'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import { useErSchemaStore } from '@/stores/erSchemaStore'
 import { PanelId, useGeneratePanelStore } from '@/stores/generatePanelStore'
 
 const panelStore = useGeneratePanelStore()
@@ -33,36 +32,6 @@ const noSchemaActions = computed(() => [
 ])
 
 const { layout } = useLayout()
-
-const store = useErSchemaStore()
-
-if (store.entities.length === 0 && store.relationships.length === 0) {
-  store.addEntity({
-    id: '1',
-    name: 'Person',
-    position: { x: 50, y: 100 },
-    attributes: [],
-    primaryKeys: [],
-  })
-  store.addEntity({
-    id: '2',
-    name: 'Car',
-    position: { x: 300, y: 100 },
-    attributes: [],
-    primaryKeys: [],
-  })
-  store.addRelationship({
-    id: '3',
-    name: 'Owns',
-    position: { x: 175, y: 100 },
-    type: 'Normal',
-    participants: [
-      { entityId: '1', cardinalityMin: '1', cardinalityMax: '1' },
-      { entityId: '2', cardinalityMin: '0', cardinalityMax: 'N' },
-    ],
-    attributes: [],
-  })
-}
 </script>
 
 <template>

@@ -14,7 +14,7 @@ public record DatabaseUrl(String databaseType, String host, Integer port, String
 
         try {
             DatabaseType type = DatabaseType.valueOf(databaseType.toUpperCase());
-            if (host.equalsIgnoreCase("localhost") || host.equals("127.0.0.0")) {
+            if (host.equalsIgnoreCase("localhost") || host.equals("127.0.0.1")) {
                 throw new IllegalArgumentException("No se permite localhost");
             }
             int finalPort = port == null ? DEFAULT_PORTS.get(type) : port;

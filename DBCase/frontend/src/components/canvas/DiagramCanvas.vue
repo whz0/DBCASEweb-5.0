@@ -353,7 +353,7 @@ const handleStageMouseDown = (e: KonvaEventObject<MouseEvent>) => {
     erSchemaStore.selectElement(null)
     return
   }
-  if (!e.evt.shiftKey) erSchemaStore.selectElement(null)
+  if (!e.evt.ctrlKey) erSchemaStore.selectElement(null)
   const pos = getStagePos(e)
   rubberBand.x1 = pos.x
   rubberBand.y1 = pos.y

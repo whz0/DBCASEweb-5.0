@@ -89,7 +89,7 @@ const handleDragStart = (event: KonvaEventObject<DragEvent>) => {
 }
 
 const handleSelect = (e: KonvaEventObject<MouseEvent>) => {
-  if (e.evt.shiftKey) {
+  if (e.evt.ctrlKey) {
     erSchemaStore.selectElement(props.entity.id, true)
   } else if (!erSchemaStore.isSelected(props.entity.id)) {
     erSchemaStore.selectElement(props.entity.id)

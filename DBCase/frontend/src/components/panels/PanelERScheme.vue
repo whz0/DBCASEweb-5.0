@@ -54,7 +54,7 @@ const handleTransform = async (value: DiagramType) => {
         />
         <Button
           severity="secondary"
-          class="bi bi-file-earmark"
+          class="bi bi-file-earmark-plus"
           @click="erSchemaStore.newDiagram()"
           v-tooltip.bottom="t('toolbar.new')"
           text
