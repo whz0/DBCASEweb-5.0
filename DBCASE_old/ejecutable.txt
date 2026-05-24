@@ -1,6 +1,0 @@
-mvn clean
-mvn install 
-java -jar target/DBCaseWeb-0.0.1-SNAPSHOT.war
-start http://localhost:8080
-
-pause
