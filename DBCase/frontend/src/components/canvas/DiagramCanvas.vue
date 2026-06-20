@@ -92,8 +92,8 @@
             v-if="connection.labelAbove"
             :config="{
               text: connection.labelAbove,
-              x: (connection.startX + connection.endX) / 2,
-              y: (connection.startY + connection.endY) / 2 - 20,
+              x: (connection.startX + connection.endX) / 2 + connection.labelOffsetX,
+              y: (connection.startY + connection.endY) / 2 + connection.labelOffsetY - 20,
               fontSize: 14,
               fill: connection.isInvalid ? '#ef4444' : strokeColor,
               align: 'center',
@@ -104,8 +104,8 @@
             v-if="connection.labelBelow"
             :config="{
               text: connection.labelBelow,
-              x: (connection.startX + connection.endX) / 2,
-              y: (connection.startY + connection.endY) / 2 + 8,
+              x: (connection.startX + connection.endX) / 2 + connection.labelOffsetX,
+              y: (connection.startY + connection.endY) / 2 + connection.labelOffsetY + 8,
               fontSize: 14,
               fill: connection.isInvalid ? '#ef4444' : strokeColor,
               align: 'center',
@@ -121,7 +121,8 @@
             :config="{
               points: [connection.startX, connection.startY, connection.endX, connection.endY],
               stroke: strokeColor,
-              strokeWidth: 1,
+              strokeWidth: connection.isDerived ? 2 : 1,
+              dash: connection.isDerived ? [8, 5] : undefined,
               lineCap: 'round',
               lineJoin: 'round',
               tension: 0,
@@ -654,13 +655,18 @@ interface RelationshipConnection {
   isParent: boolean
   isInvalid: boolean
   offsetIndex: number
+  labelOffsetX: number
+  labelOffsetY: number
 }
 
-const AGGREGATION_PADDING = 60
+const AGGREGATION_PADDING = 30
 
 const getAggregationBox = (aggRel: Relationship): RectShape => {
   const relShape = calculateRelationshipRenderProps(aggRel)
-  const points: { x: number; y: number }[] = [{ x: relShape.cx, y: relShape.cy }]
+  const points: { x: number; y: number }[] = [
+    { x: relShape.cx - relShape.width / 2, y: relShape.cy - relShape.height / 2 },
+    { x: relShape.cx + relShape.width / 2, y: relShape.cy + relShape.height / 2 },
+  ]
   const entityIds = new Set<string>()
   aggRel.participants.forEach((p) => {
     const e = erSchemaStore.entities.find((e) => e.id === p.entityId)
@@ -744,13 +750,14 @@ const relationshipConnections = computed(() => {
       }
 
       if (startPoint && endPoint) {
-        // Apply perpendicular offset for recursive connections (non-first occurrences)
-        if (isRecursive && occurrenceIndex > 0) {
+        // Apply symmetric perpendicular offset for recursive connections
+        if (isRecursive) {
           const dx = endPoint.x - startPoint.x
           const dy = endPoint.y - startPoint.y
           const d = Math.sqrt(dx * dx + dy * dy) || 1
-          const perpX = (-dy / d) * 20 * occurrenceIndex
-          const perpY = (dx / d) * 20 * occurrenceIndex
+          const sign = occurrenceIndex === 0 ? -1 : 1
+          const perpX = (-dy / d) * 30 * sign
+          const perpY = (dx / d) * 30 * sign
           startPoint = { x: startPoint.x + perpX, y: startPoint.y + perpY }
           endPoint = { x: endPoint.x + perpX, y: endPoint.y + perpY }
         }
@@ -807,6 +814,22 @@ const relationshipConnections = computed(() => {
           isParent: isIsA && participant.role === 'Parent',
           isInvalid: minCard === '?' || maxCard === '?',
           offsetIndex: occurrenceIndex,
+          labelOffsetX: (() => {
+            if (!isRecursive) return 0
+            const dx = endPoint!.x - startPoint!.x
+            const dy = endPoint!.y - startPoint!.y
+            const d = Math.sqrt(dx * dx + dy * dy) || 1
+            const sign = occurrenceIndex === 0 ? -1 : 1
+            return (-dy / d) * 30 * sign
+          })(),
+          labelOffsetY: (() => {
+            if (!isRecursive) return 0
+            const dx = endPoint!.x - startPoint!.x
+            const dy = endPoint!.y - startPoint!.y
+            const d = Math.sqrt(dx * dx + dy * dy) || 1
+            const sign = occurrenceIndex === 0 ? -1 : 1
+            return (dx / d) * 30 * sign
+          })(),
         })
       }
     })
@@ -821,21 +844,27 @@ interface AttributeConnection {
   startY: number
   endX: number
   endY: number
+  isDerived: boolean
 }
 
 const aggregationBoxes = computed(() => {
-  const PADDING = 60
+  const PADDING = 30
   return erSchemaStore.relationships
     .filter((rel) => rel.type === 'Aggregation' && rel.participants.length > 0)
     .map((rel) => {
       const relShape = calculateRelationshipRenderProps(rel)
-      const points: { x: number; y: number }[] = [{ x: relShape.cx, y: relShape.cy }]
+      const points: { x: number; y: number }[] = [
+        { x: relShape.cx - relShape.width / 2, y: relShape.cy - relShape.height / 2 },
+        { x: relShape.cx + relShape.width / 2, y: relShape.cy + relShape.height / 2 },
+      ]
 
       const entityIds = new Set<string>()
       rel.participants.forEach((p) => {
         const entity = erSchemaStore.entities.find((e) => e.id === p.entityId)
         if (entity) {
-          points.push({ x: entity.position.x, y: entity.position.y })
+          const s = calculateEntityRenderProps(entity)
+          points.push({ x: s.x, y: s.y })
+          points.push({ x: s.x + s.width, y: s.y + s.height })
           entityIds.add(entity.id)
         }
       })
@@ -919,6 +948,7 @@ const attributeConnections = computed(() => {
         startY: startPoint.y,
         endX: endPoint.x,
         endY: endPoint.y,
+        isDerived: !!attribute.isDerived,
       })
     }
   })
@@ -942,6 +972,8 @@ const handleUndefinedDragMove = (event: { id: string; x: number; y: number }) =>
 function handleKeydown(e: KeyboardEvent) {
   if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return
   if (e.key === 'Backspace' || e.key === 'Delete') {
+    if (dialogStore.openDialogs.size > 0) return
+    if (document.querySelector('.p-select-overlay, .p-contextmenu, .p-tieredmenu')) return
     erSchemaStore.deleteSelected()
   }
   if (e.ctrlKey && e.key === 'z') {

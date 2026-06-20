@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useToast } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -12,6 +13,7 @@ const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddAttribute,
   DialogId.EditAttribute,
 )
+const toast = useToast()
 
 const domainStore = useDomainStore()
 
@@ -51,7 +53,7 @@ const parentOptions = computed(() => {
       name: `${a.name} (Attribute)`,
       position: a.position,
     })),
-  ]
+  ].sort((a, b) => a.name.localeCompare(b.name))
 })
 
 watch(visible, (isNowVisible) => {
@@ -94,9 +96,19 @@ watch(visible, (isNowVisible) => {
 
 const saveAttribute = () => {
   if (selectedParentId.value && attributeName.value.trim()) {
+    const trimmed = attributeName.value.trim()
+    const currentId = isEditMode.value ? erSchemaStore.selectedElementId : null
+    const duplicate = erSchemaStore.attributes.some(
+      (a: Attribute) =>
+        a.name === trimmed && a.parentId === selectedParentId.value && a.id !== currentId,
+    )
+    if (duplicate) {
+      toast.add({ severity: 'error', detail: t('attribute.nameAlreadyExists'), life: 3000 })
+      return
+    }
     erSchemaStore.saveAttribute(
       {
-        name: attributeName.value.trim(),
+        name: trimmed,
         parentId: selectedParentId.value,
         isKey: isKey.value,
         isMultivalued: isMultivalued.value,
@@ -180,7 +192,7 @@ const saveAttribute = () => {
         </div>
         <div class="flex items-center gap-2">
           <Checkbox v-model="isDerived" :binary="true" inputId="isDerived" />
-          <label for="isUnique">{{ t('attribute.derived') }}</label>
+          <label for="isDerived">{{ t('attribute.derived') }}</label>
         </div>
       </div>
     </div>

@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { useToast } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useDiagramDialog } from '@/composables/useDiagramDialog'
 import { targetParticipantId } from '@/composables/useTargetParticipant'
 import { DialogId, useDialogStore } from '@/stores/dialogStore'
-import type { Relationship } from '@/types/er-diagram-elements'
+import type { Entity, Relationship } from '@/types/er-diagram-elements'
 
 const { t } = useI18n()
 const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
@@ -13,6 +14,7 @@ const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.EditRelationship,
 )
 const dialogStore = useDialogStore()
+const toast = useToast()
 
 const name = ref('')
 
@@ -24,17 +26,23 @@ const currentRelationship = computed<Relationship | null>(() => {
 
 const participantsWithNames = computed(() => {
   if (!currentRelationship.value) return []
-  return currentRelationship.value.participants.map((p) => ({
-    ...p,
-    name: (() => {
-      const entity = erSchemaStore.entities.find((e) => e.id === p.entityId)
-      if (entity) return entity.name
-      const aggRel = erSchemaStore.relationships.find(
-        (r) => r.id === p.entityId && r.type === 'Aggregation',
-      )
-      return aggRel ? `[Agr] ${aggRel.aggregationName}` : 'Unknown'
-    })(),
-  }))
+  const entityCount: Record<string, number> = {}
+  return currentRelationship.value.participants.map((p) => {
+    const occurrenceIndex = entityCount[p.entityId] ?? 0
+    entityCount[p.entityId] = occurrenceIndex + 1
+    return {
+      ...p,
+      occurrenceIndex,
+      name: (() => {
+        const entity = erSchemaStore.entities.find((e) => e.id === p.entityId)
+        if (entity) return entity.name
+        const aggRel = erSchemaStore.relationships.find(
+          (r) => r.id === p.entityId && r.type === 'Aggregation',
+        )
+        return aggRel ? `[Agr] ${aggRel.aggregationName}` : 'Unknown'
+      })(),
+    }
+  })
 })
 
 watch(visible, (isNowVisible) => {
@@ -45,7 +53,16 @@ watch(visible, (isNowVisible) => {
 
 const save = () => {
   if (!name.value.trim()) return
-  erSchemaStore.saveRelationship({ name: name.value.trim() }, isEditMode.value)
+  const trimmed = name.value.trim()
+  const currentId = isEditMode.value ? erSchemaStore.selectedElementId : null
+  const nameTaken =
+    erSchemaStore.entities.some((e: Entity) => e.name === trimmed && e.id !== currentId) ||
+    erSchemaStore.relationships.some((r: Relationship) => r.name === trimmed && r.id !== currentId)
+  if (nameTaken) {
+    toast.add({ severity: 'error', detail: t('entity.nameAlreadyExists'), life: 3000 })
+    return
+  }
+  erSchemaStore.saveRelationship({ name: trimmed }, isEditMode.value)
   closeModal()
 }
 </script>
@@ -114,6 +131,7 @@ const save = () => {
                     erSchemaStore.removeParticipantFromRelationship(
                       currentRelationship!.id,
                       p.entityId,
+                      p.occurrenceIndex,
                     )
                   "
                 />

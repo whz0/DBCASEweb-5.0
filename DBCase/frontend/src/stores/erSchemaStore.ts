@@ -159,11 +159,23 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     }
   }
 
-  function removeParticipantFromRelationship(relationshipId: string, entityId: string) {
+  function removeParticipantFromRelationship(
+    relationshipId: string,
+    entityId: string,
+    occurrenceIndex: number = 0,
+  ) {
     saveHistory()
     const relationship = relationships.value.find((r) => r.id === relationshipId)
     if (relationship) {
-      relationship.participants = relationship.participants.filter((p) => p.entityId !== entityId)
+      let count = 0
+      const idx = relationship.participants.findIndex((p) => {
+        if (p.entityId === entityId) {
+          if (count === occurrenceIndex) return true
+          count++
+        }
+        return false
+      })
+      if (idx !== -1) relationship.participants.splice(idx, 1)
     }
   }
 
@@ -343,7 +355,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
         existingIdRel.name = relationName.trim() || 'Identifying'
         existingIdRel.participants = [
           { entityId: entity.id, cardinalityMin: '1', cardinalityMax: 'N' },
-          { entityId: strongEntity.id, cardinalityMin: '1', cardinalityMax: '1' },
+          { entityId: strongEntity.id, cardinalityMin: '0', cardinalityMax: '1' },
         ]
       } else {
         addRelationship({
@@ -353,7 +365,7 @@ export const useErSchemaStore = defineStore('erSchema', () => {
           type: 'Weak' as const,
           participants: [
             { entityId: entity.id, cardinalityMin: '1', cardinalityMax: 'N' },
-            { entityId: strongEntity.id, cardinalityMin: '1', cardinalityMax: '1' },
+            { entityId: strongEntity.id, cardinalityMin: '0', cardinalityMax: '1' },
           ],
           attributes: [],
         })
@@ -411,15 +423,29 @@ export const useErSchemaStore = defineStore('erSchema', () => {
     if (isEdit && selectedElementId.value) {
       const existing = attributes.value.find((a) => a.id === selectedElementId.value)
       if (!existing) return
+      const duplicate = attributes.value.some(
+        (a) => a.name === data.name && a.parentId === data.parentId && a.id !== existing.id,
+      )
+      if (duplicate) return
       saveHistory()
       const index = attributes.value.findIndex((a) => a.id === existing.id)
       attributes.value[index] = { ...existing, ...data }
     } else {
+      const duplicate = attributes.value.some(
+        (a) => a.name === data.name && a.parentId === data.parentId,
+      )
+      if (duplicate) return
       saveHistory()
       const newId = crypto.randomUUID()
+      const parent =
+        entities.value.find((e) => e.id === data.parentId) ||
+        relationships.value.find((r) => r.id === data.parentId) ||
+        attributes.value.find((a) => a.id === data.parentId)
+      const base = parent ? parent.position : lastClickPosition.value
+      const siblingCount = attributes.value.filter((a) => a.parentId === data.parentId).length
       attributes.value.push({
         id: newId,
-        position: { ...lastClickPosition.value },
+        position: { x: base.x + 150, y: base.y - 80 + siblingCount * 60 },
         ...data,
       })
       const parentEntity = entities.value.find((e) => e.id === data.parentId)

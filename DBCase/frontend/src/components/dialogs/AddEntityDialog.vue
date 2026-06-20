@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useToast } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -11,6 +12,7 @@ const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
   DialogId.AddEntity,
   DialogId.EditEntity,
 )
+const toast = useToast()
 
 const entityName = ref('')
 const isWeakEntity = ref(false)
@@ -24,7 +26,9 @@ const currentEntity = computed(() => {
 })
 
 const strongEntities = computed(() =>
-  erSchemaStore.entities.filter((e: Entity) => e.id !== currentEntity.value?.id),
+  erSchemaStore.entities
+    .filter((e: Entity) => e.id !== currentEntity.value?.id)
+    .sort((a: Entity, b: Entity) => a.name.localeCompare(b.name)),
 )
 
 watch(visible, (isNowVisible) => {
@@ -65,8 +69,18 @@ watch(visible, (isNowVisible) => {
 const saveEntity = () => {
   if (!entityName.value.trim()) return
 
+  const trimmed = entityName.value.trim()
+  const currentId = isEditMode.value ? erSchemaStore.selectedElementId : null
+  const nameTaken =
+    erSchemaStore.entities.some((e: Entity) => e.name === trimmed && e.id !== currentId) ||
+    erSchemaStore.relationships.some((r: Relationship) => r.name === trimmed && r.id !== currentId)
+  if (nameTaken) {
+    toast.add({ severity: 'error', detail: t('entity.nameAlreadyExists'), life: 3000 })
+    return
+  }
+
   erSchemaStore.saveEntity(
-    { name: entityName.value.trim(), isWeak: isWeakEntity.value },
+    { name: trimmed, isWeak: isWeakEntity.value },
     isEditMode.value,
     selectedStrongEntity.value,
     relationName.value,
