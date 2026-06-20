@@ -17,18 +17,6 @@ public class NodeClassifier {
                 .isEmpty();
     }
 
-    public static boolean isIsA(Node node, Graph<Node, Edge> graph) {
-
-        long count =
-                Graphs.successorListOf(graph, node).stream()
-                        .filter(n -> n.isPk() && n.getReference() != null)
-                        .map(Node::getReference)
-                        .distinct()
-                        .count();
-
-        return count == 1;
-    }
-
     public static boolean isNMRel(Node node, Graph<Node, Edge> graph) {
         Set<Node> fks =
                 Graphs.successorListOf(graph, node).stream()

@@ -98,7 +98,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 continue;
             }
             if (attr.isFk()) {
-                if (usedRefs.contains(attr.getReference())) {
+                if (usedRefs.contains(attr.getReference()) || attr.isUnique()) {
                     appendRestriction(attr, node, graph, lostRestrictions);
                     continue;
                 } else {

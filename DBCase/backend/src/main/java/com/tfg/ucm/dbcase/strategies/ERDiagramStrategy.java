@@ -185,9 +185,9 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         createIntermediate,
                         self);
             } else {
-                ErRelationshipParticipantDTO nSide =
-                        one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
                 ErRelationshipParticipantDTO oneSide =
+                        one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
+                ErRelationshipParticipantDTO nSide =
                         !one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
 
                 generateOneN(
@@ -293,7 +293,15 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             List<String> pksName = getPksName(entity, attrMap);
             for (String pk : pksName) {
                 String role = self ? participant.role() : "";
-                addFkToRef(pk, relationshipNode, entity.name(), true, false, false, graph, role);
+                addFkToRef(
+                        pk,
+                        relationshipNode,
+                        entity.name(),
+                        true,
+                        false,
+                        !participant.cardinalityMin().equals("0"),
+                        graph,
+                        role);
             }
         }
     }
@@ -311,13 +319,29 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         List<String> pksName = getPksName(entityOne, attrMap);
         for (String pk : pksName) {
             String role = self ? participantOne.role() : "";
-            addFkToRef(pk, relationshipNode, entityOne.name(), true, false, false, graph, role);
+            addFkToRef(
+                    pk,
+                    relationshipNode,
+                    entityOne.name(),
+                    true,
+                    false,
+                    !participantOne.cardinalityMin().equals("0"),
+                    graph,
+                    role);
         }
 
         pksName = getPksName(entityOther, attrMap);
         for (String pk : pksName) {
             String role = self ? participantOther.role() : "";
-            addFkToRef(pk, relationshipNode, entityOther.name(), true, false, false, graph, role);
+            addFkToRef(
+                    pk,
+                    relationshipNode,
+                    entityOther.name(),
+                    true,
+                    false,
+                    !participantOther.cardinalityMin().equals("0"),
+                    graph,
+                    role);
         }
     }
 
@@ -522,7 +546,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         .collect(Collectors.toSet());
 
         Set<String> visited = new HashSet<>();
-        List<Node> isaChildren = new ArrayList<>();
 
         int total = nodes.size();
         int idx = 0;
@@ -535,9 +558,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 undefineds.add(new ErUndefinedDTO(node.getUuid(), node.getName(), pos, List.of()));
                 continue;
             }
-            if (NodeClassifier.isIsA(node, graph)) {
-                isaChildren.add(node);
-            } else if (NodeClassifier.isNMRel(node, graph)) {
+            if (NodeClassifier.isNMRel(node, graph)) {
                 long distinctRefs =
                         Graphs.successorListOf(graph, node).stream()
                                 .filter(
@@ -615,32 +636,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
         }
 
-        Map<String, List<Node>> isaByParent = new java.util.LinkedHashMap<>();
-        for (Node child : isaChildren) {
-            String parentName =
-                    Graphs.successorListOf(graph, child).stream()
-                            .filter(a -> a.isAttribute() && a.isFk())
-                            .map(Node::getReference)
-                            .findFirst()
-                            .orElse(null);
-            if (parentName != null) {
-                isaByParent.computeIfAbsent(parentName, k -> new ArrayList<>()).add(child);
-            }
-        }
-        for (Map.Entry<String, List<Node>> entry : isaByParent.entrySet()) {
-            Position isaPos =
-                    circlePos(new Position(0, 0), idx++, total, Math.max(200, total * 80));
-            buildIsA(
-                    entry.getKey(),
-                    entry.getValue(),
-                    graph,
-                    visited,
-                    isaPos,
-                    relationships,
-                    entities,
-                    attributes);
-        }
-
         return new ErInput(entities, relationships, attributes, List.of(), undefineds);
     }
 
@@ -694,111 +689,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
             entities.add(new ErEntityDTO(node.getUuid(), node.getName(), pos, false, attrs, pks));
         }
-    }
-
-    private void buildIsA(
-            String parentName,
-            List<Node> children,
-            Graph<Node, Edge> graph,
-            Set<String> visited,
-            Position pos,
-            List<ErRelationshipDTO> relationships,
-            List<ErEntityDTO> entities,
-            List<ErAttributeDTO> attributes) {
-
-        Node parent = getOrCreateNode(parentName, graph);
-        Position parentPos = circlePos(pos, 0, children.size() + 1, 150);
-        buildEntity(parent, graph, visited, parentPos, entities, attributes);
-
-        List<ErRelationshipParticipantDTO> participants = new ArrayList<>();
-        participants.add(new ErRelationshipParticipantDTO(parent.getUuid(), "", "", "Parent"));
-
-        int childIdx = 1;
-        for (Node child : children) {
-            if (visited.contains(child.getUuid())) {
-                continue;
-            }
-            visited.add(child.getUuid());
-
-            List<Node> childOwnAttrs =
-                    Graphs.successorListOf(graph, child).stream()
-                            .filter(a -> a.isAttribute() && !a.isFk())
-                            .toList();
-            List<Node> childFkPkAttrs =
-                    Graphs.successorListOf(graph, child).stream()
-                            .filter(a -> a.isAttribute() && a.isFk() && a.isPk())
-                            .toList();
-
-            List<String> childAttrIds = new ArrayList<>();
-            List<String> childPkIds = new ArrayList<>();
-            int attrTotal = childOwnAttrs.size() + childFkPkAttrs.size();
-            AtomicInteger attrIdx = new AtomicInteger(0);
-
-            Position childPos = circlePos(pos, childIdx++, children.size() + 1, 150);
-
-            for (Node fkPk : childFkPkAttrs) {
-                if (fkPk.getReference() == null) {
-                    Position aPos = circlePos(childPos, attrIdx.getAndIncrement(), attrTotal, 80);
-                    attributes.add(
-                            new ErAttributeDTO(
-                                    fkPk.getUuid(),
-                                    fkPk.getName(),
-                                    aPos,
-                                    child.getUuid(),
-                                    true,
-                                    false,
-                                    false,
-                                    fkPk.isNotNull(),
-                                    fkPk.isUnique(),
-                                    fkPk.getDataType() != null
-                                            ? fkPk.getDataType().domain().name()
-                                            : null,
-                                    fkPk.getDataType() != null ? fkPk.getDataType().length() : 0,
-                                    List.of()));
-                    childPkIds.add(fkPk.getUuid());
-                }
-            }
-            for (Node attr : childOwnAttrs) {
-                Position aPos = circlePos(childPos, attrIdx.getAndIncrement(), attrTotal, 80);
-                attributes.add(
-                        new ErAttributeDTO(
-                                attr.getUuid(),
-                                attr.getName(),
-                                aPos,
-                                child.getUuid(),
-                                false,
-                                false,
-                                false,
-                                attr.isNotNull(),
-                                attr.isUnique(),
-                                attr.getDataType() != null
-                                        ? attr.getDataType().domain().name()
-                                        : null,
-                                attr.getDataType() != null ? attr.getDataType().length() : 0,
-                                List.of()));
-                childAttrIds.add(attr.getUuid());
-            }
-
-            entities.add(
-                    new ErEntityDTO(
-                            child.getUuid(),
-                            child.getName(),
-                            childPos,
-                            false,
-                            childAttrIds,
-                            childPkIds));
-            participants.add(new ErRelationshipParticipantDTO(child.getUuid(), "", "", "Child"));
-        }
-
-        relationships.add(
-                new ErRelationshipDTO(
-                        UUID.randomUUID().toString(),
-                        "IsA",
-                        pos,
-                        "IsA",
-                        null,
-                        participants,
-                        List.of()));
     }
 
     private void buildNArias(
