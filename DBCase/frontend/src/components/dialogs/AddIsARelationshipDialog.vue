@@ -15,7 +15,9 @@ const { erSchemaStore, isEditMode, visible, closeModal } = useDiagramDialog(
 const selectedParent = ref<Entity | null>(null)
 const selectedChildren = ref<Entity[]>([])
 
-const entities = computed(() => erSchemaStore.entities)
+const entities = computed(() =>
+  [...erSchemaStore.entities].sort((a, b) => a.name.localeCompare(b.name)),
+)
 
 const currentRelationship = computed(() => {
   if (!isEditMode.value) return null

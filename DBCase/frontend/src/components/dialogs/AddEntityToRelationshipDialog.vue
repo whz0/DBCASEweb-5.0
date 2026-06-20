@@ -21,7 +21,7 @@ const availableEntities = computed(() => {
   const aggregations = erSchemaStore.relationships
     .filter((r) => r.type === 'Aggregation' && r.aggregationName)
     .map((r) => ({ id: r.id, name: `[Agr] ${r.aggregationName}` }))
-  return [...entities, ...aggregations]
+  return [...entities, ...aggregations].sort((a, b) => a.name.localeCompare(b.name))
 })
 
 const alreadyParticipates = computed(() => {

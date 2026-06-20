@@ -61,6 +61,7 @@ const messages = {
     entity: {
       addEntity: 'Add Entity',
       editEntity: 'Edit Entity',
+      nameAlreadyExists: 'An entity or relationship with that name already exists.',
       entityName: 'Entity Name',
       enterEntityName: 'Enter entity name',
       isWeakEntity: 'Is Weak Entity?',
@@ -74,6 +75,7 @@ const messages = {
     attribute: {
       addAttribute: 'Add Attribute',
       editAttribute: 'Edit Attribute',
+      nameAlreadyExists: 'An attribute with that name already exists for this parent.',
       attributeName: 'Attribute Name',
       enterAttributeName: 'Enter attribute name',
       parent: 'Parent Element',
@@ -317,6 +319,7 @@ const messages = {
       addEntity: 'Añadir Entidad',
       deleteEntity: 'Borrar Entidad',
       editEntity: 'Editar Entidad',
+      nameAlreadyExists: 'Ya existe una entidad o relación con ese nombre.',
       entityName: 'Nombre de Entidad',
       enterEntityName: 'Introduce el nombre de la entidad',
       isWeakEntity: '¿Es Entidad Débil?',
@@ -330,6 +333,7 @@ const messages = {
     attribute: {
       addAttribute: 'Añadir Atributo',
       editAttribute: 'Editar Atributo',
+      nameAlreadyExists: 'Ya existe un atributo con ese nombre para este padre.',
       attributeName: 'Nombre de Atributo',
       enterAttributeName: 'Introduce el nombre del atributo',
       parent: 'Elemento Padre',
