@@ -21,12 +21,26 @@ export const api = {
     saveSettings: (settings: UserSettings) => http.post('/user/settings', settings),
   },
   diagram: {
-    generate: (diagram: AnyDiagramInput, type: DiagramType, transformTo: DiagramType) =>
-      http.post('/diagram/generate', {
+    generate: (diagram: AnyDiagramInput, type: DiagramType, transformTo: DiagramType) => {
+      let normalizedDiagram = diagram
+      if (type === DiagramType.er) {
+        const snapshot = diagram as import('@/types/er-diagram-elements').Snapshot
+        normalizedDiagram = {
+          ...snapshot,
+          relationships: snapshot.relationships.map((r) => {
+            if (r.type === 'Aggregation' && !r.aggregationName) {
+              return { ...r, aggregationName: r.name }
+            }
+            return r
+          }),
+        }
+      }
+      return http.post('/diagram/generate', {
         type,
-        diagram: { ...diagram, type },
+        diagram: { ...normalizedDiagram, type },
         transformTo,
-      }),
+      })
+    },
   },
   domain: {
     getAll: () => http.get<CustomDomain[]>('/domain/data-types'),

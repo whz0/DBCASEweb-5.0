@@ -8,6 +8,7 @@ import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,10 +50,11 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
     @Override
     public Object transform(Diagram diagram) {
         Graph<Node, Edge> graph = diagram.getDiagram();
-        Set<Node> allNodes =
+        List<Node> allNodes =
                 graph.vertexSet().stream()
                         .filter(n -> !n.isAttribute())
-                        .collect(Collectors.toSet());
+                        .sorted(Comparator.comparing(Node::getName))
+                        .collect(Collectors.toList());
 
         StringBuilder relationships = new StringBuilder();
         StringBuilder restrictions = new StringBuilder();
@@ -62,7 +64,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         Set<String> usedRefs = new HashSet<>();
 
         for (Node node : allNodes) {
-
             String entry =
                     buildEntry(node, graph, restrictions, lostRestrictions, visited, usedRefs);
             relationships.append(entry);
@@ -89,7 +90,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         visited.add(node);
 
         StringBuilder entry = new StringBuilder();
-        StringBuilder attributes = new StringBuilder();
         StringBuilder pks = new StringBuilder();
         StringBuilder others = new StringBuilder();
 
@@ -97,28 +97,46 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
             if (!attr.isAttribute()) {
                 continue;
             }
+
             if (attr.isFk()) {
                 if (usedRefs.contains(attr.getReference()) || attr.isUnique()) {
+                    // Already seen: register as lossless restriction only, don't recurse
                     appendRestriction(attr, node, graph, lostRestrictions);
-                    continue;
                 } else {
-                    usedRefs.add(node.getName());
+                    // First time: register restriction and recursively emit the referenced table
+                    usedRefs.add(attr.getReference());
                     appendRestriction(attr, node, graph, restrictions);
+                    graph.vertexSet().stream()
+                            .filter(n -> n.getName().equals(attr.getReference()))
+                            .findFirst()
+                            .ifPresent(
+                                    ref ->
+                                            entry.append(
+                                                    buildEntry(
+                                                            ref,
+                                                            graph,
+                                                            restrictions,
+                                                            lostRestrictions,
+                                                            visited,
+                                                            usedRefs)));
                 }
-                graph.vertexSet().stream()
-                        .filter(n -> n.getName().equals(attr.getReference()))
-                        .findFirst()
-                        .ifPresent(
-                                ref ->
-                                        entry.append(
-                                                buildEntry(
-                                                        ref,
-                                                        graph,
-                                                        restrictions,
-                                                        lostRestrictions,
-                                                        visited,
-                                                        usedRefs)));
+                // FK-PK goes into pks (e.g. N:M intermediate tables)
+                // plain FK goes into others as a regular column (still appears in the schema)
+                if (attr.isPk()) {
+                    if (!pks.isEmpty()) {
+                        pks.append(", ");
+                    }
+                    pks.append("__").append(attr.getName()).append("__");
+                } else {
+                    if (!others.isEmpty()) {
+                        others.append(", ");
+                    }
+                    others.append(!attr.isNotNull() ? attr.getName() + "*" : attr.getName());
+                }
+                continue;
             }
+
+            // Regular (non-FK) attribute
             if (attr.isPk()) {
                 if (!pks.isEmpty()) {
                     pks.append(", ");
@@ -131,6 +149,8 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 others.append(!attr.isNotNull() ? attr.getName() + "*" : attr.getName());
             }
         }
+
+        StringBuilder attributes = new StringBuilder();
         if (!pks.isEmpty() && !others.isEmpty()) {
             attributes.append(pks).append(", ").append(others);
         } else {
@@ -220,13 +240,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
                             if (lost) {
                                 attrSrc.setUnique(true);
-                                Graphs.successorListOf(diagram, ref).stream()
-                                        .filter(
-                                                a ->
-                                                        a.isAttribute()
-                                                                && a.getReference().equals(srcName))
-                                        .findFirst()
-                                        .ifPresent(unique -> unique.setUnique(true));
                             }
 
                             Auxiliary.addForeignAttr(attrSrc, src, refName, diagram);

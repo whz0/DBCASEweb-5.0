@@ -14,6 +14,7 @@ import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.PhysicalInput;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -84,7 +85,11 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
     @Override
     public Object transform(Diagram diagram) {
         Graph<Node, Edge> graph = diagram.getDiagram();
-        List<Node> allNodes = graph.vertexSet().stream().filter(n -> !n.isAttribute()).toList();
+        List<Node> allNodes =
+                graph.vertexSet().stream()
+                        .filter(n -> !n.isAttribute())
+                        .sorted(Comparator.comparing(Node::getName))
+                        .collect(Collectors.toList());
 
         StringBuilder sql = new StringBuilder();
         Set<String> usedRefs = new HashSet<>();

@@ -21,6 +21,7 @@ import com.tfg.ucm.dbcase.dto.erdiagram.Position;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.ErInput;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,7 +75,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         List<ErRelationshipDTO> otherRel = new ArrayList<>();
 
         for (ErRelationshipDTO erRel : input.relationships()) {
-            if (erRel.type().equalsIgnoreCase("normal")) {
+            if (erRel.type().equalsIgnoreCase("normal") || erRel.type().equalsIgnoreCase("weak")) {
                 normalRel.add(erRel);
             } else {
                 otherRel.add(erRel);
@@ -82,6 +83,10 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         }
 
         Set<String> originalEntityIds = new HashSet<>(entityDTOMap.keySet());
+
+        for (ErEntityDTO erEnt : input.entities()) {
+            processOwnAttributes(erEnt, attributeDTOMap, customDomainMap, graph);
+        }
 
         List<ErRelationshipDTO> aggregations = new ArrayList<>();
         for (ErRelationshipDTO erRel : otherRel) {
@@ -93,13 +98,10 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
         }
 
-        for (ErEntityDTO erEnt : input.entities()) {
-            processOwnAttributes(erEnt, attributeDTOMap, customDomainMap, graph);
-        }
-
         for (ErRelationshipDTO erRel : aggregations) {
-            addPksToAggregation(
-                    erRel.id(), erRel.aggregationName(), entityDTOMap, attributeDTOMap, graph);
+            String aggName =
+                    erRel.aggregationName() != null ? erRel.aggregationName() : erRel.name();
+            addPksToAggregation(erRel.id(), aggName, entityDTOMap, attributeDTOMap, graph);
         }
 
         for (ErRelationshipDTO erRel : normalRel) {
@@ -218,6 +220,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         List<String> pksId = new ArrayList<>();
         for (Node pk : pks) {
+            DataType dt = pk.getDataType();
             attributeDTOMap.put(
                     pk.getUuid(),
                     new ErAttributeDTO(
@@ -230,8 +233,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                             false,
                             false,
                             false,
-                            pk.getDataType().toString(),
-                            pk.getDataType().length(),
+                            dt != null ? dt.toString() : null,
+                            dt != null ? dt.length() : 0,
                             List.of()));
             pksId.add(pk.getUuid());
         }
@@ -258,13 +261,56 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             pks.add(attrMap.get(pkId));
         }
 
+        // Inject parent PKs into entityMap of each child so getPksName finds them
+        List<String> parentPkIds = pks.stream().map(ErAttributeDTO::id).toList();
         for (ErRelationshipParticipantDTO participantDTO : rel.participants()) {
             ErEntityDTO entity = entityMap.get(participantDTO.entityId());
-            processOwnAttributes(entity, attrMap, customDomainMap, graph);
-            if (!entity.id().equals(parent.id())) {
-                for (ErAttributeDTO pk : pks) {
-                    Node node = getOrCreateNode(entity.name(), graph);
-                    addFkToRef(pk.name(), node, parent.name(), true, false, false, graph, "");
+            if (entity.id().equals(parent.id())) {
+                continue;
+            }
+            if (entity.primaryKeys().isEmpty()) {
+                List<String> mergedPks = new ArrayList<>(parentPkIds);
+                mergedPks.addAll(entity.primaryKeys());
+                entityMap.put(
+                        entity.id(),
+                        new ErEntityDTO(
+                                entity.id(),
+                                entity.name(),
+                                entity.position(),
+                                entity.isWeak(),
+                                entity.attributes(),
+                                mergedPks));
+            }
+        }
+
+        for (ErRelationshipParticipantDTO participantDTO : rel.participants()) {
+            ErEntityDTO entity = entityMap.get(participantDTO.entityId());
+            if (entity.id().equals(parent.id())) {
+                continue;
+            }
+            Node childNode = getOrCreateNode(entity.name(), graph);
+            for (ErAttributeDTO pk : pks) {
+                // In IsA the child's own PK is the FK to the parent -- mark existing PK node
+                Node existingPk =
+                        Graphs.successorListOf(graph, childNode).stream()
+                                .filter(
+                                        a ->
+                                                a.isAttribute()
+                                                        && a.isPk()
+                                                        && a.getName().equals(pk.name()))
+                                .findFirst()
+                                .orElse(null);
+                if (existingPk != null) {
+                    // Reuse the existing PK node as FK to parent
+                    existingPk.setFk(true);
+                    existingPk.setReference(parent.name());
+                    Node refNode = getOrCreateNode(parent.name(), graph);
+                    Node attrRef = getOrCreateAttr(pk.name(), refNode, graph);
+                    Auxiliary.addPrimaryAttr(attrRef, refNode, graph);
+                    Auxiliary.addEdge(existingPk, attrRef, graph);
+                } else {
+                    // Child has no own PK with that name -- create it as PK+FK
+                    addFkToRef(pk.name(), childNode, parent.name(), true, false, false, graph, "");
                 }
             }
         }
@@ -332,7 +378,13 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         pksName = getPksName(entityOther, attrMap);
         for (String pk : pksName) {
+
             String role = self ? participantOther.role() : "";
+            if (self
+                    && entityOne.id().equals(entityOther.id())
+                    && (role == null || role.isEmpty())) {
+                role = "2";
+            }
             addFkToRef(
                     pk,
                     relationshipNode,
@@ -452,11 +504,10 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
     private List<String> getPksName(ErEntityDTO entity, Map<String, ErAttributeDTO> attrMap) {
         List<String> pks = new ArrayList<>();
 
-        if (entity.primaryKeys().isEmpty()) {
-            pks.add("id_" + entity.name().toLowerCase());
-        } else {
-            for (String pkId : entity.primaryKeys()) {
-                pks.add(attrMap.get(pkId).name());
+        for (String pkId : entity.primaryKeys()) {
+            ErAttributeDTO attr = attrMap.get(pkId);
+            if (attr != null) {
+                pks.add(attr.name());
             }
         }
 
@@ -472,7 +523,18 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             boolean isNotNull,
             Graph<Node, Edge> graph,
             String role) {
-        Node attrNode = getOrCreateAttr(attrName + role, owner, graph);
+        final String resolvedName = resolveFkName(attrName + role, ref, owner, graph);
+        // Never overwrite an existing own PK with the same name -- force a distinct FK name
+        boolean clashesWithOwnPk =
+                Graphs.neighborListOf(graph, owner).stream()
+                        .anyMatch(
+                                a ->
+                                        a.isAttribute()
+                                                && a.getName().equals(resolvedName)
+                                                && a.isPk()
+                                                && !a.isFk());
+        String fkName = clashesWithOwnPk ? attrName + role + "_" + ref : resolvedName;
+        Node attrNode = getOrCreateAttr(fkName, owner, graph);
         editFk(attrNode, isPk, isUnique, isNotNull);
         addForeignAttr(attrNode, owner, ref, graph);
 
@@ -481,6 +543,29 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         addPrimaryAttr(attrRef, refNode, graph);
 
         addEdge(attrNode, attrRef, graph);
+    }
+
+    private String resolveFkName(String attrName, String ref, Node owner, Graph<Node, Edge> graph) {
+        boolean collision =
+                Graphs.neighborListOf(graph, owner).stream()
+                        .anyMatch(
+                                a ->
+                                        a.isAttribute()
+                                                && a.getName().equals(attrName)
+                                                && a.isFk()
+                                                && !ref.equals(a.getReference()));
+        if (collision) {
+            return attrName + "_" + ref;
+        }
+        boolean willCollide =
+                Graphs.neighborListOf(graph, owner).stream()
+                        .anyMatch(
+                                a ->
+                                        a.isAttribute()
+                                                && a.getName().equals(attrName)
+                                                && !a.isFk()
+                                                && !a.isPk());
+        return willCollide ? attrName + "_" + ref : attrName;
     }
 
     private void processAttributes(
@@ -540,10 +625,11 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         List<ErAttributeDTO> attributes = new ArrayList<>();
         List<ErUndefinedDTO> undefineds = new ArrayList<>();
 
-        Set<Node> nodes =
+        List<Node> nodes =
                 graph.vertexSet().stream()
                         .filter(n -> !n.isAttribute())
-                        .collect(Collectors.toSet());
+                        .sorted(Comparator.comparing(Node::getName))
+                        .collect(Collectors.toList());
 
         Set<String> visited = new HashSet<>();
 
