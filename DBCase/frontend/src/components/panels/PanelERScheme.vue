@@ -34,8 +34,8 @@ const handleTransform = async (value: DiagramType) => {
 
 <template>
   <div class="h-full flex flex-col">
-    <div class="flex justify-between items-center p-2">
-      <div>
+    <div class="flex items-center gap-1 p-2 min-w-0">
+      <div class="flex shrink-0 items-center">
         <Button
           severity="secondary"
           class="bi bi-arrow-90deg-left"
@@ -60,10 +60,10 @@ const handleTransform = async (value: DiagramType) => {
           text
         />
       </div>
-      <div class="text-3xl">
-        <h1>{{ t('panels.conceptual') }}</h1>
+      <div class="flex-1 min-w-0 text-center">
+        <h1 class="text-xl font-semibold truncate">{{ t('panels.conceptual') }}</h1>
       </div>
-      <div>
+      <div class="flex shrink-0 items-center">
         <Button
           severity="secondary"
           class="bi bi-arrow-left-right"
