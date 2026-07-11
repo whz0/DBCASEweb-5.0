@@ -69,6 +69,18 @@ const userMenuItems = computed(() => [
     },
   },
   {
+    label: t('profile.loadDiagram'),
+    icon: 'bi bi-cloud-download',
+    command: () => {
+      const success = erSchemaStore.loadFromProfile()
+      toast.add(
+        success
+          ? { severity: 'success', detail: t('profile.loadDiagram'), life: 3000 }
+          : { severity: 'warn', detail: t('profile.noDiagramsCloudMessage'), life: 4000 },
+      )
+    },
+  },
+  {
     separator: true,
   },
   {

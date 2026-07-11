@@ -718,50 +718,58 @@ const relationshipConnections = computed(() => {
       const relCenter = { x: relShape.cx, y: relShape.cy }
 
       let entityCenter: Position
-      let endPoint: Position | null = null
+      let entityShape: ReturnType<typeof calculateEntityRenderProps> | null = null
+      let aggBox: ReturnType<typeof getAggregationBox> | null = null
 
       if (entity) {
-        const entityShape = calculateEntityRenderProps(entity)
+        entityShape = calculateEntityRenderProps(entity)
         entityCenter = {
           x: entityShape.x + entityShape.width / 2,
           y: entityShape.y + entityShape.height / 2,
         }
-        endPoint = getLineRectangleIntersection(relCenter, entityCenter, entityShape)
       } else {
-        const aggBox = getAggregationBox(aggRel!)
+        aggBox = getAggregationBox(aggRel!)
         entityCenter = {
           x: aggBox.x + aggBox.width / 2,
           y: aggBox.y + aggBox.height / 2,
         }
-        endPoint = getLineRectangleIntersection(relCenter, entityCenter, aggBox)
       }
 
+      let endPoint: Position | null = null
       let startPoint: Position | null = null
-      if (rel.type === 'IsA') {
-        const isParent = participant.role === 'Parent'
-        const { cx, cy, size } = { cx: relShape.cx, cy: relShape.cy, size: 50 }
-        if (isParent) {
-          startPoint = { x: cx, y: cy - size / 2 }
-        } else {
-          startPoint = getLineTriangleIntersection(entityCenter, relCenter, { cx, cy, size })
-        }
+
+      if (isRecursive) {
+        // Draw from center to center with perpendicular offset.
+        // Shapes are filled so the line is hidden under them — only the gap between shows.
+        const dx = entityCenter.x - relCenter.x
+        const dy = entityCenter.y - relCenter.y
+        const d = Math.sqrt(dx * dx + dy * dy) || 1
+        const sign = occurrenceIndex === 0 ? -1 : 1
+        const perpX = (-dy / d) * 30 * sign
+        const perpY = (dx / d) * 30 * sign
+        startPoint = { x: relCenter.x + perpX, y: relCenter.y + perpY }
+        endPoint = { x: entityCenter.x + perpX, y: entityCenter.y + perpY }
       } else {
-        startPoint = getLineDiamondIntersection(entityCenter, relCenter, relShape)
+        if (entity) {
+          endPoint = getLineRectangleIntersection(relCenter, entityCenter, entityShape!)
+        } else {
+          endPoint = getLineRectangleIntersection(relCenter, entityCenter, aggBox!)
+        }
+
+        if (rel.type === 'IsA') {
+          const isParent = participant.role === 'Parent'
+          const { cx, cy, size } = { cx: relShape.cx, cy: relShape.cy, size: 50 }
+          if (isParent) {
+            startPoint = { x: cx, y: cy - size / 2 }
+          } else {
+            startPoint = getLineTriangleIntersection(entityCenter, relCenter, { cx, cy, size })
+          }
+        } else {
+          startPoint = getLineDiamondIntersection(entityCenter, relCenter, relShape)
+        }
       }
 
       if (startPoint && endPoint) {
-        // Apply symmetric perpendicular offset for recursive connections
-        if (isRecursive) {
-          const dx = endPoint.x - startPoint.x
-          const dy = endPoint.y - startPoint.y
-          const d = Math.sqrt(dx * dx + dy * dy) || 1
-          const sign = occurrenceIndex === 0 ? -1 : 1
-          const perpX = (-dy / d) * 30 * sign
-          const perpY = (dx / d) * 30 * sign
-          startPoint = { x: startPoint.x + perpX, y: startPoint.y + perpY }
-          endPoint = { x: endPoint.x + perpX, y: endPoint.y + perpY }
-        }
-
         const minCard = participant.cardinalityMin
         const maxCard = participant.cardinalityMax
         const role = participant.role ?? ''
@@ -816,16 +824,16 @@ const relationshipConnections = computed(() => {
           offsetIndex: occurrenceIndex,
           labelOffsetX: (() => {
             if (!isRecursive) return 0
-            const dx = endPoint!.x - startPoint!.x
-            const dy = endPoint!.y - startPoint!.y
+            const dx = entityCenter.x - relCenter.x
+            const dy = entityCenter.y - relCenter.y
             const d = Math.sqrt(dx * dx + dy * dy) || 1
             const sign = occurrenceIndex === 0 ? -1 : 1
             return (-dy / d) * 30 * sign
           })(),
           labelOffsetY: (() => {
             if (!isRecursive) return 0
-            const dx = endPoint!.x - startPoint!.x
-            const dy = endPoint!.y - startPoint!.y
+            const dx = entityCenter.x - relCenter.x
+            const dy = entityCenter.y - relCenter.y
             const d = Math.sqrt(dx * dx + dy * dy) || 1
             const sign = occurrenceIndex === 0 ? -1 : 1
             return (dx / d) * 30 * sign
