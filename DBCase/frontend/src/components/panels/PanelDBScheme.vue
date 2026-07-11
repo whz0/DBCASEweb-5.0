@@ -152,7 +152,7 @@ const handleTransform = async (value: DiagramType) => {
         optionLabel="language"
         optionValue="value"
         placeholder="Select a Language"
-        class="w-40 min-w-0"
+        class="w-56 min-w-0"
       />
     </div>
     <div class="flex-1 min-w-0 text-center">

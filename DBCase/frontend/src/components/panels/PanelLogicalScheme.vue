@@ -103,40 +103,52 @@ const handleTransform = async (value: DiagramType) => {
 </script>
 
 <template>
-  <div class="flex items-center gap-1 px-2 py-3 min-w-0">
-    <div class="flex-1 min-w-0 text-center">
-      <h1 class="text-xl font-semibold truncate">{{ t('panels.logical') }}</h1>
+  <div class="h-full flex flex-col overflow-hidden">
+    <div class="flex items-center gap-1 px-2 py-3 min-w-0 shrink-0">
+      <div class="flex shrink-0 items-center invisible">
+        <Button severity="secondary" class="bi bi-arrow-left-right" text />
+        <Button severity="secondary" class="bi bi-x-lg" text />
+      </div>
+      <div class="flex-1 min-w-0 text-center">
+        <h1 class="text-xl font-semibold truncate">{{ t('panels.logical') }}</h1>
+      </div>
+      <div class="flex shrink-0 items-center">
+        <Button
+          severity="secondary"
+          class="bi bi-arrow-left-right"
+          @click="showTransform = true"
+          v-tooltip.bottom="t('schema.transform')"
+          text
+        />
+        <Button
+          severity="secondary"
+          class="bi bi-x-lg"
+          @click="panelStore.close(PanelId.LogicalScheme)"
+          v-tooltip.bottom="t('panels.close')"
+          text
+        />
+      </div>
     </div>
-    <div class="flex shrink-0 items-center">
-      <Button
-        severity="secondary"
-        class="bi bi-arrow-left-right"
-        @click="showTransform = true"
-        v-tooltip.bottom="t('schema.transform')"
-        text
-      />
-      <Button
-        severity="secondary"
-        class="bi bi-x-lg"
-        @click="panelStore.close(PanelId.LogicalScheme)"
-        v-tooltip.bottom="t('panels.close')"
-        text
-      />
-    </div>
-  </div>
-  <TransformDiagramDialog
-    v-model:visible="showTransform"
-    source-type="logical"
-    @transform="handleTransform"
-  />
-  <div class="bg-danger-500 p-6 w-1em h-full">
-    <ScrollablePanel :title="t('schema.relationship')" heigh="h-4/12" v-model="relationship" />
-    <ScrollablePanel :title="t('schema.restriction')" heigh="h-3/12" v-model="restriction" />
-    <ScrollablePanel
-      :title="t('schema.lostRestriction')"
-      heigh="h-3/12"
-      v-model="lostRestriction"
+    <TransformDiagramDialog
+      v-model:visible="showTransform"
+      source-type="logical"
+      @transform="handleTransform"
     />
+    <div class="flex-1 flex flex-col overflow-hidden px-4 pb-4 gap-2 min-h-0">
+      <ScrollablePanel
+        :title="t('schema.relationship')"
+        heigh=""
+        :flex="4"
+        v-model="relationship"
+      />
+      <ScrollablePanel :title="t('schema.restriction')" heigh="" :flex="3" v-model="restriction" />
+      <ScrollablePanel
+        :title="t('schema.lostRestriction')"
+        heigh=""
+        :flex="3"
+        v-model="lostRestriction"
+      />
+    </div>
   </div>
 </template>
 

@@ -4,6 +4,7 @@ import { nextTick, ref, watch } from 'vue'
 const props = defineProps<{
   title: string
   heigh: string
+  flex?: number
   modelValue?: string
 }>()
 
@@ -51,16 +52,18 @@ const onContextMenu = (e: MouseEvent) => {
 
 <template>
   <ContextMenu ref="contextMenu" :model="contextMenuItems" />
-  <label>{{ title }}</label>
-  <ScrollPanel :class="['text-left', 'w-full', heigh, 'border', 'rounded-md', 'mb-2']">
-    <div
-      ref="editable"
-      contenteditable="true"
-      class="w-full h-full outline-none p-1"
-      @contextmenu.prevent="onContextMenu($event)"
-      @focus="isEditing = true"
-      @blur="isEditing = false"
-      @input="(e) => emit('update:modelValue', (e.target as HTMLElement).innerHTML)"
-    />
-  </ScrollPanel>
+  <div class="flex flex-col min-h-0" :style="flex ? { flex: `${flex} 1 0%` } : {}">
+    <label class="shrink-0 text-sm font-medium mb-1">{{ title }}</label>
+    <div class="flex-1 min-h-0 overflow-y-auto text-left w-full border rounded-md">
+      <div
+        ref="editable"
+        contenteditable="true"
+        class="w-full min-h-full outline-none p-1"
+        @contextmenu.prevent="onContextMenu($event)"
+        @focus="isEditing = true"
+        @blur="isEditing = false"
+        @input="(e) => emit('update:modelValue', (e.target as HTMLElement).innerHTML)"
+      />
+    </div>
+  </div>
 </template>
