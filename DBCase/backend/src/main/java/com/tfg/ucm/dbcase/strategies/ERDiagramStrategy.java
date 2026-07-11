@@ -137,8 +137,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         String name = erRel.aggregationName() != null ? erRel.aggregationName() : erRel.name();
         Node relationship = getOrCreateNode(name, graph);
-        processAttributes(
-                relationship, erRel.attributes(), attributeDTOMap, customDomainMap, graph);
 
         boolean self =
                 erRel.participants().stream()
@@ -148,6 +146,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         == 1;
 
         if (erRel.participants().size() > 2) {
+            processAttributes(
+                    relationship, erRel.attributes(), attributeDTOMap, customDomainMap, graph);
             generateNAria(relationship, erRel, entityDTOMap, attributeDTOMap, graph, self);
         } else if (erRel.participants().size() == 2) {
             ErRelationshipParticipantDTO one = erRel.participants().get(0);
@@ -166,6 +166,9 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
 
             if (isNM) {
+
+                processAttributes(
+                        relationship, erRel.attributes(), attributeDTOMap, customDomainMap, graph);
                 generateNM(
                         relationship,
                         one,
@@ -176,6 +179,14 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         graph,
                         self);
             } else if (isOneOne) {
+                if (createIntermediate) {
+                    processAttributes(
+                            relationship,
+                            erRel.attributes(),
+                            attributeDTOMap,
+                            customDomainMap,
+                            graph);
+                }
                 generateOneOne(
                         relationship,
                         one,
@@ -183,6 +194,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         entityOne,
                         entityOther,
                         attributeDTOMap,
+                        customDomainMap,
+                        erRel.attributes(),
                         graph,
                         createIntermediate,
                         self);
@@ -192,6 +205,14 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 ErRelationshipParticipantDTO nSide =
                         !one.cardinalityMax().equalsIgnoreCase("1") ? one : other;
 
+                if (createIntermediate) {
+                    processAttributes(
+                            relationship,
+                            erRel.attributes(),
+                            attributeDTOMap,
+                            customDomainMap,
+                            graph);
+                }
                 generateOneN(
                         relationship,
                         oneSide,
@@ -200,6 +221,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         entityDTOMap.get(nSide.entityId()),
                         nSide.cardinalityMin(),
                         attributeDTOMap,
+                        customDomainMap,
+                        erRel.attributes(),
                         graph,
                         createIntermediate,
                         self);
@@ -261,7 +284,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             pks.add(attrMap.get(pkId));
         }
 
-        // Inject parent PKs into entityMap of each child so getPksName finds them
         List<String> parentPkIds = pks.stream().map(ErAttributeDTO::id).toList();
         for (ErRelationshipParticipantDTO participantDTO : rel.participants()) {
             ErEntityDTO entity = entityMap.get(participantDTO.entityId());
@@ -290,7 +312,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             }
             Node childNode = getOrCreateNode(entity.name(), graph);
             for (ErAttributeDTO pk : pks) {
-                // In IsA the child's own PK is the FK to the parent -- mark existing PK node
                 Node existingPk =
                         Graphs.successorListOf(graph, childNode).stream()
                                 .filter(
@@ -301,7 +322,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                 .findFirst()
                                 .orElse(null);
                 if (existingPk != null) {
-                    // Reuse the existing PK node as FK to parent
                     existingPk.setFk(true);
                     existingPk.setReference(parent.name());
                     Node refNode = getOrCreateNode(parent.name(), graph);
@@ -309,7 +329,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                     Auxiliary.addPrimaryAttr(attrRef, refNode, graph);
                     Auxiliary.addEdge(existingPk, attrRef, graph);
                 } else {
-                    // Child has no own PK with that name -- create it as PK+FK
                     addFkToRef(pk.name(), childNode, parent.name(), true, false, false, graph, "");
                 }
             }
@@ -405,6 +424,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             ErEntityDTO nSide,
             String minCard,
             Map<String, ErAttributeDTO> attrMap,
+            Map<String, String> customDomainMap,
+            List<String> relAttrIds,
             Graph<Node, Edge> graph,
             boolean createIntermediate,
             boolean self) {
@@ -418,6 +439,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 String role = self ? participantN.role() : "";
                 addFkToRef(pk, node, nSide.name(), true, false, false, graph, role);
             }
+        } else {
+            processAttributes(node, relAttrIds, attrMap, customDomainMap, graph);
         }
         pksName = getPksName(oneSide, attrMap);
         for (String pk : pksName) {
@@ -433,6 +456,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             ErEntityDTO entityOne,
             ErEntityDTO entityOther,
             Map<String, ErAttributeDTO> attrMap,
+            Map<String, String> customDomainMap,
+            List<String> relAttrIds,
             Graph<Node, Edge> graph,
             boolean createIntermediate,
             boolean self) {
@@ -482,6 +507,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                     addFkToRef(
                             pk, nodeOne, entityOther.name(), false, true, oneIsTotal, graph, role);
                 }
+                processAttributes(nodeOne, relAttrIds, attrMap, customDomainMap, graph);
             }
             if (!oneIsTotal || otherIsTotal) {
                 pksName = getPksName(entityOne, attrMap);
@@ -497,6 +523,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                             graph,
                             role);
                 }
+                processAttributes(nodeOther, relAttrIds, attrMap, customDomainMap, graph);
             }
         }
     }
@@ -524,7 +551,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             Graph<Node, Edge> graph,
             String role) {
         final String resolvedName = resolveFkName(attrName + role, ref, owner, graph);
-        // Never overwrite an existing own PK with the same name -- force a distinct FK name
         boolean clashesWithOwnPk =
                 Graphs.neighborListOf(graph, owner).stream()
                         .anyMatch(

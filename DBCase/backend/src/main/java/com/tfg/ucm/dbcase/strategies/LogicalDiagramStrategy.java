@@ -100,10 +100,8 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
             if (attr.isFk()) {
                 if (usedRefs.contains(attr.getReference()) || attr.isUnique()) {
-                    // Already seen: register as lossless restriction only, don't recurse
                     appendRestriction(attr, node, graph, lostRestrictions);
                 } else {
-                    // First time: register restriction and recursively emit the referenced table
                     usedRefs.add(attr.getReference());
                     appendRestriction(attr, node, graph, restrictions);
                     graph.vertexSet().stream()
@@ -120,8 +118,10 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                                                             visited,
                                                             usedRefs)));
                 }
-                // FK-PK goes into pks (e.g. N:M intermediate tables)
-                // plain FK goes into others as a regular column (still appears in the schema)
+
+                if (attr.isPk() && attr.isNotNull()) {
+                    appendTotalParticipation(attr, node, graph, lostRestrictions);
+                }
                 if (attr.isPk()) {
                     if (!pks.isEmpty()) {
                         pks.append(", ");
@@ -136,7 +136,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 continue;
             }
 
-            // Regular (non-FK) attribute
             if (attr.isPk()) {
                 if (!pks.isEmpty()) {
                     pks.append(", ");
@@ -186,6 +185,34 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 .append("\n");
     }
 
+    /**
+     * Appends a lost restriction for total participation: every tuple of the referenced entity must
+     * appear at least once in this (N:M) table. Format: forall <ref>.<refPk> exists <node>.<fkAttr>
+     * (total participation of <ref> in <node>)
+     */
+    private void appendTotalParticipation(
+            Node attr, Node node, Graph<Node, Edge> graph, StringBuilder lostRestrictions) {
+        List<Node> successors = Graphs.successorListOf(graph, attr);
+        if (successors.isEmpty()) {
+            return;
+        }
+        Node refAttr = successors.getFirst();
+        lostRestrictions
+                .append("forall ")
+                .append(attr.getReference())
+                .append(".")
+                .append(refAttr.getName())
+                .append(" exists ")
+                .append(node.getName())
+                .append(".")
+                .append(attr.getName())
+                .append("  (total participation of ")
+                .append(attr.getReference())
+                .append(" in ")
+                .append(node.getName())
+                .append(")\n");
+    }
+
     private void parseRelationship(String relationship, Graph<Node, Edge> diagram) {
         relationship
                 .lines()
@@ -224,11 +251,18 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         restriction
                 .lines()
                 .filter(line -> !line.isBlank())
+                .filter(line -> line.contains("->") && line.contains("."))
                 .forEach(
                         line -> {
                             String[] parts = line.split("->");
-                            String[] srcParts = parts[0].split("\\.");
-                            String[] refParts = parts[1].split("\\.");
+                            if (parts.length < 2) {
+                                return;
+                            }
+                            String[] srcParts = parts[0].trim().split("\\.");
+                            String[] refParts = parts[1].trim().split("\\.");
+                            if (srcParts.length < 2 || refParts.length < 2) {
+                                return;
+                            }
                             String srcName = srcParts[0].trim();
                             String srcAttrName = srcParts[1].trim();
                             String refName = refParts[0].trim();
@@ -240,6 +274,14 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
 
                             if (lost) {
                                 attrSrc.setUnique(true);
+                                Graphs.successorListOf(diagram, ref).stream()
+                                        .filter(
+                                                a ->
+                                                        a.isAttribute()
+                                                                && a.getReference() != null
+                                                                && a.getReference().equals(srcName))
+                                        .findFirst()
+                                        .ifPresent(unique -> unique.setUnique(true));
                             }
 
                             Auxiliary.addForeignAttr(attrSrc, src, refName, diagram);

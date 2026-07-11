@@ -89,7 +89,7 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                 graph.vertexSet().stream()
                         .filter(n -> !n.isAttribute())
                         .sorted(Comparator.comparing(Node::getName))
-                        .collect(Collectors.toList());
+                        .toList();
 
         StringBuilder sql = new StringBuilder();
         Set<String> usedRefs = new HashSet<>();
@@ -126,6 +126,9 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
 
             if (attr.isPk()) {
                 pkColumns.append("\t").append(attr.getName()).append(" ").append(dataType);
+                if (attr.isNotNull()) {
+                    pkColumns.append(" NOT NULL");
+                }
                 if (compositePk) {
                     pkNames.add(attr.getName());
                 } else {
