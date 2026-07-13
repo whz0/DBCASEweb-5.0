@@ -20,6 +20,7 @@ public class Node {
     private boolean isFk;
     private boolean isNotNull;
     private boolean isUnique;
+    private boolean isTotal;
     private DataType dataType;
     private String reference;
 }

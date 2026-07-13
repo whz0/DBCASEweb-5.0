@@ -45,11 +45,12 @@ public class Auxiliary {
                         });
     }
 
-    static void editFk(Node attr, boolean isPk, boolean isUnique, boolean isNotNull) {
-
+    static void editFk(
+            Node attr, boolean isPk, boolean isUnique, boolean isNotNull, boolean isTotal) {
         attr.setPk(isPk);
         attr.setUnique(isUnique);
         attr.setNotNull(isNotNull);
+        attr.setTotal(isTotal);
     }
 
     static void addForeignAttr(Node attr, Node node, String ref, Graph<Node, Edge> diagram) {

@@ -329,7 +329,16 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                     Auxiliary.addPrimaryAttr(attrRef, refNode, graph);
                     Auxiliary.addEdge(existingPk, attrRef, graph);
                 } else {
-                    addFkToRef(pk.name(), childNode, parent.name(), true, false, false, graph, "");
+                    addFkToRef(
+                            pk.name(),
+                            childNode,
+                            parent.name(),
+                            true,
+                            false,
+                            false,
+                            false,
+                            graph,
+                            "");
                 }
             }
         }
@@ -365,6 +374,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         true,
                         false,
                         !participant.cardinalityMin().equals("0"),
+                        !participant.cardinalityMin().equals("0"),
                         graph,
                         role);
             }
@@ -391,6 +401,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                     true,
                     false,
                     !participantOne.cardinalityMin().equals("0"),
+                    !participantOne.cardinalityMin().equals("0"),
                     graph,
                     role);
         }
@@ -410,6 +421,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                     entityOther.name(),
                     true,
                     false,
+                    !participantOther.cardinalityMin().equals("0"),
                     !participantOther.cardinalityMin().equals("0"),
                     graph,
                     role);
@@ -437,7 +449,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             pksName = getPksName(nSide, attrMap);
             for (String pk : pksName) {
                 String role = self ? participantN.role() : "";
-                addFkToRef(pk, node, nSide.name(), true, false, false, graph, role);
+                addFkToRef(pk, node, nSide.name(), true, false, false, false, graph, role);
             }
         } else {
             processAttributes(node, relAttrIds, attrMap, customDomainMap, graph);
@@ -445,7 +457,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         pksName = getPksName(oneSide, attrMap);
         for (String pk : pksName) {
             String role = self ? participantOne.role() : "";
-            addFkToRef(pk, node, oneSide.name(), false, false, nIsTotal, graph, role);
+            addFkToRef(pk, node, oneSide.name(), false, false, nIsTotal, nIsTotal, graph, role);
         }
     }
 
@@ -482,6 +494,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         onePk,
                         !onePk,
                         oneIsTotal,
+                        oneIsTotal,
                         graph,
                         role);
             }
@@ -496,6 +509,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         !onePk,
                         onePk,
                         otherIsTotal,
+                        otherIsTotal,
                         graph,
                         role);
             }
@@ -505,11 +519,19 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 for (String pk : pksName) {
                     String role = self ? participantOther.role() : "";
                     addFkToRef(
-                            pk, nodeOne, entityOther.name(), false, true, oneIsTotal, graph, role);
+                            pk,
+                            nodeOne,
+                            entityOther.name(),
+                            false,
+                            true,
+                            oneIsTotal,
+                            otherIsTotal,
+                            graph,
+                            role);
                 }
                 processAttributes(nodeOne, relAttrIds, attrMap, customDomainMap, graph);
             }
-            if (!oneIsTotal || otherIsTotal) {
+            if ((!oneIsTotal || otherIsTotal) && !(oneIsTotal && otherIsTotal)) {
                 pksName = getPksName(entityOne, attrMap);
                 for (String pk : pksName) {
                     String role = self ? participantOne.role() : "";
@@ -520,6 +542,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                             false,
                             true,
                             otherIsTotal,
+                            oneIsTotal,
                             graph,
                             role);
                 }
@@ -548,6 +571,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
             boolean isPk,
             boolean isUnique,
             boolean isNotNull,
+            boolean isTotal,
             Graph<Node, Edge> graph,
             String role) {
         final String resolvedName = resolveFkName(attrName + role, ref, owner, graph);
@@ -561,7 +585,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                                 && !a.isFk());
         String fkName = clashesWithOwnPk ? attrName + role + "_" + ref : resolvedName;
         Node attrNode = getOrCreateAttr(fkName, owner, graph);
-        editFk(attrNode, isPk, isUnique, isNotNull);
+        editFk(attrNode, isPk, isUnique, isNotNull, isTotal);
         addForeignAttr(attrNode, owner, ref, graph);
 
         Node refNode = getOrCreateNode(ref, graph);
