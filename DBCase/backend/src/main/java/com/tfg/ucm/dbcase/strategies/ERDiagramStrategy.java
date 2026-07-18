@@ -825,7 +825,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         boolean refExists =
                 graph.vertexSet().stream().anyMatch(n -> isRealEntity(n, fk.getReference(), graph));
         if (!refExists) {
-            buildAbsorbedOneOne(node, fk, graph, visited, pos, relationships, entities, attributes);
+            buildEntity(node, graph, visited, pos, entities, attributes);
         } else {
             graph.vertexSet().stream()
                     .filter(n -> !n.isAttribute() && n.getName().equals(fk.getReference()))
@@ -953,77 +953,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         null,
                         participants,
                         relAttrIds));
-    }
-
-    private void buildAbsorbedOneOne(
-            Node node,
-            Node fkAttr,
-            Graph<Node, Edge> graph,
-            Set<String> visited,
-            Position pos,
-            List<ErRelationshipDTO> relationships,
-            List<ErEntityDTO> entities,
-            List<ErAttributeDTO> attributes) {
-
-        if (visited.contains(node.getUuid())) {
-            return;
-        }
-
-        String absorbedName = fkAttr.getReference();
-        String absorbedUuid = UUID.randomUUID().toString();
-
-        List<Node> fkTargets = Graphs.successorListOf(graph, fkAttr);
-        if (fkTargets.isEmpty()) {
-            return;
-        }
-        Node absorbedPkAttr = fkTargets.getFirst();
-
-        Position absorbedPos = circlePos(pos, 1, 2, 120);
-        Position absorbedPkPos = circlePos(absorbedPos, 0, 1, 80);
-        attributes.add(
-                new ErAttributeDTO(
-                        absorbedPkAttr.getUuid(),
-                        absorbedPkAttr.getName(),
-                        absorbedPkPos,
-                        absorbedUuid,
-                        true,
-                        false,
-                        false,
-                        true,
-                        false,
-                        absorbedPkAttr.getDataType() != null
-                                ? absorbedPkAttr.getDataType().domain().name()
-                                : null,
-                        absorbedPkAttr.getDataType() != null
-                                ? absorbedPkAttr.getDataType().length()
-                                : 0,
-                        List.of()));
-
-        entities.add(
-                new ErEntityDTO(
-                        absorbedUuid,
-                        absorbedName,
-                        absorbedPos,
-                        false,
-                        List.of(),
-                        List.of(absorbedPkAttr.getUuid())));
-
-        buildEntity(node, graph, visited, circlePos(pos, 0, 2, 120), entities, attributes);
-
-        List<ErRelationshipParticipantDTO> participants =
-                List.of(
-                        new ErRelationshipParticipantDTO(node.getUuid(), "1", "1", ""),
-                        new ErRelationshipParticipantDTO(absorbedUuid, "1", "1", ""));
-
-        relationships.add(
-                new ErRelationshipDTO(
-                        UUID.randomUUID().toString(),
-                        node.getName() + absorbedName,
-                        pos,
-                        "Normal",
-                        null,
-                        participants,
-                        List.of()));
     }
 
     private void buildEntity(

@@ -133,9 +133,6 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
 
             if (attr.isPk()) {
                 pkColumns.append("\t").append(attr.getName()).append(" ").append(dataType);
-                if (attr.isNotNull()) {
-                    pkColumns.append(" NOT NULL");
-                }
                 if (compositePk) {
                     pkNames.add(attr.getName());
                 } else {
@@ -152,22 +149,32 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                     usedRefs.add(entity.getName());
                 }
 
-                List<Node> successors = Graphs.successorListOf(graph, attr);
-                if (!successors.isEmpty()) {
-                    constraints
-                            .append("\tFOREIGN KEY (")
-                            .append(attr.getName())
-                            .append(") REFERENCES ")
-                            .append(attr.getReference())
-                            .append("(")
-                            .append(successors.getFirst().getName())
-                            .append("),\n");
+                boolean refTableExists =
+                        graph.vertexSet().stream()
+                                .anyMatch(
+                                        n ->
+                                                !n.isAttribute()
+                                                        && n.getName().equals(attr.getReference()));
+                if (refTableExists) {
+                    List<Node> successors = Graphs.successorListOf(graph, attr);
+                    if (!successors.isEmpty()) {
+                        constraints
+                                .append("\tFOREIGN KEY (")
+                                .append(attr.getName())
+                                .append(") REFERENCES ")
+                                .append(attr.getReference())
+                                .append("(")
+                                .append(successors.getFirst().getName())
+                                .append("),\n");
+                    }
+                    graph.vertexSet().stream()
+                            .filter(n -> n.getName().equals(attr.getReference()))
+                            .findFirst()
+                            .ifPresent(
+                                    node ->
+                                            table.append(
+                                                    buildTable(node, graph, usedRefs, visited)));
                 }
-                graph.vertexSet().stream()
-                        .filter(n -> n.getName().equals(attr.getReference()))
-                        .findFirst()
-                        .ifPresent(
-                                node -> table.append(buildTable(node, graph, usedRefs, visited)));
             }
 
             if (!attr.isPk()) {

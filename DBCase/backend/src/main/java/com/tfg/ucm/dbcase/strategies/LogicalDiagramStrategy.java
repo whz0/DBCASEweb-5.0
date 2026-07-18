@@ -124,7 +124,14 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 appendTotalParticipation(attr, node, graph, lostRestrictions);
             } else if (attr.isUnique()) {
                 appendRestriction(attr, node, graph, restrictions);
-                if (attr.isNotNull()) {
+
+                boolean refExists =
+                        graph.vertexSet().stream()
+                                .anyMatch(
+                                        n ->
+                                                !n.isAttribute()
+                                                        && n.getName().equals(attr.getReference()));
+                if (attr.isNotNull() && refExists) {
                     appendOneOneLost(attr, node, graph, lostRestrictions);
                 }
             } else {
