@@ -135,7 +135,12 @@ const handleTransform = async (value: DiagramType) => {
       @transform="handleTransform"
     />
     <div class="flex-1 flex flex-col overflow-hidden px-4 pb-4 gap-2 min-h-0">
-      <ScrollablePanel :title="t('schema.relationship')" heigh="" :flex="4" v-model="relationship" />
+      <ScrollablePanel
+        :title="t('schema.relationship')"
+        heigh=""
+        :flex="4"
+        v-model="relationship"
+      />
       <ScrollablePanel :title="t('schema.restriction')" heigh="" :flex="3" v-model="restriction" />
       <ScrollablePanel
         :title="t('schema.lostRestriction')"

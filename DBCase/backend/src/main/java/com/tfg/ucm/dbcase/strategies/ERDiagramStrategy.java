@@ -476,15 +476,10 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         boolean oneIsTotal = !participantOne.cardinalityMin().equals("0");
         boolean otherIsTotal = !participantOther.cardinalityMin().equals("0");
-        Node nodeOne = createIntermediate ? relationship : getOrCreateNode(entityOne.name(), graph);
-        Node nodeOther =
-                createIntermediate ? relationship : getOrCreateNode(entityOther.name(), graph);
 
-        List<String> pksName = null;
         if (createIntermediate) {
             boolean onePk = oneIsTotal || !otherIsTotal;
-
-            pksName = getPksName(entityOther, attrMap);
+            List<String> pksName = getPksName(entityOther, attrMap);
             for (String pk : pksName) {
                 String role = self ? participantOther.role() : "";
                 addFkToRef(
@@ -498,7 +493,6 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         graph,
                         role);
             }
-
             pksName = getPksName(entityOne, attrMap);
             for (String pk : pksName) {
                 String role = self ? participantOne.role() : "";
@@ -513,41 +507,80 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                         graph,
                         role);
             }
+            return;
+        }
+
+        if (!oneIsTotal && !otherIsTotal) {
+            Node intermediate = getOrCreateNode(entityOne.name() + entityOther.name(), graph);
+            List<String> pksName = getPksName(entityOne, attrMap);
+            for (String pk : pksName) {
+                String role = self ? participantOne.role() : "";
+                addFkToRef(
+                        pk, intermediate, entityOne.name(), true, false, false, false, graph, role);
+            }
+            pksName = getPksName(entityOther, attrMap);
+            for (String pk : pksName) {
+                String role = self ? participantOther.role() : "";
+                addFkToRef(
+                        pk,
+                        intermediate,
+                        entityOther.name(),
+                        false,
+                        true,
+                        false,
+                        false,
+                        graph,
+                        role);
+            }
+            processAttributes(intermediate, relAttrIds, attrMap, customDomainMap, graph);
+
+        } else if (oneIsTotal && otherIsTotal) {
+            Node nodeOne = getOrCreateNode(entityOne.name(), graph);
+            Node nodeOther = getOrCreateNode(entityOther.name(), graph);
+
+            List<String> pksName = getPksName(entityOther, attrMap);
+            for (String pk : pksName) {
+                String role = self ? participantOther.role() : "";
+                addFkToRef(pk, nodeOne, entityOther.name(), false, true, true, false, graph, role);
+            }
+
+            for (Node attr : new ArrayList<>(Graphs.successorListOf(graph, nodeOther))) {
+                if (!attr.isAttribute() || attr.isPk()) {
+                    continue;
+                }
+                Node copied = getOrCreateAttr(attr.getName(), nodeOne, graph);
+                copied.setNotNull(attr.isNotNull());
+                copied.setUnique(attr.isUnique());
+                copied.setDataType(attr.getDataType());
+                if (attr.isFk()) {
+                    copied.setFk(true);
+                    copied.setReference(attr.getReference());
+
+                    Graphs.successorListOf(graph, attr)
+                            .forEach(refAttr -> addEdge(copied, refAttr, graph));
+                    addEdge(nodeOne, copied, graph);
+                } else {
+                    addEdge(nodeOne, copied, graph);
+                }
+            }
+
+            processAttributes(nodeOne, relAttrIds, attrMap, customDomainMap, graph);
+
+            graph.removeVertex(nodeOther);
+
         } else {
-            if (oneIsTotal || !otherIsTotal) {
-                pksName = getPksName(entityOther, attrMap);
-                for (String pk : pksName) {
-                    String role = self ? participantOther.role() : "";
-                    addFkToRef(
-                            pk,
-                            nodeOne,
-                            entityOther.name(),
-                            false,
-                            true,
-                            oneIsTotal,
-                            otherIsTotal,
-                            graph,
-                            role);
-                }
-                processAttributes(nodeOne, relAttrIds, attrMap, customDomainMap, graph);
+            Node totalNode =
+                    getOrCreateNode(oneIsTotal ? entityOne.name() : entityOther.name(), graph);
+            ErRelationshipParticipantDTO partialParticipant =
+                    oneIsTotal ? participantOther : participantOne;
+            ErEntityDTO partialEntity = oneIsTotal ? entityOther : entityOne;
+            List<String> pksName = getPksName(partialEntity, attrMap);
+            for (String pk : pksName) {
+                String role = self ? partialParticipant.role() : "";
+                addFkToRef(
+                        pk, totalNode, partialEntity.name(), false, true, true, false, graph, role);
             }
-            if ((!oneIsTotal || otherIsTotal) && !(oneIsTotal && otherIsTotal)) {
-                pksName = getPksName(entityOne, attrMap);
-                for (String pk : pksName) {
-                    String role = self ? participantOne.role() : "";
-                    addFkToRef(
-                            pk,
-                            nodeOther,
-                            entityOne.name(),
-                            false,
-                            true,
-                            otherIsTotal,
-                            oneIsTotal,
-                            graph,
-                            role);
-                }
-                processAttributes(nodeOther, relAttrIds, attrMap, customDomainMap, graph);
-            }
+            processAttributes(totalNode, relAttrIds, attrMap, customDomainMap, graph);
         }
     }
 
@@ -694,7 +727,15 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 undefineds.add(new ErUndefinedDTO(node.getUuid(), node.getName(), pos, List.of()));
                 continue;
             }
-            if (NodeClassifier.isNMRel(node, graph)) {
+            boolean allAttrsFk = ownAttrs.stream().allMatch(Node::isFk);
+            boolean hasOwnPk = ownAttrs.stream().anyMatch(a -> a.isPk() && !a.isFk());
+            if (allAttrsFk && !hasOwnPk && !isIntermediateOneOne(node, graph)) {
+                continue;
+            }
+            if (isIntermediateOneOne(node, graph)) {
+                buildIntermediateOneOne(
+                        node, graph, visited, pos, relationships, entities, attributes);
+            } else if (NodeClassifier.isNMRel(node, graph)) {
                 long distinctRefs =
                         Graphs.successorListOf(graph, node).stream()
                                 .filter(
@@ -743,29 +784,16 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                             });
                 } else {
                     uniqueFks.forEach(
-                            fk -> {
-                                graph.vertexSet().stream()
-                                        .filter(n -> n.getName().equals(fk.getReference()))
-                                        .findFirst()
-                                        .ifPresent(
-                                                ref -> {
-                                                    Node first =
-                                                            node.getName().compareTo(ref.getName())
-                                                                            <= 0
-                                                                    ? node
-                                                                    : ref;
-                                                    Node second = first == node ? ref : node;
-                                                    buildOneOneRel(
-                                                            first,
-                                                            second,
-                                                            graph,
-                                                            visited,
-                                                            pos,
-                                                            relationships,
-                                                            entities,
-                                                            attributes);
-                                                });
-                            });
+                            fk ->
+                                    processOneOneFk(
+                                            fk,
+                                            node,
+                                            graph,
+                                            visited,
+                                            pos,
+                                            relationships,
+                                            entities,
+                                            attributes));
                 }
             } else {
                 undefineds.add(new ErUndefinedDTO(node.getUuid(), node.getName(), pos, List.of()));
@@ -773,6 +801,220 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         }
 
         return new ErInput(entities, relationships, attributes, List.of(), undefineds);
+    }
+
+    private void processOneOneFk(
+            Node fk,
+            Node node,
+            Graph<Node, Edge> graph,
+            Set<String> visited,
+            Position pos,
+            List<ErRelationshipDTO> relationships,
+            List<ErEntityDTO> entities,
+            List<ErAttributeDTO> attributes) {
+
+        boolean refExists =
+                graph.vertexSet().stream().anyMatch(n -> isRealEntity(n, fk.getReference(), graph));
+        if (!refExists) {
+            buildAbsorbedOneOne(node, fk, graph, visited, pos, relationships, entities, attributes);
+        } else {
+            graph.vertexSet().stream()
+                    .filter(n -> !n.isAttribute() && n.getName().equals(fk.getReference()))
+                    .findFirst()
+                    .ifPresent(
+                            ref ->
+                                    buildOneOneRel(
+                                            node,
+                                            ref,
+                                            graph,
+                                            visited,
+                                            pos,
+                                            relationships,
+                                            entities,
+                                            attributes));
+        }
+    }
+
+    private boolean isRealEntity(Node n, String name, Graph<Node, Edge> graph) {
+        if (n.isAttribute() || !n.getName().equals(name)) {
+            return false;
+        }
+        return Graphs.successorListOf(graph, n).stream()
+                .anyMatch(a -> a.isAttribute() && a.isPk() && !a.isFk());
+    }
+
+    private boolean isIntermediateOneOne(Node node, Graph<Node, Edge> graph) {
+        List<Node> attrs =
+                Graphs.successorListOf(graph, node).stream().filter(Node::isAttribute).toList();
+        long ownPks = attrs.stream().filter(a -> a.isPk() && !a.isFk()).count();
+        if (ownPks > 0) {
+            return false;
+        }
+        long fkPks = attrs.stream().filter(a -> a.isFk() && a.isPk()).count();
+        long fkUniques = attrs.stream().filter(a -> a.isFk() && a.isUnique() && !a.isPk()).count();
+        return fkPks == 1 && fkUniques == 1;
+    }
+
+    private void buildIntermediateOneOne(
+            Node node,
+            Graph<Node, Edge> graph,
+            Set<String> visited,
+            Position pos,
+            List<ErRelationshipDTO> relationships,
+            List<ErEntityDTO> entities,
+            List<ErAttributeDTO> attributes) {
+
+        if (visited.contains(node.getUuid())) {
+            return;
+        }
+        visited.add(node.getUuid());
+
+        List<Node> attrs =
+                Graphs.successorListOf(graph, node).stream().filter(Node::isAttribute).toList();
+
+        Node fkPkAttr = attrs.stream().filter(a -> a.isFk() && a.isPk()).findFirst().orElse(null);
+        Node fkUniqueAttr =
+                attrs.stream()
+                        .filter(a -> a.isFk() && a.isUnique() && !a.isPk())
+                        .findFirst()
+                        .orElse(null);
+        if (fkPkAttr == null || fkUniqueAttr == null) {
+            return;
+        }
+
+        Node entityOne =
+                graph.vertexSet().stream()
+                        .filter(
+                                n ->
+                                        !n.isAttribute()
+                                                && n.getName().equals(fkPkAttr.getReference()))
+                        .findFirst()
+                        .orElse(null);
+        Node entityOther =
+                graph.vertexSet().stream()
+                        .filter(
+                                n ->
+                                        !n.isAttribute()
+                                                && n.getName().equals(fkUniqueAttr.getReference()))
+                        .findFirst()
+                        .orElse(null);
+        if (entityOne == null || entityOther == null) {
+            return;
+        }
+
+        List<String> relAttrIds = new ArrayList<>();
+        AtomicInteger ownIdx = new AtomicInteger(0);
+        List<Node> ownAttrs = attrs.stream().filter(a -> !a.isFk()).toList();
+        ownAttrs.forEach(
+                a -> {
+                    Position aPos = circlePos(pos, ownIdx.getAndIncrement(), ownAttrs.size(), 80);
+                    attributes.add(
+                            new ErAttributeDTO(
+                                    a.getUuid(),
+                                    a.getName(),
+                                    aPos,
+                                    node.getUuid(),
+                                    false,
+                                    false,
+                                    false,
+                                    a.isNotNull(),
+                                    a.isUnique(),
+                                    a.getDataType() != null
+                                            ? a.getDataType().domain().name()
+                                            : null,
+                                    a.getDataType() != null ? a.getDataType().length() : 0,
+                                    List.of()));
+                    relAttrIds.add(a.getUuid());
+                });
+
+        buildEntity(entityOne, graph, visited, circlePos(pos, 0, 2, 120), entities, attributes);
+        buildEntity(entityOther, graph, visited, circlePos(pos, 1, 2, 120), entities, attributes);
+
+        List<ErRelationshipParticipantDTO> participants =
+                List.of(
+                        new ErRelationshipParticipantDTO(entityOne.getUuid(), "0", "1", ""),
+                        new ErRelationshipParticipantDTO(entityOther.getUuid(), "0", "1", ""));
+
+        relationships.add(
+                new ErRelationshipDTO(
+                        node.getUuid(),
+                        node.getName(),
+                        pos,
+                        "Normal",
+                        null,
+                        participants,
+                        relAttrIds));
+    }
+
+    private void buildAbsorbedOneOne(
+            Node node,
+            Node fkAttr,
+            Graph<Node, Edge> graph,
+            Set<String> visited,
+            Position pos,
+            List<ErRelationshipDTO> relationships,
+            List<ErEntityDTO> entities,
+            List<ErAttributeDTO> attributes) {
+
+        if (visited.contains(node.getUuid())) {
+            return;
+        }
+
+        String absorbedName = fkAttr.getReference();
+        String absorbedUuid = UUID.randomUUID().toString();
+
+        List<Node> fkTargets = Graphs.successorListOf(graph, fkAttr);
+        if (fkTargets.isEmpty()) {
+            return;
+        }
+        Node absorbedPkAttr = fkTargets.getFirst();
+
+        Position absorbedPos = circlePos(pos, 1, 2, 120);
+        Position absorbedPkPos = circlePos(absorbedPos, 0, 1, 80);
+        attributes.add(
+                new ErAttributeDTO(
+                        absorbedPkAttr.getUuid(),
+                        absorbedPkAttr.getName(),
+                        absorbedPkPos,
+                        absorbedUuid,
+                        true,
+                        false,
+                        false,
+                        true,
+                        false,
+                        absorbedPkAttr.getDataType() != null
+                                ? absorbedPkAttr.getDataType().domain().name()
+                                : null,
+                        absorbedPkAttr.getDataType() != null
+                                ? absorbedPkAttr.getDataType().length()
+                                : 0,
+                        List.of()));
+
+        entities.add(
+                new ErEntityDTO(
+                        absorbedUuid,
+                        absorbedName,
+                        absorbedPos,
+                        false,
+                        List.of(),
+                        List.of(absorbedPkAttr.getUuid())));
+
+        buildEntity(node, graph, visited, circlePos(pos, 0, 2, 120), entities, attributes);
+
+        List<ErRelationshipParticipantDTO> participants =
+                List.of(
+                        new ErRelationshipParticipantDTO(node.getUuid(), "1", "1", ""),
+                        new ErRelationshipParticipantDTO(absorbedUuid, "1", "1", ""));
+
+        relationships.add(
+                new ErRelationshipDTO(
+                        UUID.randomUUID().toString(),
+                        node.getName() + absorbedName,
+                        pos,
+                        "Normal",
+                        null,
+                        participants,
+                        List.of()));
     }
 
     private void buildEntity(

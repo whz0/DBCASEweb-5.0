@@ -9,11 +9,9 @@ import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -60,13 +58,9 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         StringBuilder restrictions = new StringBuilder();
         StringBuilder lostRestrictions = new StringBuilder();
 
-        Set<Node> visited = new HashSet<>();
-        Set<String> usedRefs = new HashSet<>();
-
         for (Node node : allNodes) {
-            String entry =
-                    buildEntry(node, graph, restrictions, lostRestrictions, visited, usedRefs);
-            relationships.append(entry);
+            buildRelationship(node, graph, relationships);
+            buildRestrictions(node, graph, restrictions, lostRestrictions);
         }
 
         return new LinkedHashMap<>(
@@ -76,20 +70,7 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                         "lossRestriction", lostRestrictions.toString()));
     }
 
-    private String buildEntry(
-            Node node,
-            Graph<Node, Edge> graph,
-            StringBuilder restrictions,
-            StringBuilder lostRestrictions,
-            Set<Node> visited,
-            Set<String> usedRefs) {
-
-        if (visited.contains(node)) {
-            return "";
-        }
-        visited.add(node);
-
-        StringBuilder entry = new StringBuilder();
+    private void buildRelationship(Node node, Graph<Node, Edge> graph, StringBuilder out) {
         StringBuilder pks = new StringBuilder();
         StringBuilder others = new StringBuilder();
 
@@ -98,68 +79,10 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 continue;
             }
 
-            if (attr.isFk()) {
-                if (usedRefs.contains(attr.getReference())) {
-                    // Reference already registered: lost restriction (e.g. 1:1 with FK on both
-                    // sides, or recursive N:M with two refs to the same table).
-                    appendRestriction(attr, node, graph, lostRestrictions);
-                } else {
-                    // First time we see this reference: normal FK restriction.
-                    usedRefs.add(attr.getReference());
-                    appendRestriction(attr, node, graph, restrictions);
-                    graph.vertexSet().stream()
-                            .filter(n -> n.getName().equals(attr.getReference()))
-                            .findFirst()
-                            .ifPresent(
-                                    ref ->
-                                            entry.append(
-                                                    buildEntry(
-                                                            ref,
-                                                            graph,
-                                                            restrictions,
-                                                            lostRestrictions,
-                                                            visited,
-                                                            usedRefs)));
-
-                    // 1:1 relationship: FK is isUnique=true.
-                    // Block the inverse direction so that when the other entity (ref) has a
-                    // FK back to this node, it finds node.name already in usedRefs and goes
-                    // to lostRestrictions instead of restrictions.
-                    if (attr.isUnique()) {
-                        usedRefs.add(node.getName());
-                    }
-
-                    // The constraint on the referenced side is lost only when the FK side has
-                    // total participation (isNotNull=true).
-                    if (attr.isUnique() && attr.isNotNull()) {
-                        appendOneOneLost(attr, node, graph, lostRestrictions);
-                    }
-                }
-
-                // Participación total in N:M: FK is PK and isNotNull=true.
-                // NOT NULL only guarantees each row references a valid entity;
-                // it does NOT guarantee every entity tuple participates at least once.
-                if (attr.isPk() && attr.isNotNull()) {
-                    appendTotalParticipation(attr, node, graph, lostRestrictions);
-                }
-
-                // FK-PK goes into pks (e.g. N:M intermediate tables)
-                // plain FK goes into others as a regular column
-                if (attr.isPk()) {
-                    if (!pks.isEmpty()) {
-                        pks.append(", ");
-                    }
-                    pks.append("__").append(attr.getName()).append("__");
-                } else {
-                    if (!others.isEmpty()) {
-                        others.append(", ");
-                    }
-                    others.append(!attr.isNotNull() ? attr.getName() + "*" : attr.getName());
-                }
+            if (attr.isFk() && attr.isUnique() && attr.isTotal() && !attr.isNotNull()) {
                 continue;
             }
 
-            // Regular (non-FK) attribute
             if (attr.isPk()) {
                 if (!pks.isEmpty()) {
                     pks.append(", ");
@@ -181,9 +104,33 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         }
 
         if (!attributes.isEmpty()) {
-            entry.append(node.getName()).append(" ( ").append(attributes).append(")\n");
+            out.append(node.getName()).append(" ( ").append(attributes).append(")\n");
         }
-        return entry.toString();
+    }
+
+    private void buildRestrictions(
+            Node node,
+            Graph<Node, Edge> graph,
+            StringBuilder restrictions,
+            StringBuilder lostRestrictions) {
+
+        for (Node attr : Graphs.successorListOf(graph, node)) {
+            if (!attr.isAttribute() || !attr.isFk()) {
+                continue;
+            }
+
+            if (attr.isPk() && attr.isNotNull()) {
+                appendRestriction(attr, node, graph, restrictions);
+                appendTotalParticipation(attr, node, graph, lostRestrictions);
+            } else if (attr.isUnique()) {
+                appendRestriction(attr, node, graph, restrictions);
+                if (attr.isNotNull()) {
+                    appendOneOneLost(attr, node, graph, lostRestrictions);
+                }
+            } else {
+                appendRestriction(attr, node, graph, restrictions);
+            }
+        }
     }
 
     private void appendRestriction(
@@ -209,12 +156,24 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 .append("\n");
     }
 
-    /**
-     * Lost restriction for 1:1: the referenced entity's side is not enforced. Every tuple of ref
-     * should have a corresponding tuple in node, but the relational model cannot guarantee this
-     * without a trigger. Format: forall <ref>.<refPk> exists <node>.<fkAttr> (1:1 participation of
-     * <ref>)
-     */
+    private void appendTotalParticipation(
+            Node attr, Node node, Graph<Node, Edge> graph, StringBuilder lostRestrictions) {
+        List<Node> successors = Graphs.successorListOf(graph, attr);
+        if (successors.isEmpty()) {
+            return;
+        }
+        Node refAttr = successors.getFirst();
+        lostRestrictions
+                .append(attr.getReference())
+                .append(".")
+                .append(refAttr.getName())
+                .append(" -> ")
+                .append(node.getName())
+                .append(".")
+                .append(attr.getName())
+                .append("\n");
+    }
+
     private void appendOneOneLost(
             Node attr, Node node, Graph<Node, Edge> graph, StringBuilder lostRestrictions) {
         List<Node> successors = Graphs.successorListOf(graph, attr);
@@ -233,34 +192,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
                 .append(attr.getName())
                 .append("  (1:1 participation of ")
                 .append(attr.getReference())
-                .append(")\n");
-    }
-
-    /**
-     * Lost restriction for total participation in N:M: every tuple of the referenced entity must
-     * appear at least once in this table. Format: forall <ref>.<refPk> exists <node>.<fkAttr>
-     * (total participation of <ref> in <node>)
-     */
-    private void appendTotalParticipation(
-            Node attr, Node node, Graph<Node, Edge> graph, StringBuilder lostRestrictions) {
-        List<Node> successors = Graphs.successorListOf(graph, attr);
-        if (successors.isEmpty()) {
-            return;
-        }
-        Node refAttr = successors.getFirst();
-        lostRestrictions
-                .append("∀ ")
-                .append(attr.getReference())
-                .append(".")
-                .append(refAttr.getName())
-                .append(" ∃ ")
-                .append(node.getName())
-                .append(".")
-                .append(attr.getName())
-                .append("  (total participation of ")
-                .append(attr.getReference())
-                .append(" in ")
-                .append(node.getName())
                 .append(")\n");
     }
 
@@ -302,8 +233,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         restriction
                 .lines()
                 .filter(line -> !line.isBlank())
-                // Ignore total-participation / 1:1 annotations and any line without
-                // the expected "X.attr -> Y.attr" format
                 .filter(line -> line.contains("->") && line.contains("."))
                 .forEach(
                         line -> {

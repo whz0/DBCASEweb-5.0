@@ -67,8 +67,15 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                             .filter(a -> a.isAttribute() && a.isPk() && !a.isFk())
                             .findFirst()
                             .orElse(null);
-            Node refNode = getOrCreateNode(unique.getReference(), result);
-            if (pk != null) {
+            Node refNode =
+                    result.vertexSet().stream()
+                            .filter(
+                                    n ->
+                                            !n.isAttribute()
+                                                    && n.getName().equals(unique.getReference()))
+                            .findFirst()
+                            .orElse(null);
+            if (pk != null && refNode != null) {
                 Node attr = getOrCreateAttr(pk.getName(), refNode, result);
                 attr.setUnique(true);
                 if (unique.isNotNull()) {
