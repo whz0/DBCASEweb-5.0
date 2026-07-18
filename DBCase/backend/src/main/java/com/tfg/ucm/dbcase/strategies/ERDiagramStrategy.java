@@ -536,37 +536,46 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         } else if (oneIsTotal && otherIsTotal) {
             Node nodeOne = getOrCreateNode(entityOne.name(), graph);
-            Node nodeOther = getOrCreateNode(entityOther.name(), graph);
 
-            List<String> pksName = getPksName(entityOther, attrMap);
-            for (String pk : pksName) {
-                String role = self ? participantOther.role() : "";
-                addFkToRef(pk, nodeOne, entityOther.name(), false, true, true, false, graph, role);
-            }
-
-            for (Node attr : new ArrayList<>(Graphs.successorListOf(graph, nodeOther))) {
-                if (!attr.isAttribute() || attr.isPk()) {
-                    continue;
+            if (self) {
+                List<String> pksName = getPksName(entityOther, attrMap);
+                for (String pk : pksName) {
+                    String role = participantOther.role();
+                    addFkToRef(
+                            pk, nodeOne, entityOther.name(), false, true, true, false, graph, role);
                 }
-                Node copied = getOrCreateAttr(attr.getName(), nodeOne, graph);
-                copied.setNotNull(attr.isNotNull());
-                copied.setUnique(attr.isUnique());
-                copied.setDataType(attr.getDataType());
-                if (attr.isFk()) {
-                    copied.setFk(true);
-                    copied.setReference(attr.getReference());
+                processAttributes(nodeOne, relAttrIds, attrMap, customDomainMap, graph);
+            } else {
+                Node nodeOther = getOrCreateNode(entityOther.name(), graph);
 
-                    Graphs.successorListOf(graph, attr)
-                            .forEach(refAttr -> addEdge(copied, refAttr, graph));
-                    addEdge(nodeOne, copied, graph);
-                } else {
-                    addEdge(nodeOne, copied, graph);
+                List<String> pksName = getPksName(entityOther, attrMap);
+                for (String pk : pksName) {
+                    addFkToRef(
+                            pk, nodeOne, entityOther.name(), false, true, true, false, graph, "");
                 }
+
+                for (Node attr : new ArrayList<>(Graphs.successorListOf(graph, nodeOther))) {
+                    if (!attr.isAttribute() || attr.isPk()) {
+                        continue;
+                    }
+                    Node copied = getOrCreateAttr(attr.getName(), nodeOne, graph);
+                    copied.setNotNull(attr.isNotNull());
+                    copied.setUnique(attr.isUnique());
+                    copied.setDataType(attr.getDataType());
+                    if (attr.isFk()) {
+                        copied.setFk(true);
+                        copied.setReference(attr.getReference());
+                        Graphs.successorListOf(graph, attr)
+                                .forEach(refAttr -> addEdge(copied, refAttr, graph));
+                        addEdge(nodeOne, copied, graph);
+                    } else {
+                        addEdge(nodeOne, copied, graph);
+                    }
+                }
+
+                processAttributes(nodeOne, relAttrIds, attrMap, customDomainMap, graph);
+                graph.removeVertex(nodeOther);
             }
-
-            processAttributes(nodeOne, relAttrIds, attrMap, customDomainMap, graph);
-
-            graph.removeVertex(nodeOther);
 
         } else {
             Node totalNode =
