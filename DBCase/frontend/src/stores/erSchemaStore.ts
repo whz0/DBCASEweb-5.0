@@ -430,6 +430,33 @@ export const useErSchemaStore = defineStore('erSchema', () => {
       saveHistory()
       const index = attributes.value.findIndex((a) => a.id === existing.id)
       attributes.value[index] = { ...existing, ...data }
+
+      const attrId = existing.id
+
+      // If the parent entity changed, clean up refs from the old parent and register on the new one
+      if (existing.parentId !== data.parentId) {
+        const oldParent = entities.value.find((e) => e.id === existing.parentId)
+        if (oldParent) {
+          oldParent.attributes = oldParent.attributes.filter((a) => a !== attrId)
+          oldParent.primaryKeys = oldParent.primaryKeys.filter((k) => k !== attrId)
+        }
+        const newParent = entities.value.find((e) => e.id === data.parentId)
+        if (newParent) {
+          if (!newParent.attributes.includes(attrId)) newParent.attributes.push(attrId)
+          if (data.isKey && !newParent.primaryKeys.includes(attrId))
+            newParent.primaryKeys.push(attrId)
+        }
+      } else {
+        // Same parent: sync primaryKeys based on isKey flag
+        const parentEntity = entities.value.find((e) => e.id === data.parentId)
+        if (parentEntity) {
+          if (data.isKey && !parentEntity.primaryKeys.includes(attrId)) {
+            parentEntity.primaryKeys.push(attrId)
+          } else if (!data.isKey) {
+            parentEntity.primaryKeys = parentEntity.primaryKeys.filter((k) => k !== attrId)
+          }
+        }
+      }
     } else {
       const duplicate = attributes.value.some(
         (a) => a.name === data.name && a.parentId === data.parentId,
