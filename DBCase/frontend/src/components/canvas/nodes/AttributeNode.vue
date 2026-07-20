@@ -15,9 +15,9 @@
       :config="{
         radiusX: effectiveRadiusX,
         radiusY: effectiveRadiusY,
-        fill: '#22bdb1',
-        stroke: isSelected ? 'blue' : '#078980',
-        strokeWidth: isSelected ? 4 : 2,
+        fill: fillColor,
+        stroke: isSelected ? (isDark ? '#60a5fa' : 'blue') : strokeColor,
+        strokeWidth: isSelected ? 4 : attribute.isDerived && isDark ? 3 : 2,
         dash: attribute.isDerived ? [6, 4] : [],
         zIndex: 1,
       }"
@@ -28,7 +28,7 @@
         radiusX: effectiveRadiusX - 4,
         radiusY: effectiveRadiusY - 4,
         fill: 'transparent',
-        stroke: isSelected ? 'blue' : '#078980',
+        stroke: isSelected ? (isDark ? '#60a5fa' : 'blue') : strokeColor,
         strokeWidth: 1,
         zIndex: 1,
       }"
@@ -39,7 +39,7 @@
         fontSize: 16,
         fontFamily: 'arial',
         textDecoration: attribute.isKey && !isWeakEntityKey ? 'underline' : '',
-        fill: 'black',
+        fill: isDark ? '#f1f5f9' : 'black',
         x: -effectiveRadiusX,
         y: -effectiveRadiusY,
         width: effectiveRadiusX * 2,
@@ -53,7 +53,7 @@
       v-if="isWeakEntityKey"
       :config="{
         points: [-textWidth / 2, 9, textWidth / 2, 9],
-        stroke: 'black',
+        stroke: isDark ? '#f1f5f9' : 'black',
         strokeWidth: 1,
         dash: [4, 3],
       }"
@@ -65,6 +65,7 @@
 import type { KonvaEventObject } from 'konva/lib/Node'
 import { computed } from 'vue'
 
+import { useTheme } from '@/composables/useTheme'
 import { useErSchemaStore } from '@/stores/erSchemaStore'
 import type { Attribute } from '@/types/er-diagram-elements'
 
@@ -73,6 +74,11 @@ const props = defineProps<{
 }>()
 
 const erSchemaStore = useErSchemaStore()
+const { actualTheme } = useTheme()
+
+const isDark = computed(() => actualTheme.value === 'dark')
+const fillColor = computed(() => (isDark.value ? '#2dd4c0' : '#22bdb1'))
+const strokeColor = computed(() => (isDark.value ? '#5eead4' : '#078980'))
 
 const isSelected = computed(() => erSchemaStore.isSelected(props.attribute.id))
 
