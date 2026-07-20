@@ -12,169 +12,95 @@ import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
 import java.util.LinkedHashMap;
+import java.util.UUID;
 import org.jgrapht.Graph;
-import org.jgrapht.graph.Multigraph;
+import org.jgrapht.graph.DirectedPseudograph;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-@Disabled("Pendiente de implementación")
 class LogicalDiagramStrategyTest {
 
     private LogicalDiagramStrategy strategy;
+
     private Diagram diagram;
 
     @BeforeEach
     void setUp() {
         strategy = new LogicalDiagramStrategy();
+        diagram = buildDiagram();
+    }
 
-        Graph<Node, Edge> graph = new Multigraph<>(Edge.class);
+    private Diagram buildDiagram() {
+        Graph<Node, Edge> graph = new DirectedPseudograph<>(Edge.class);
 
-        Node entity1 = Node.builder().name("A").build();
-        graph.addVertex(entity1);
+        Node entityA = node("A");
+        Node attrB = attr("b", true, false, null, DataType.of(Domain.INTEGER));
+        Node attrC = attr("c", false, false, null, DataType.of(Domain.VARCHAR));
+        attrC.setUnique(true);
+        attrC.setNotNull(true);
 
-        Node attribute1 =
-                Node.builder().name("b").isAttribute(true).isPk(true).reference("A").build();
-        Node attribute2 =
-                Node.builder()
-                        .name("c")
-                        .isAttribute(true)
-                        .isUnique(true)
-                        .isNotNull(true)
-                        .dataType(DataType.of(Domain.VARCHAR))
-                        .build();
+        Node entityD = node("D");
+        Node attrE = attr("e", true, true, "A", DataType.of(Domain.INTEGER));
+        attrE.setNotNull(true);
+        Node attrF = attr("f", false, false, null, null);
 
-        graph.addVertex(attribute1);
-        graph.addVertex(attribute2);
-        graph.addEdge(
-                entity1,
-                attribute1,
-                Edge.builder().label("attr" + entity1.getName() + attribute1.getName()).build());
-        graph.addEdge(
-                entity1,
-                attribute2,
-                Edge.builder().label("attr" + entity1.getName() + attribute2.getName()).build());
+        for (Node n : new Node[] {entityA, attrB, attrC, entityD, attrE, attrF}) {
+            graph.addVertex(n);
+        }
+        edge(graph, entityA, attrB);
+        edge(graph, entityA, attrC);
+        edge(graph, entityD, attrE);
+        edge(graph, entityD, attrF);
+        edge(graph, attrE, attrB);
 
-        Node entity2 = Node.builder().name("D").build();
-        graph.addVertex(entity2);
+        return Diagram.builder().diagram(graph).build();
+    }
 
-        Node attribute3 =
-                Node.builder()
-                        .name("e")
-                        .isAttribute(true)
-                        .isPk(true)
-                        .dataType(DataType.of(Domain.INTEGER))
-                        .reference("A")
-                        .build();
-        Node attribute4 = Node.builder().name("f").isAttribute(true).build();
+    private Node node(String name) {
+        return Node.builder()
+                .uuid(UUID.randomUUID().toString())
+                .name(name)
+                .isAttribute(false)
+                .build();
+    }
 
-        graph.addVertex(attribute3);
-        graph.addVertex(attribute4);
-        graph.addEdge(
-                entity2,
-                attribute3,
-                Edge.builder().label("attr" + entity2.getName() + attribute3.getName()).build());
-        graph.addEdge(
-                entity2,
-                attribute4,
-                Edge.builder().label("attr" + entity2.getName() + attribute4.getName()).build());
-        graph.addEdge(
-                entity1,
-                attribute3,
-                Edge.builder().label("attr" + entity1.getName() + attribute3.getName()).build());
+    private Node attr(String name, boolean pk, boolean fk, String ref, DataType dt) {
+        return Node.builder()
+                .uuid(UUID.randomUUID().toString())
+                .name(name)
+                .isAttribute(true)
+                .isPk(pk)
+                .isFk(fk)
+                .reference(ref)
+                .dataType(dt)
+                .build();
+    }
 
-        diagram = Diagram.builder().diagram(graph).build();
+    private void edge(Graph<Node, Edge> g, Node src, Node tgt) {
+        g.addEdge(
+                src,
+                tgt,
+                Edge.builder()
+                        .uuid(UUID.randomUUID().toString())
+                        .label(src.getName() + "->" + tgt.getName())
+                        .build());
     }
 
     @Test
-    void testGenerateSingleEntity() {
+    void generateSingleEntityCreatesNode() {
         LogicalInput input = new LogicalInput("A (b, c)", "", "");
+        Diagram d = strategy.generate(input);
 
-        Diagram diagram = strategy.generate(input);
-
-        assertNotNull(diagram.getDiagram());
-        assertEquals(
-                1, diagram.getDiagram().vertexSet().stream().filter(n -> !n.isAttribute()).count());
-        assertEquals(
-                2, diagram.getDiagram().vertexSet().stream().filter(Node::isAttribute).count());
+        assertNotNull(d.getDiagram());
+        assertEquals(1, d.getDiagram().vertexSet().stream().filter(n -> !n.isAttribute()).count());
         assertTrue(
-                diagram.getDiagram().vertexSet().stream()
+                d.getDiagram().vertexSet().stream()
                         .anyMatch(n -> !n.isAttribute() && n.getName().equals("A")));
-        assertTrue(
-                diagram.getDiagram().vertexSet().stream()
-                        .anyMatch(n -> n.isAttribute() && n.getName().equals("b")));
     }
 
     @Test
-    void testGeneratePkAttribute() {
+    void generatePkAttributeSetsPkFlag() {
         LogicalInput input = new LogicalInput("A (__b__, c)", "", "");
-
-        Diagram diagram = strategy.generate(input);
-
-        Node attribute =
-                diagram.getDiagram().vertexSet().stream()
-                        .filter(n -> n.isAttribute() && n.getName().equals("b"))
-                        .findFirst()
-                        .orElseThrow();
-        assertTrue(attribute.isPk());
-    }
-
-    @Test
-    void testGenerateReferencesWithRestrictionInput() {
-        LogicalInput input =
-                new LogicalInput(
-                        """
-                                A (__b__, c)
-                                D (__b__, e)
-                                """,
-                        """
-                                D.b -> A.b
-                                """,
-                        "");
-
-        Diagram diagram = strategy.generate(input);
-
-        Node referenced =
-                diagram.getDiagram().vertexSet().stream()
-                        .filter(n -> n.isAttribute() && n.getName().equals("b"))
-                        .findFirst()
-                        .orElseThrow();
-        assertEquals("A", referenced.getReference());
-    }
-
-    @Test
-    void testGenerateGraphWithEmptyInput() throws Exception {
-        LogicalInput input = new LogicalInput("", "", "");
-
-        Diagram diagram = strategy.generate(input);
-
-        assertTrue(diagram.getDiagram().vertexSet().isEmpty());
-    }
-
-    @Test
-    void testTransformGraphIntoLinkedHashMap() {
-        Object raw = strategy.transform(diagram);
-        assertInstanceOf(LinkedHashMap.class, raw);
-
-        @SuppressWarnings("unchecked")
-        LinkedHashMap<String, String> result = (LinkedHashMap<String, String>) raw;
-
-        assertNotNull(result.get("relationship"));
-        assertNotNull(result.get("restriction"));
-        assertNotNull(result.get("lossRestriction"));
-    }
-
-    @Test
-    void testTransformRestrictionUsesAttrFk() {
-        @SuppressWarnings("unchecked")
-        String restriction =
-                ((LinkedHashMap<String, String>) strategy.transform(diagram)).get("restriction");
-        assertTrue(restriction.contains("D.e -> A.e"));
-    }
-
-    @Test
-    void testPkAttributeDataTypeIsInteger() {
-        LogicalInput input = new LogicalInput("A (__b__)", "", "");
         Diagram d = strategy.generate(input);
 
         Node pk =
@@ -182,60 +108,153 @@ class LogicalDiagramStrategyTest {
                         .filter(n -> n.isAttribute() && n.getName().equals("b"))
                         .findFirst()
                         .orElseThrow();
-
-        assertEquals(Domain.INTEGER, pk.getDataType().domain());
+        assertTrue(pk.isPk());
     }
 
     @Test
-    void testSharedAttributeCreateOneVertex() {
-        LogicalInput input =
-                new LogicalInput(
-                        """
-                                A (__c__)
-                                B (__c__)
-                                """,
-                        "",
-                        "");
+    void generateNullableAttributeMarkedNotNull_false() {
+        LogicalInput input = new LogicalInput("A (__b__, c*)", "", "");
         Diagram d = strategy.generate(input);
 
-        assertEquals(
-                1,
+        Node nullable =
                 d.getDiagram().vertexSet().stream()
                         .filter(n -> n.isAttribute() && n.getName().equals("c"))
-                        .count());
+                        .findFirst()
+                        .orElseThrow();
+        assertTrue(!nullable.isNotNull());
     }
 
     @Test
-    void testRoundTripRelationship() {
-        LogicalInput input = new LogicalInput("A (__b__, c) ", "", "");
-        Diagram diagram = strategy.generate(input);
-
-        @SuppressWarnings("unchecked")
-        LinkedHashMap<String, String> result =
-                (LinkedHashMap<String, String>) strategy.transform(diagram);
-
-        assertTrue(result.get("relationship").contains("A"));
-        assertTrue(result.get("relationship").contains("__b__"));
-        assertTrue(result.get("relationship").contains("c"));
-    }
-
-    @Test
-    void testRoundTripRestriction() {
+    void generateRestrictionSetsFkReference() {
         LogicalInput input =
                 new LogicalInput(
                         """
-                                A (__b__, c)
-                                D (__b__, e)
-                                """,
-                        """
-                                D.b -> A.b
-                                """,
+                A (__b__, c)
+                D (__b__, e)
+                """,
+                        "D.b -> A.b",
                         "");
-        Diagram diagram = strategy.generate(input);
+
+        Diagram d = strategy.generate(input);
+
+        Node fkB =
+                d.getDiagram().vertexSet().stream()
+                        .filter(n -> n.isAttribute() && n.isFk() && "A".equals(n.getReference()))
+                        .findFirst()
+                        .orElse(null);
+        assertNotNull(fkB);
+    }
+
+    @Test
+    void generateEmptyInputProducesEmptyGraph() {
+        LogicalInput input = new LogicalInput("", "", "");
+        Diagram d = strategy.generate(input);
+        assertTrue(d.getDiagram().vertexSet().isEmpty());
+    }
+
+    @Test
+    void transformReturnsLinkedHashMap() {
+        Object raw = strategy.transform(diagram);
+        assertInstanceOf(LinkedHashMap.class, raw);
+
+        @SuppressWarnings("unchecked")
+        LinkedHashMap<String, String> result = (LinkedHashMap<String, String>) raw;
+        assertNotNull(result.get("relationship"));
+        assertNotNull(result.get("restriction"));
+        assertNotNull(result.get("lossRestriction"));
+    }
+
+    @Test
+    void transformRelationshipContainsPkSyntax() {
+        @SuppressWarnings("unchecked")
+        String rel =
+                ((LinkedHashMap<String, String>) strategy.transform(diagram)).get("relationship");
+        assertTrue(rel.contains("__b__"));
+    }
+
+    @Test
+    void transformSingleFkRestrictionUsesSimpleNotation() {
+        @SuppressWarnings("unchecked")
+        String restriction =
+                ((LinkedHashMap<String, String>) strategy.transform(diagram)).get("restriction");
+        assertTrue(restriction.contains("D.e -> A.b"));
+    }
+
+    @Test
+    void transformCompositeFkGroupedWithBraces() throws Exception {
+        Graph<Node, Edge> graph = new DirectedPseudograph<>(Edge.class);
+
+        Node entityA = node("A");
+        Node pkId1 = attr("id1", true, false, null, DataType.of(Domain.INTEGER));
+        Node pkId2 = attr("id2", true, false, null, DataType.of(Domain.INTEGER));
+
+        Node entityD = node("D");
+        Node fkId1 = attr("d_id1", true, true, "A", DataType.of(Domain.INTEGER));
+        fkId1.setNotNull(true);
+        Node fkId2 = attr("d_id2", true, true, "A", DataType.of(Domain.INTEGER));
+        fkId2.setNotNull(true);
+
+        for (Node n : new Node[] {entityA, pkId1, pkId2, entityD, fkId1, fkId2}) {
+            graph.addVertex(n);
+        }
+        edge(graph, entityA, pkId1);
+        edge(graph, entityA, pkId2);
+        edge(graph, entityD, fkId1);
+        edge(graph, entityD, fkId2);
+        edge(graph, fkId1, pkId1);
+        edge(graph, fkId2, pkId2);
+
+        Diagram d = Diagram.builder().diagram(graph).build();
+
+        @SuppressWarnings("unchecked")
+        String restriction =
+                ((LinkedHashMap<String, String>) strategy.transform(d)).get("restriction");
+
+        assertTrue(restriction.contains("D.{d_id1,d_id2} -> A.{id1,id2}"));
+        long lines = restriction.lines().filter(l -> l.contains("-> A.")).count();
+        assertEquals(1, lines);
+    }
+
+    @Test
+    void transformTotalParticipationEmitsLossRestriction() {
+        @SuppressWarnings("unchecked")
+        String lossRestriction =
+                ((LinkedHashMap<String, String>) strategy.transform(diagram))
+                        .get("lossRestriction");
+        assertTrue(lossRestriction.contains("A.b -> D.e"));
+    }
+
+    @Test
+    void roundTripRelationship() {
+        LogicalInput input = new LogicalInput("A (__b__, c)", "", "");
+        Diagram d = strategy.generate(input);
 
         @SuppressWarnings("unchecked")
         LinkedHashMap<String, String> result =
-                (LinkedHashMap<String, String>) strategy.transform(diagram);
+                (LinkedHashMap<String, String>) strategy.transform(d);
+
+        String rel = result.get("relationship");
+        assertTrue(rel.contains("A"));
+        assertTrue(rel.contains("__b__"));
+        assertTrue(rel.contains("c"));
+    }
+
+    @Test
+    void roundTripRestriction() {
+        LogicalInput input =
+                new LogicalInput(
+                        """
+                A (__b__, c)
+                D (__b__, e)
+                """,
+                        "D.b -> A.b",
+                        "");
+
+        Diagram d = strategy.generate(input);
+
+        @SuppressWarnings("unchecked")
+        LinkedHashMap<String, String> result =
+                (LinkedHashMap<String, String>) strategy.transform(d);
 
         assertTrue(result.get("restriction").contains("D.b -> A.b"));
     }

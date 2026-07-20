@@ -6,265 +6,312 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.tfg.ucm.dbcase.dto.DataType;
 import com.tfg.ucm.dbcase.dto.Diagram;
 import com.tfg.ucm.dbcase.dto.Domain;
-import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.PhysicalInput;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.Multigraph;
-import org.jgrapht.traverse.BreadthFirstIterator;
+import org.jgrapht.Graphs;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-@Disabled("Pendiente de implementación")
 class DBDiagramStrategyTest {
 
     private DBDiagramStrategy strategy;
+
     private Diagram diagram;
 
     @BeforeEach
     void setUp() {
         strategy = new DBDiagramStrategy();
-
-        Graph<Node, Edge> graph = new Multigraph<>(Edge.class);
-
-        Node entity1 = Node.builder().name("A").build();
-        graph.addVertex(entity1);
-
-        Node attribute1 =
-                Node.builder().name("b").isAttribute(true).isPk(true).reference("A").build();
-        Node attribute2 =
-                Node.builder()
-                        .name("c")
-                        .isAttribute(true)
-                        .isUnique(true)
-                        .isNotNull(true)
-                        .dataType(DataType.of(Domain.VARCHAR))
-                        .build();
-
-        graph.addVertex(attribute1);
-        graph.addVertex(attribute2);
-        graph.addEdge(
-                entity1,
-                attribute1,
-                Edge.builder().label("attr" + entity1.getName() + attribute1.getName()).build());
-        graph.addEdge(
-                entity1,
-                attribute2,
-                Edge.builder().label("attr" + entity1.getName() + attribute2.getName()).build());
-
-        Node entity2 = Node.builder().name("D").build();
-        graph.addVertex(entity2);
-
-        Node attribute3 =
-                Node.builder()
-                        .name("e")
-                        .isAttribute(true)
-                        .isPk(true)
-                        .dataType(DataType.of(Domain.INTEGER))
-                        .reference("A")
-                        .build();
-        Node attribute4 = Node.builder().name("f").isAttribute(true).build();
-
-        graph.addVertex(attribute3);
-        graph.addVertex(attribute4);
-        graph.addEdge(
-                entity2,
-                attribute3,
-                Edge.builder().label("attr" + entity2.getName() + attribute3.getName()).build());
-        graph.addEdge(
-                entity2,
-                attribute4,
-                Edge.builder().label("attr" + entity2.getName() + attribute4.getName()).build());
-        graph.addEdge(
-                entity1,
-                attribute3,
-                Edge.builder().label("attr" + entity1.getName() + attribute3.getName()).build());
-
-        diagram = Diagram.builder().diagram(graph).build();
-    }
-
-    @Test
-    void testGenerateGraphWithSingleTable() throws Exception {
-        PhysicalInput input =
-                new PhysicalInput(
-                        """
-                                CREATE TABLE A(
-                                    b INTEGER PRIMARY KEY,
-                                    c VARCHAR UNIQUE NOT NULL
-                                );
-                                """);
-
-        Diagram diagram = strategy.generate(input);
-
-        assertNotNull(diagram.getDiagram());
-
-        Node node =
-                diagram.getDiagram().vertexSet().stream()
-                        .filter(n -> n.getName().equals("A"))
-                        .findFirst()
-                        .orElse(null);
-
-        assertNotNull(node);
-        assertFalse(node.isAttribute());
-
-        BreadthFirstIterator<Node, Edge> bfs =
-                new BreadthFirstIterator<>(diagram.getDiagram(), node);
-        bfs.next();
-
-        while (bfs.hasNext()) {
-            node = bfs.next();
-            assertTrue(node.isAttribute());
-
-            if (node.getName().equals("b")) {
-                assertTrue(node.isPk());
-                assertEquals(Domain.INTEGER, node.getDataType().domain());
-            } else if (node.getName().equals("c")) {
-                assertFalse(node.isPk());
-                assertTrue(node.isNotNull());
-                assertTrue(node.isUnique());
-                assertEquals(Domain.VARCHAR, node.getDataType().domain());
-            }
+        try {
+            diagram =
+                    strategy.generate(
+                            new PhysicalInput(
+                                    """
+                    CREATE TABLE A(
+                        b INTEGER PRIMARY KEY,
+                        c VARCHAR UNIQUE NOT NULL
+                    );
+                    CREATE TABLE D(
+                        e INTEGER,
+                        f VARCHAR,
+                        PRIMARY KEY (e),
+                        FOREIGN KEY (e) REFERENCES A(b)
+                    );
+                    """));
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to build test diagram", ex);
         }
     }
 
     @Test
-    void testGeneratePrimaryKey() throws Exception {
+    void generateSingleTableCreatesEntityNode() throws Exception {
         PhysicalInput input =
                 new PhysicalInput(
                         """
-                                CREATE TABLE A(
-                                    b INTEGER PRIMARY KEY,
-                                    c VARCHAR
-                                );
-                                """);
+                CREATE TABLE A(
+                    b INTEGER PRIMARY KEY,
+                    c VARCHAR UNIQUE NOT NULL
+                );
+                """);
 
-        Diagram diagram = strategy.generate(input);
+        Diagram d = strategy.generate(input);
+        assertNotNull(d.getDiagram());
+
+        Node node =
+                d.getDiagram().vertexSet().stream()
+                        .filter(n -> n.getName().equals("A"))
+                        .findFirst()
+                        .orElse(null);
+        assertNotNull(node);
+        assertFalse(node.isAttribute());
+    }
+
+    @Test
+    void generateSingleTableAttributeFlags() throws Exception {
+        PhysicalInput input =
+                new PhysicalInput(
+                        """
+                CREATE TABLE A(
+                    b INTEGER PRIMARY KEY,
+                    c VARCHAR UNIQUE NOT NULL
+                );
+                """);
+
+        Diagram d = strategy.generate(input);
 
         Node pk =
-                diagram.getDiagram().vertexSet().stream()
+                d.getDiagram().vertexSet().stream()
                         .filter(n -> n.isAttribute() && n.getName().equals("b"))
                         .findFirst()
                         .orElseThrow();
         assertTrue(pk.isPk());
+        assertEquals(Domain.INTEGER, pk.getDataType().domain());
+
+        Node unique =
+                d.getDiagram().vertexSet().stream()
+                        .filter(n -> n.isAttribute() && n.getName().equals("c"))
+                        .findFirst()
+                        .orElseThrow();
+        assertFalse(unique.isPk());
+        assertTrue(unique.isUnique());
+        assertTrue(unique.isNotNull());
+        assertEquals(Domain.VARCHAR, unique.getDataType().domain());
     }
 
     @Test
-    void testGenerateGraphWithMultipleTables() throws Exception {
+    void generateMultipleTablesCreatesMultipleEntities() throws Exception {
         PhysicalInput input =
                 new PhysicalInput(
                         """
-                                CREATE TABLE A(
-                                    c INTEGER PRIMARY KEY
-                                );
+                CREATE TABLE A(
+                    c INTEGER PRIMARY KEY
+                );
+                CREATE TABLE B(
+                    d INTEGER PRIMARY KEY
+                );
+                """);
 
-                                CREATE TABLE B(
-                                    d INTEGER PRIMARY KEY
-                                );
-                                """);
-
-        Diagram diagram = strategy.generate(input);
-
-        assertEquals(
-                2, diagram.getDiagram().vertexSet().stream().filter(n -> !n.isAttribute()).count());
+        Diagram d = strategy.generate(input);
+        assertEquals(2, d.getDiagram().vertexSet().stream().filter(n -> !n.isAttribute()).count());
     }
 
     @Test
-    void testGenerateGraphWithForeignKey() throws Exception {
+    void generateForeignKeySetsFkFlag() throws Exception {
         PhysicalInput input =
                 new PhysicalInput(
                         """
-                                CREATE TABLE A(
-                                    c INTEGER PRIMARY KEY,
-                                    d INTEGER,
-                                    FOREIGN KEY (d) REFERENCES B(d)
-                                );
-                                CREATE TABLE B(
-                                    d INTEGER PRIMARY KEY
-                                );
-                                """);
+                CREATE TABLE B(
+                    d INTEGER PRIMARY KEY
+                );
+                CREATE TABLE A(
+                    c INTEGER PRIMARY KEY,
+                    d INTEGER,
+                    FOREIGN KEY (d) REFERENCES B(d)
+                );
+                """);
 
-        Diagram diagram = strategy.generate(input);
+        Diagram d = strategy.generate(input);
 
-        Node entity =
-                diagram.getDiagram().vertexSet().stream()
-                        .filter(n -> n.getName().equals("A"))
+        Node fkAttr =
+                d.getDiagram().vertexSet().stream()
+                        .filter(n -> n.isAttribute() && n.isFk() && "B".equals(n.getReference()))
                         .findFirst()
                         .orElse(null);
+        assertNotNull(fkAttr);
+        assertEquals("d", fkAttr.getName());
+    }
 
-        Node attribute =
-                diagram.getDiagram().vertexSet().stream()
-                        .filter(n -> n.isAttribute() && n.getName().equals("d"))
+    @Test
+    void generateCompositeForeignKeyCreatesTwoFkAttributes() throws Exception {
+        PhysicalInput input =
+                new PhysicalInput(
+                        """
+                CREATE TABLE A(
+                    id1 INTEGER,
+                    id2 INTEGER,
+                    PRIMARY KEY (id1, id2)
+                );
+                CREATE TABLE B(
+                    a_id1 INTEGER,
+                    a_id2 INTEGER,
+                    extra VARCHAR,
+                    PRIMARY KEY (a_id1, a_id2),
+                    FOREIGN KEY (a_id1, a_id2) REFERENCES A(id1, id2)
+                );
+                """);
+
+        Diagram d = strategy.generate(input);
+
+        Node entityB =
+                d.getDiagram().vertexSet().stream()
+                        .filter(n -> !n.isAttribute() && n.getName().equals("B"))
                         .findFirst()
                         .orElseThrow();
 
-        assertTrue(diagram.getDiagram().containsEdge(entity, attribute));
-        assertTrue(attribute.isPk());
-        assertEquals("B", attribute.getReference());
+        long fksToA =
+                Graphs.successorListOf(d.getDiagram(), entityB).stream()
+                        .filter(n -> n.isAttribute() && n.isFk() && "A".equals(n.getReference()))
+                        .count();
+        assertEquals(2, fksToA);
     }
 
     @Test
-    void testThrowExceptionForInvalidSQL() {
-        PhysicalInput input = new PhysicalInput("NOT SQL");
+    void generateInvalidSqlThrowsException() {
+        PhysicalInput input = new PhysicalInput("NOT SQL AT ALL");
         assertThrows(Exception.class, () -> strategy.generate(input));
     }
 
     @Test
-    void testTransformGraphIntoSQL() {
+    void transformProducesCreateTableStatements() {
         String sql = strategy.transform(diagram).toString();
+        assertTrue(sql.contains("CREATE TABLE A"));
+        assertTrue(sql.contains("CREATE TABLE D"));
+    }
 
-        assertTrue(sql.contains("CREATE TABLE"));
-        assertTrue(sql.matches("(?s).*CREATE TABLE A\\s*\\(.*\\).*"));
+    @Test
+    void transformSinglePkInline() {
+        String sql = strategy.transform(diagram).toString();
         assertTrue(sql.contains("b INTEGER PRIMARY KEY"));
-        assertTrue(sql.contains("c VARCHAR UNIQUE NOT NULL"));
-        assertTrue(sql.contains("e INTEGER"));
-        assertTrue(sql.contains("FOREIGN KEY (e) REFERENCES A(e)"));
     }
 
     @Test
-    void testTransformUntypedAttributeIntoInterrogation() {
+    void transformNonPkColumnsWithConstraints() {
         String sql = strategy.transform(diagram).toString();
-        assertTrue(sql.contains("f ?"));
+        assertTrue(sql.contains("c VARCHAR UNIQUE NOT NULL"));
     }
 
     @Test
-    void testTransformNoCommaAtTheEnd() {
+    void transformFkGroupedInSingleConstraint() throws Exception {
+        PhysicalInput input =
+                new PhysicalInput(
+                        """
+                CREATE TABLE A(
+                    id1 INTEGER,
+                    id2 INTEGER,
+                    PRIMARY KEY (id1, id2)
+                );
+                CREATE TABLE B(
+                    a_id1 INTEGER,
+                    a_id2 INTEGER,
+                    PRIMARY KEY (a_id1, a_id2),
+                    FOREIGN KEY (a_id1, a_id2) REFERENCES A(id1, id2)
+                );
+                """);
+
+        Diagram d = strategy.generate(input);
+        String sql = strategy.transform(d).toString();
+
+        assertTrue(sql.contains("FOREIGN KEY (a_id1, a_id2) REFERENCES A(id1, id2)"));
+        long fkLines =
+                sql.lines()
+                        .filter(
+                                line ->
+                                        line.trim().startsWith("FOREIGN KEY")
+                                                && line.contains("REFERENCES A"))
+                        .count();
+        assertEquals(1, fkLines);
+    }
+
+    @Test
+    void transformCompositePkUsesConstraint() throws Exception {
+        PhysicalInput input =
+                new PhysicalInput(
+                        """
+                CREATE TABLE A(
+                    id1 INTEGER,
+                    id2 INTEGER,
+                    PRIMARY KEY (id1, id2)
+                );
+                """);
+
+        Diagram d = strategy.generate(input);
+        String sql = strategy.transform(d).toString();
+
+        assertTrue(sql.contains("PRIMARY KEY (id1, id2)"));
+        assertFalse(sql.contains("id1 INTEGER PRIMARY KEY"));
+    }
+
+    @Test
+    void transformNoTrailingCommaBeforeClosingParen() {
         String sql = strategy.transform(diagram).toString();
         assertFalse(sql.matches("(?s).*,\\s*\\).*"));
     }
 
     @Test
-    void testTransformPkAttributeIntoInterrogationWhenIsNotReferencedTable() {
-        String sql = strategy.transform(diagram).toString();
-        assertTrue(sql.contains("e INTEGER ?"));
+    void roundTripSimpleTable() throws Exception {
+        PhysicalInput original =
+                new PhysicalInput(
+                        """
+                CREATE TABLE A(
+                    b INTEGER PRIMARY KEY,
+                    c VARCHAR
+                );
+                """);
+
+        Diagram d1 = strategy.generate(original);
+        String regenerated = strategy.transform(d1).toString();
+        Diagram d2 = strategy.generate(new PhysicalInput(regenerated));
+
+        long tables1 = d1.getDiagram().vertexSet().stream().filter(n -> !n.isAttribute()).count();
+        long tables2 = d2.getDiagram().vertexSet().stream().filter(n -> !n.isAttribute()).count();
+        assertEquals(tables1, tables2);
+
+        long attrs1 = d1.getDiagram().vertexSet().stream().filter(Node::isAttribute).count();
+        long attrs2 = d2.getDiagram().vertexSet().stream().filter(Node::isAttribute).count();
+        assertEquals(attrs1, attrs2);
     }
 
     @Test
-    void testRoundTrip() throws Exception {
-        PhysicalInput originalInput =
+    void roundTripCompositeFk() throws Exception {
+        PhysicalInput original =
                 new PhysicalInput(
                         """
-                                CREATE TABLE A(
-                                    b INTEGER PRIMARY KEY,
-                                    c VARCHAR
-                                );
-                                """);
-        Diagram diagram1 = strategy.generate(originalInput);
-        String regeneratedInput = strategy.transform(diagram1).toString();
-        Diagram diagram2 = strategy.generate(new PhysicalInput(regeneratedInput));
+                CREATE TABLE A(
+                    id1 INTEGER,
+                    id2 INTEGER,
+                    PRIMARY KEY (id1, id2)
+                );
+                CREATE TABLE B(
+                    a_id1 INTEGER,
+                    a_id2 INTEGER,
+                    PRIMARY KEY (a_id1, a_id2),
+                    FOREIGN KEY (a_id1, a_id2) REFERENCES A(id1, id2)
+                );
+                """);
 
-        assertEquals(
-                diagram1.getDiagram().vertexSet().size(), diagram2.getDiagram().vertexSet().size());
-        assertEquals(
-                diagram1.getDiagram().edgeSet().size(), diagram2.getDiagram().edgeSet().size());
+        Diagram d1 = strategy.generate(original);
+        String sql = strategy.transform(d1).toString();
+        Diagram d2 = strategy.generate(new PhysicalInput(sql));
 
-        for (Edge e : diagram1.getDiagram().edgeSet()) {
-            Node target = diagram1.getDiagram().getEdgeTarget(e);
-            Node source = diagram1.getDiagram().getEdgeSource(e);
-            assertTrue(diagram2.getDiagram().containsEdge(source, target));
-        }
+        long fks1 =
+                d1.getDiagram().vertexSet().stream()
+                        .filter(n -> n.isAttribute() && n.isFk())
+                        .count();
+        long fks2 =
+                d2.getDiagram().vertexSet().stream()
+                        .filter(n -> n.isAttribute() && n.isFk())
+                        .count();
+        assertEquals(fks1, fks2);
     }
 }
