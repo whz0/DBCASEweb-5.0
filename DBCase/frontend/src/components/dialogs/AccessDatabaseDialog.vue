@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useToast } from 'primevue'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import { DatabaseType, useDatabaseStore } from '@/stores/databaseStore.ts'
 
@@ -14,6 +15,7 @@ const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void
 }>()
 
+const { t } = useI18n()
 const toast = useToast()
 const toastMessage = (message: string, severity: 'error' | 'warn' | 'info' | 'success') =>
   toast.add({ severity, detail: message, life: 3000 })
@@ -64,35 +66,35 @@ const handleTest = () => {
   <Dialog
     :visible="props.visible"
     @update:visible="emits('update:visible', false)"
-    header="Deploy to Database"
+    :header="t('database.deployTitle')"
     modal
     :style="{ width: '28rem' }"
   >
     <div class="flex flex-col gap-3 pt-2">
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Host</label>
+        <label class="text-sm font-medium">{{ t('database.host') }}</label>
         <InputText v-model="host" />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Port</label>
+        <label class="text-sm font-medium">{{ t('database.port') }}</label>
         <InputNumber v-model="port" :useGrouping="false" />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Database name</label>
+        <label class="text-sm font-medium">{{ t('database.databaseName') }}</label>
         <InputText v-model="dbName" />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Username</label>
+        <label class="text-sm font-medium">{{ t('database.username') }}</label>
         <InputText v-model="username" />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Password</label>
+        <label class="text-sm font-medium">{{ t('database.password') }}</label>
         <Password v-model="password" toggleMask />
       </div>
     </div>
     <template #footer>
-      <Button label="Test" @click="handleTest" />
-      <Button label="Deploy" icon="bi bi-play-circle" @click="handleDeploy" />
+      <Button :label="t('database.test')" @click="handleTest" />
+      <Button :label="t('database.deploy')" icon="bi bi-play-circle" @click="handleDeploy" />
     </template>
   </Dialog>
 </template>

@@ -151,7 +151,7 @@ const handleTransform = async (value: DiagramType) => {
         :options="languages"
         optionLabel="language"
         optionValue="value"
-        placeholder="Select a Language"
+        :placeholder="t('panels.selectLanguage')"
         class="w-56 min-w-0"
       />
     </div>
@@ -170,7 +170,7 @@ const handleTransform = async (value: DiagramType) => {
         severity="secondary"
         class="bi bi-play-circle"
         @click="showDeploy = true"
-        v-tooltip.bottom="'Deploy to DB'"
+        v-tooltip.bottom="t('panels.deployToDb')"
         text
       />
       <Button

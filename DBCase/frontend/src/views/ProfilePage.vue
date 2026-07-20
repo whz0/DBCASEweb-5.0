@@ -169,7 +169,7 @@ const profileActions = computed(() => {
                   <i class="bi bi-file-earmark-code text-5xl text-primary"></i>
                 </div>
                 <div class="text-center max-w-md">
-                  <h3 class="text-2xl font-bold mb-2">ER Diagram Snapshot</h3>
+                  <h3 class="text-2xl font-bold mb-2">{{ t('profile.erSnapshot') }}</h3>
                   <p class="text-muted-color mb-8">{{ t('profile.diagramInfo') }}</p>
                   <Button
                     :label="t('profile.loadDiagram')"

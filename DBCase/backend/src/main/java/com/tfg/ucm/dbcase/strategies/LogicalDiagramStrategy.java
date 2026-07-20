@@ -115,7 +115,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
             StringBuilder restrictions,
             StringBuilder lostRestrictions) {
 
-        // Group FK attributes by the table they reference
         Map<String, List<Node>> fksByRef = new java.util.LinkedHashMap<>();
         for (Node attr : Graphs.successorListOf(graph, node)) {
             if (!attr.isAttribute() || !attr.isFk() || attr.getReference() == null) {
@@ -149,10 +148,6 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
         }
     }
 
-    /**
-     * Formats the left or right side of a restriction. Single FK -> "table.attr" Multiple FKs ->
-     * "table.{attr1,attr2}"
-     */
     private String formatSide(String tableName, List<String> attrNames) {
         if (attrNames.size() == 1) {
             return tableName + "." + attrNames.get(0);

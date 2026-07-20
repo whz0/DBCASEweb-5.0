@@ -53,6 +53,8 @@ const messages = {
       insertRelationship: 'Insert new relationship',
       insertIsARelationship: 'Insert new IsA relationship',
       createDomain: 'Create domain',
+      selectLanguage: 'Select a Language',
+      deployToDb: 'Deploy to DB',
     },
     canvas: {
       selectionMode: 'Selection mode (click to switch to pan)',
@@ -162,6 +164,16 @@ const messages = {
       restriction: 'Referential integrity constraints',
       lostRestriction: 'Lost restrictions',
     },
+    database: {
+      deployTitle: 'Deploy to Database',
+      host: 'Host',
+      port: 'Port',
+      databaseName: 'Database name',
+      username: 'Username',
+      password: 'Password',
+      test: 'Test',
+      deploy: 'Deploy',
+    },
     errors: {
       404: '404',
       500: '500',
@@ -225,6 +237,7 @@ const messages = {
         "You don't have any saved diagram. Go back to the editor to start drawing.",
       noDiagramsCloudMessage:
         "You don't have any saved diagram in the cloud. Do you want to save your current progress?",
+      erSnapshot: 'ER Diagram Snapshot',
     },
     login: {
       title: 'Sign In',
@@ -310,6 +323,8 @@ const messages = {
       insertRelationship: 'Insertar una nueva relación',
       insertIsARelationship: 'Insertar una nueva relación IsA',
       createDomain: 'Crear dominio',
+      selectLanguage: 'Seleccionar lenguaje',
+      deployToDb: 'Desplegar en BD',
     },
     canvas: {
       selectionMode: 'Modo selección (clic para cambiar a desplazamiento)',
@@ -420,6 +435,16 @@ const messages = {
       restriction: 'Restricciones de integridad referencial',
       lostRestriction: 'Restricciones perdidas',
     },
+    database: {
+      deployTitle: 'Desplegar en Base de Datos',
+      host: 'Host',
+      port: 'Puerto',
+      databaseName: 'Nombre de la base de datos',
+      username: 'Usuario',
+      password: 'Contraseña',
+      test: 'Probar',
+      deploy: 'Desplegar',
+    },
     errors: {
       404: '404',
       500: '500',
@@ -484,6 +509,7 @@ const messages = {
         'No tienes ningún diagrama guardado. Vuelve al editor para empezar a dibujar.',
       noDiagramsCloudMessage:
         'No tienes ningún diagrama guardado en la nube. ¿Quieres guardar tu progreso actual?',
+      erSnapshot: 'Vista del Diagrama ER',
     },
     login: {
       title: 'Iniciar Sesión',

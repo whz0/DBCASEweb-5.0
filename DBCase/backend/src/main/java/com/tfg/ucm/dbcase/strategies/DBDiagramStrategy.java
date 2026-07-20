@@ -128,7 +128,6 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         StringBuilder columns = new StringBuilder();
         StringBuilder constraints = new StringBuilder();
 
-        // Group FK attributes by the table they reference, preserving order
         java.util.Map<String, List<Node>> fksByRef = new java.util.LinkedHashMap<>();
 
         for (Node attr : attrs) {
@@ -172,7 +171,6 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
             }
         }
 
-        // Emit one FOREIGN KEY constraint per referenced table (grouped)
         for (java.util.Map.Entry<String, List<Node>> entry : fksByRef.entrySet()) {
             String refTable = entry.getKey();
             List<Node> fks = entry.getValue();
