@@ -8,6 +8,7 @@ import com.tfg.ucm.dbcase.dto.Edge;
 import com.tfg.ucm.dbcase.dto.Node;
 import com.tfg.ucm.dbcase.dto.input.DiagramType;
 import com.tfg.ucm.dbcase.dto.input.LogicalInput;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -114,91 +115,128 @@ public class LogicalDiagramStrategy implements DiagramStrategy<LogicalInput> {
             StringBuilder restrictions,
             StringBuilder lostRestrictions) {
 
+        // Group FK attributes by the table they reference
+        Map<String, List<Node>> fksByRef = new java.util.LinkedHashMap<>();
         for (Node attr : Graphs.successorListOf(graph, node)) {
-            if (!attr.isAttribute() || !attr.isFk()) {
+            if (!attr.isAttribute() || !attr.isFk() || attr.getReference() == null) {
                 continue;
             }
+            fksByRef.computeIfAbsent(attr.getReference(), k -> new ArrayList<>()).add(attr);
+        }
 
-            if (attr.isPk() && attr.isNotNull()) {
-                appendRestriction(attr, node, graph, restrictions);
-                appendTotalParticipation(attr, node, graph, lostRestrictions);
-            } else if (attr.isUnique()) {
-                appendRestriction(attr, node, graph, restrictions);
+        for (Map.Entry<String, List<Node>> entry : fksByRef.entrySet()) {
+            List<Node> fks = entry.getValue();
+            Node firstAttr = fks.get(0);
 
+            if (firstAttr.isPk() && firstAttr.isNotNull()) {
+                appendRestriction(fks, node, graph, restrictions);
+                appendTotalParticipation(fks, node, graph, lostRestrictions);
+            } else if (firstAttr.isUnique()) {
+                appendRestriction(fks, node, graph, restrictions);
                 boolean refExists =
                         graph.vertexSet().stream()
                                 .anyMatch(
                                         n ->
                                                 !n.isAttribute()
-                                                        && n.getName().equals(attr.getReference()));
-                if (attr.isNotNull() && refExists) {
-                    appendOneOneLost(attr, node, graph, lostRestrictions);
+                                                        && n.getName()
+                                                                .equals(firstAttr.getReference()));
+                if (firstAttr.isNotNull() && refExists) {
+                    appendOneOneLost(fks, node, graph, lostRestrictions);
                 }
             } else {
-                appendRestriction(attr, node, graph, restrictions);
+                appendRestriction(fks, node, graph, restrictions);
             }
         }
     }
 
+    /**
+     * Formats the left or right side of a restriction. Single FK -> "table.attr" Multiple FKs ->
+     * "table.{attr1,attr2}"
+     */
+    private String formatSide(String tableName, List<String> attrNames) {
+        if (attrNames.size() == 1) {
+            return tableName + "." + attrNames.get(0);
+        }
+        return tableName + ".{" + String.join(",", attrNames) + "}";
+    }
+
     private void appendRestriction(
-            Node attr, Node node, Graph<Node, Edge> graph, StringBuilder restrictions) {
+            List<Node> attrs, Node node, Graph<Node, Edge> graph, StringBuilder restrictions) {
+        String ref = attrs.get(0).getReference();
         Node refNode =
                 graph.vertexSet().stream()
-                        .filter(n -> n.getName().equals(attr.getReference()))
+                        .filter(n -> n.getName().equals(ref))
                         .findFirst()
                         .orElse(null);
-        List<Node> successors = Graphs.successorListOf(graph, attr);
-        if (successors.isEmpty() || refNode == null) {
+        if (refNode == null) {
             return;
         }
-        Node refAttr = successors.getFirst();
+        List<String> srcNames = new ArrayList<>();
+        List<String> refNames = new ArrayList<>();
+        for (Node attr : attrs) {
+            List<Node> successors = Graphs.successorListOf(graph, attr);
+            if (successors.isEmpty()) {
+                continue;
+            }
+            srcNames.add(attr.getName());
+            refNames.add(successors.getFirst().getName());
+        }
+        if (srcNames.isEmpty()) {
+            return;
+        }
         restrictions
-                .append(node.getName())
-                .append(".")
-                .append(attr.getName())
+                .append(formatSide(node.getName(), srcNames))
                 .append(" -> ")
-                .append(refNode.getName())
-                .append(".")
-                .append(refAttr.getName())
+                .append(formatSide(refNode.getName(), refNames))
                 .append("\n");
     }
 
     private void appendTotalParticipation(
-            Node attr, Node node, Graph<Node, Edge> graph, StringBuilder lostRestrictions) {
-        List<Node> successors = Graphs.successorListOf(graph, attr);
-        if (successors.isEmpty()) {
+            List<Node> attrs, Node node, Graph<Node, Edge> graph, StringBuilder lostRestrictions) {
+        String ref = attrs.get(0).getReference();
+        List<String> srcNames = new ArrayList<>();
+        List<String> refNames = new ArrayList<>();
+        for (Node attr : attrs) {
+            List<Node> successors = Graphs.successorListOf(graph, attr);
+            if (successors.isEmpty()) {
+                continue;
+            }
+            srcNames.add(attr.getName());
+            refNames.add(successors.getFirst().getName());
+        }
+        if (srcNames.isEmpty()) {
             return;
         }
-        Node refAttr = successors.getFirst();
         lostRestrictions
-                .append(attr.getReference())
-                .append(".")
-                .append(refAttr.getName())
+                .append(formatSide(ref, refNames))
                 .append(" -> ")
-                .append(node.getName())
-                .append(".")
-                .append(attr.getName())
+                .append(formatSide(node.getName(), srcNames))
                 .append("\n");
     }
 
     private void appendOneOneLost(
-            Node attr, Node node, Graph<Node, Edge> graph, StringBuilder lostRestrictions) {
-        List<Node> successors = Graphs.successorListOf(graph, attr);
-        if (successors.isEmpty()) {
+            List<Node> attrs, Node node, Graph<Node, Edge> graph, StringBuilder lostRestrictions) {
+        String ref = attrs.get(0).getReference();
+        List<String> srcNames = new ArrayList<>();
+        List<String> refNames = new ArrayList<>();
+        for (Node attr : attrs) {
+            List<Node> successors = Graphs.successorListOf(graph, attr);
+            if (successors.isEmpty()) {
+                continue;
+            }
+            srcNames.add(attr.getName());
+            refNames.add(successors.getFirst().getName());
+        }
+        if (srcNames.isEmpty()) {
             return;
         }
-        Node refAttr = successors.getFirst();
         lostRestrictions
                 .append("∀ ")
-                .append(attr.getReference())
-                .append(".")
-                .append(refAttr.getName())
+                .append(formatSide(ref, refNames))
                 .append(" ∃ ")
-                .append(node.getName())
-                .append(".")
-                .append(attr.getName())
+                .append(formatSide(node.getName(), srcNames))
                 .append("  (1:1 participation of ")
-                .append(attr.getReference())
+                .append(ref)
                 .append(")\n");
     }
 

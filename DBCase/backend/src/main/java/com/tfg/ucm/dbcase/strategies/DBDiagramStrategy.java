@@ -128,6 +128,9 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
         StringBuilder columns = new StringBuilder();
         StringBuilder constraints = new StringBuilder();
 
+        // Group FK attributes by the table they reference, preserving order
+        java.util.Map<String, List<Node>> fksByRef = new java.util.LinkedHashMap<>();
+
         for (Node attr : attrs) {
             String dataType = attr.getDataType() != null ? attr.getDataType().toString() : "?";
 
@@ -148,33 +151,14 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                 if (attr.isUnique()) {
                     usedRefs.add(entity.getName());
                 }
-
-                boolean refTableExists =
-                        graph.vertexSet().stream()
-                                .anyMatch(
-                                        n ->
-                                                !n.isAttribute()
-                                                        && n.getName().equals(attr.getReference()));
-                if (refTableExists) {
-                    List<Node> successors = Graphs.successorListOf(graph, attr);
-                    if (!successors.isEmpty()) {
-                        constraints
-                                .append("\tFOREIGN KEY (")
-                                .append(attr.getName())
-                                .append(") REFERENCES ")
-                                .append(attr.getReference())
-                                .append("(")
-                                .append(successors.getFirst().getName())
-                                .append("),\n");
-                    }
-                    graph.vertexSet().stream()
-                            .filter(n -> n.getName().equals(attr.getReference()))
-                            .findFirst()
-                            .ifPresent(
-                                    node ->
-                                            table.append(
-                                                    buildTable(node, graph, usedRefs, visited)));
+                if (attr.getReference() != null) {
+                    fksByRef.computeIfAbsent(attr.getReference(), k -> new ArrayList<>()).add(attr);
                 }
+                graph.vertexSet().stream()
+                        .filter(n -> n.getName().equals(attr.getReference()))
+                        .findFirst()
+                        .ifPresent(
+                                node -> table.append(buildTable(node, graph, usedRefs, visited)));
             }
 
             if (!attr.isPk()) {
@@ -186,6 +170,41 @@ public class DBDiagramStrategy implements DiagramStrategy<PhysicalInput> {
                         .append(attr.isNotNull() ? " NOT NULL" : "")
                         .append(",\n");
             }
+        }
+
+        // Emit one FOREIGN KEY constraint per referenced table (grouped)
+        for (java.util.Map.Entry<String, List<Node>> entry : fksByRef.entrySet()) {
+            String refTable = entry.getKey();
+            List<Node> fks = entry.getValue();
+            boolean refTableExists =
+                    graph.vertexSet().stream()
+                            .anyMatch(n -> !n.isAttribute() && n.getName().equals(refTable));
+            if (!refTableExists) {
+                continue;
+            }
+
+            List<String> srcCols = new ArrayList<>();
+            List<String> refCols = new ArrayList<>();
+            for (Node fk : fks) {
+                List<Node> successors = Graphs.successorListOf(graph, fk);
+                if (successors.isEmpty()) {
+                    continue;
+                }
+                srcCols.add(fk.getName());
+                refCols.add(successors.getFirst().getName());
+            }
+            if (srcCols.isEmpty()) {
+                continue;
+            }
+
+            constraints
+                    .append("\tFOREIGN KEY (")
+                    .append(String.join(", ", srcCols))
+                    .append(") REFERENCES ")
+                    .append(refTable)
+                    .append("(")
+                    .append(String.join(", ", refCols))
+                    .append("),\n");
         }
 
         if (!pkNames.isEmpty()) {

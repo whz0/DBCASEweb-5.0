@@ -281,7 +281,20 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
         List<ErAttributeDTO> pks = new ArrayList<>();
         ErEntityDTO parent = entityMap.get(parentId.entityId());
         for (String pkId : parent.primaryKeys()) {
-            pks.add(attrMap.get(pkId));
+            ErAttributeDTO pkAttr = attrMap.get(pkId);
+            if (pkAttr == null) {
+                continue;
+            }
+            if (pkAttr.isComposite() && !pkAttr.components().isEmpty()) {
+                for (String componentId : pkAttr.components()) {
+                    ErAttributeDTO component = attrMap.get(componentId);
+                    if (component != null) {
+                        pks.add(component);
+                    }
+                }
+            } else {
+                pks.add(pkAttr);
+            }
         }
 
         List<String> parentPkIds = pks.stream().map(ErAttributeDTO::id).toList();
@@ -598,7 +611,18 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         for (String pkId : entity.primaryKeys()) {
             ErAttributeDTO attr = attrMap.get(pkId);
-            if (attr != null) {
+            if (attr == null) {
+                continue;
+            }
+            if (attr.isComposite() && !attr.components().isEmpty()) {
+                // Expand composite PK: add the name of each component
+                for (String componentId : attr.components()) {
+                    ErAttributeDTO component = attrMap.get(componentId);
+                    if (component != null) {
+                        pks.add(component.name());
+                    }
+                }
+            } else {
                 pks.add(attr.name());
             }
         }
@@ -705,7 +729,18 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
 
         Node node = getOrCreateNode(entity.name(), graph);
         processAttributes(node, entity.attributes(), attributeDTOMap, customDomainMap, graph);
-        processAttributes(node, entity.primaryKeys(), attributeDTOMap, customDomainMap, graph);
+
+        // Expand composite PK nodes into their individual component PKs before processing
+        List<String> expandedPks = new ArrayList<>();
+        for (String pkId : entity.primaryKeys()) {
+            ErAttributeDTO attr = attributeDTOMap.get(pkId);
+            if (attr != null && attr.isComposite() && !attr.components().isEmpty()) {
+                expandedPks.addAll(attr.components());
+            } else {
+                expandedPks.add(pkId);
+            }
+        }
+        processAttributes(node, expandedPks, attributeDTOMap, customDomainMap, graph);
     }
 
     @Override
@@ -736,9 +771,8 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                 undefineds.add(new ErUndefinedDTO(node.getUuid(), node.getName(), pos, List.of()));
                 continue;
             }
-            boolean allAttrsFk = ownAttrs.stream().allMatch(Node::isFk);
-            boolean hasOwnPk = ownAttrs.stream().anyMatch(a -> a.isPk() && !a.isFk());
-            if (allAttrsFk && !hasOwnPk && !isIntermediateOneOne(node, graph)) {
+            boolean hasPk = ownAttrs.stream().anyMatch(Node::isPk);
+            if (!hasPk && !isIntermediateOneOne(node, graph)) {
                 continue;
             }
             if (isIntermediateOneOne(node, graph)) {
@@ -973,9 +1007,87 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                     Graphs.successorListOf(graph, node).stream()
                             .filter(n -> n.isAttribute() && !n.isFk())
                             .toList();
+
+            // Separate PKs from regular attributes
+            List<Node> pkAttrs = ownAttrList.stream().filter(Node::isPk).toList();
+            List<Node> regularAttrs = ownAttrList.stream().filter(a -> !a.isPk()).toList();
+
             int attrTotal = ownAttrList.size();
             AtomicInteger attrIdx = new AtomicInteger(0);
-            ownAttrList.forEach(
+
+            if (pkAttrs.size() > 1) {
+                // Group all PKs into a single composite attribute node
+                String compositeId = UUID.randomUUID().toString();
+                Position compositePos = circlePos(pos, attrIdx.getAndIncrement(), attrTotal, 80);
+                List<String> componentIds = new ArrayList<>();
+                for (Node pkAttr : pkAttrs) {
+                    Position componentPos =
+                            circlePos(compositePos, componentIds.size(), pkAttrs.size(), 50);
+                    attributes.add(
+                            new ErAttributeDTO(
+                                    pkAttr.getUuid(),
+                                    pkAttr.getName(),
+                                    componentPos,
+                                    compositeId,
+                                    true,
+                                    false,
+                                    false,
+                                    pkAttr.isNotNull(),
+                                    pkAttr.isUnique(),
+                                    pkAttr.getDataType() != null
+                                            ? pkAttr.getDataType().domain().name()
+                                            : null,
+                                    pkAttr.getDataType() != null
+                                            ? pkAttr.getDataType().length()
+                                            : 0,
+                                    List.of()));
+                    componentIds.add(pkAttr.getUuid());
+                }
+                // The composite node itself
+                attributes.add(
+                        new ErAttributeDTO(
+                                compositeId,
+                                pkAttrs.stream()
+                                        .map(Node::getName)
+                                        .collect(java.util.stream.Collectors.joining("+")),
+                                compositePos,
+                                node.getUuid(),
+                                true,
+                                true,
+                                false,
+                                false,
+                                false,
+                                null,
+                                0,
+                                componentIds));
+                pks.add(compositeId);
+            } else {
+                // Single PK: add it directly as before
+                for (Node pkAttr : pkAttrs) {
+                    Position attrPos = circlePos(pos, attrIdx.getAndIncrement(), attrTotal, 80);
+                    attributes.add(
+                            new ErAttributeDTO(
+                                    pkAttr.getUuid(),
+                                    pkAttr.getName(),
+                                    attrPos,
+                                    node.getUuid(),
+                                    true,
+                                    false,
+                                    false,
+                                    pkAttr.isNotNull(),
+                                    pkAttr.isUnique(),
+                                    pkAttr.getDataType() != null
+                                            ? pkAttr.getDataType().domain().name()
+                                            : null,
+                                    pkAttr.getDataType() != null
+                                            ? pkAttr.getDataType().length()
+                                            : 0,
+                                    List.of()));
+                    pks.add(pkAttr.getUuid());
+                }
+            }
+
+            regularAttrs.forEach(
                     attr -> {
                         Position attrPos = circlePos(pos, attrIdx.getAndIncrement(), attrTotal, 80);
                         attributes.add(
@@ -984,7 +1096,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                         attr.getName(),
                                         attrPos,
                                         node.getUuid(),
-                                        attr.isPk(),
+                                        false,
                                         false,
                                         false,
                                         attr.isNotNull(),
@@ -996,11 +1108,7 @@ public class ERDiagramStrategy implements DiagramStrategy<ErInput> {
                                                 ? attr.getDataType().length()
                                                 : 0,
                                         List.of()));
-                        if (attr.isPk()) {
-                            pks.add(attr.getUuid());
-                        } else {
-                            attrs.add(attr.getUuid());
-                        }
+                        attrs.add(attr.getUuid());
                     });
 
             entities.add(new ErEntityDTO(node.getUuid(), node.getName(), pos, false, attrs, pks));
