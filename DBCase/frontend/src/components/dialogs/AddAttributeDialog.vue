@@ -56,6 +56,14 @@ const parentOptions = computed(() => {
   ].sort((a, b) => a.name.localeCompare(b.name))
 })
 
+const parentIsRelationship = computed(() =>
+  erSchemaStore.relationships.some((r: Relationship) => r.id === selectedParentId.value),
+)
+
+watch(parentIsRelationship, (isRel) => {
+  if (isRel) isKey.value = false
+})
+
 watch(visible, (isNowVisible) => {
   if (isNowVisible) {
     if (isEditMode.value && currentAttribute.value) {
@@ -171,8 +179,15 @@ const saveAttribute = () => {
 
       <div class="grid grid-cols-2 gap-2 mt-2">
         <div class="flex items-center gap-2">
-          <Checkbox v-model="isKey" :binary="true" inputId="isKey" />
-          <label for="isKey">{{ t('attribute.primaryKey') }}</label>
+          <Checkbox
+            v-model="isKey"
+            :binary="true"
+            inputId="isKey"
+            :disabled="parentIsRelationship"
+          />
+          <label for="isKey" :class="parentIsRelationship ? 'opacity-40' : ''">
+            {{ t('attribute.primaryKey') }}
+          </label>
         </div>
         <div class="flex items-center gap-2">
           <Checkbox v-model="isMultivalued" :binary="true" inputId="isMultivalued" />
